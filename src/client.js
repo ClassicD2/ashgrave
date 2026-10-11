@@ -587,6 +587,15 @@
     ctx.restore();
     return ok;
   }
+  var WALK_CYCLE = 1.6, walkTrack = new Map();
+  function walkFrame(e, n) {
+    var w = walkTrack.get(e.id);
+    if (!w) { w = { x: e.x, y: e.y, d: 0 }; walkTrack.set(e.id, w); }
+    var step = Math.hypot(e.x - w.x, e.y - w.y);
+    if (step < 1) w.d += step; // ignore teleports and level changes
+    w.x = e.x; w.y = e.y;
+    return Math.floor(w.d / WALK_CYCLE * n) % n;
+  }
   var ATK_TIME = { gnawer: 0.28, bonewalker: 0.45, ashpriest: 0.6, abbot: 0.5 };
   function drawPlayerSprite(p) {
     var actor = p.cls === 'warrior' ? 'warrior' : 'archer', dir = dirIndex(p.face || 0);
@@ -595,9 +604,9 @@
       return drawSprite(actor, 'attack', dir, onceFrame(actor, 'attack', 1 - p.anim / 0.25));
     }
     if (p.moving) {
-      // The hero sheets have a real 8-frame step cycle, so play them straight.
-      var wa = SPR.meta.actors[actor].animations.walk;
-      return drawSprite(actor, 'walk', dir, loopFrame(actor, 'walk', wa.fps || 9, (p.id || '').length));
+      // The hero sheets have a real 8-frame step cycle. Advance it by distance walked, not by time,
+      // so the feet keep pace with the ground at any move speed (one cycle = two steps = WALK_CYCLE tiles).
+      return drawSprite(actor, 'walk', dir, walkFrame(p, SPR.meta.actors[actor].animations.walk.frames));
     }
     return drawIdle(actor, dir, 1, (p.id || '').length);
   }
