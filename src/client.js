@@ -226,8 +226,8 @@
   }
 
   // ---------- Key bindings ----------
-  var DEFAULT_KEYS = { potionHp: '1', potionMp: '2', skill: 'q', character: 'c', inventory: 'i', map: 'tab' };
-  var KEY_LABELS = { potionHp: 'Healing potion', potionMp: 'Mana potion', skill: 'Class skill', character: 'Character', inventory: 'Inventory', map: 'Map' };
+  var DEFAULT_KEYS = { potionHp: '1', potionMp: '2', skill: 'q', character: 'c', inventory: 'i', map: 'tab', fullscreen: 'f' };
+  var KEY_LABELS = { potionHp: 'Healing potion', potionMp: 'Mana potion', skill: 'Class skill', character: 'Character', inventory: 'Inventory', map: 'Map', fullscreen: 'Fullscreen' };
   var keys = Object.assign({}, DEFAULT_KEYS), capturing = null, paused = false, settingsFrom = 'title';
   try { var savedKeys = JSON.parse(localStorage.getItem('ashgrave.keys') || 'null'); if (savedKeys) Object.keys(DEFAULT_KEYS).forEach(function (a) { if (typeof savedKeys[a] === 'string') keys[a] = savedKeys[a]; }); } catch (e) { }
   function saveKeys() { try { localStorage.setItem('ashgrave.keys', JSON.stringify(keys)); } catch (e) { } }
@@ -299,6 +299,7 @@
     }
     else if (k === keys.character) toggle('charPanel');
     else if (k === keys.inventory) toggle('invPanel');
+    else if (k === keys.fullscreen) toggleFullscreen();
   });
   refreshKeyLabels();
 
@@ -1949,6 +1950,25 @@
     writeSave();
   });
   $('giveUp').addEventListener('click', function () { cmd({ t: 'giveup' }); });
+  // ---------- Fullscreen ----------
+  function isFull() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function enterFullscreen() {
+    var el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!req || isFull()) return;
+    try { var pr = req.call(el, { navigationUI: 'hide' }); if (pr && pr.catch) pr.catch(function () { addLog('Fullscreen is not allowed here. Open the game page directly.', 'warn'); }); } catch (e) { }
+  }
+  function toggleFullscreen() {
+    if (isFull()) { var ex = document.exitFullscreen || document.webkitExitFullscreen; if (ex) try { ex.call(document); } catch (e) { } }
+    else enterFullscreen();
+  }
+  function fsPref() { try { return localStorage.getItem('ashgrave.fs') === '1'; } catch (e) { return false; } }
+  function fsLabel() { $('bFull').textContent = isFull() ? 'Exit fullscreen' : 'Fullscreen'; }
+  document.addEventListener('fullscreenchange', fsLabel); document.addEventListener('webkitfullscreenchange', fsLabel);
+  $('bFull').addEventListener('click', toggleFullscreen);
+  $('fsPref').checked = fsPref();
+  $('fsPref').addEventListener('change', function () { try { localStorage.setItem('ashgrave.fs', $('fsPref').checked ? '1' : '0'); } catch (e) { } });
+  // Starting a game counts as a click, so the browser lets it go fullscreen then.
+  ['bPlay', 'bTrial', 'bHost', 'bJoin'].forEach(function (id) { $(id).addEventListener('click', function () { if (fsPref()) enterFullscreen(); }); });
   $('bHost').addEventListener('click', hostGame);
   $('bJoin').addEventListener('click', joinGame);
   $('codeIn').addEventListener('keydown', function (e) { if (e.key === 'Enter') joinGame(); e.stopPropagation(); });
