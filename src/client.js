@@ -101,6 +101,7 @@
   var SFX = {
     swing: function () { noise(0.09, 'bandpass', 900, 1.2, 0.28); },
     cleave: function () { noise(0.18, 'bandpass', 650, 0.9, 0.38); tone('sawtooth', 160, 70, 0.14, 0.05); },
+    draw: function () { noise(0.09, 'bandpass', 900, 3, 0.12); tone('sine', 140, 170, 0.1, 0.06); },
     bow: function () { noise(0.06, 'bandpass', 2600, 1.4, 0.3); tone('triangle', 210, 95, 0.12, 0.2); },
     multi: function () { noise(0.12, 'bandpass', 2000, 0.9, 0.35); tone('triangle', 240, 90, 0.16, 0.2); },
     hit: function () { noise(0.07, 'lowpass', 900, 1, 0.35); },
@@ -195,11 +196,7 @@
     ensureAudio(); mouse.touch = e.pointerType === 'touch'; mouse.x = e.clientX; mouse.y = e.clientY;
     var p = me(); if (!p || p.dead) return;
     var w = toWorld(e.clientX, e.clientY);
-    if (e.button === 2) {
-      if (drawsBow(p)) { drawing = 'mouse'; cmd({ t: 'charge' }); return; }
-      var mm = monsterAt(e.clientX, e.clientY); cmd({ t: 'skill', x: mm ? mm.x : w.x, y: mm ? mm.y : w.y }); return;
-    }
-    if (e.button !== 0) return;
+    if (e.button !== 0) return; // the right button is handled by rightDown below
     try { cv.setPointerCapture(e.pointerId); } catch (er) { }
     mouse.down = true; mouse.last = performance.now();
     var lab = labelAt(e.clientX, e.clientY);
@@ -223,13 +220,23 @@
     var w = toWorld(mouse.x, mouse.y), m = monsterAt(mouse.x, mouse.y);
     cmd({ t: 'skill', x: m ? m.x : w.x, y: m ? m.y : w.y });
   }
-  window.addEventListener('pointerup', function (e) { if (e.button === 2 && drawing === 'mouse') releaseDraw(); });
+  // Pointer events only report the first button pressed, so a right click while the left button is held
+  // (walking, attacking) never arrived. Mouse events report every button.
+  function rightDown(e) {
+    if (!running || e.button !== 2) return;
+    ensureAudio(); mouse.x = e.clientX; mouse.y = e.clientY;
+    var p = me(); if (!p || p.dead) return;
+    if (drawsBow(p)) { if (!drawing) { drawing = 'mouse'; cmd({ t: 'charge' }); sfx('draw'); } return; }
+    var w = toWorld(e.clientX, e.clientY), mm = monsterAt(e.clientX, e.clientY); cmd({ t: 'skill', x: mm ? mm.x : w.x, y: mm ? mm.y : w.y });
+  }
+  cv.addEventListener('mousedown', rightDown);
+  window.addEventListener('mouseup', function (e) { if (e.button === 2 && drawing === 'mouse') releaseDraw(); });
   window.addEventListener('keyup', function (e) { if (drawing === 'key' && e.key.toLowerCase() === keys.skill) releaseDraw(); });
   window.addEventListener('blur', function () { if (drawing) releaseDraw(); });
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
   function handleHold(now) {
-    if (!mouse.down || !running) return;
+    if (!mouse.down || !running || drawing) return; // holding the bow drawn pauses walk/attack repeats
     var p = me(); if (!p || p.dead) return;
     var w = toWorld(mouse.x, mouse.y);
     if (mouse.held === 'move' && now - mouse.last > 170) { mouse.last = now; cmd({ t: 'move', x: w.x, y: w.y }); }
@@ -599,6 +606,13 @@
   var ATK_TIME = { gnawer: 0.28, bonewalker: 0.45, ashpriest: 0.6, abbot: 0.5 };
   function drawPlayerSprite(p) {
     var actor = p.cls === 'warrior' ? 'warrior' : 'archer', dir = dirIndex(p.face || 0);
+    if (p.charge != null && actor === 'archer') {
+      // Drawing the bow: face the cursor (own hero) and hold the draw frames of the attack sheet.
+      var face = p.face;
+      if (p.id === PID) { var mw = toWorld(mouse.x, mouse.y); face = Math.atan2(mw.y - p.y, mw.x - p.x); }
+      var df = E.drawFrac(S, p);
+      return drawSprite(actor, 'attack', dirIndex(face), Math.min(3, 1 + Math.floor(df * 3)));
+    }
     if (p.anim > 0) {
       if (actor === 'warrior') return drawWarriorAttack(dir, 1 - p.anim / 0.25, p.face);
       return drawSprite(actor, 'attack', dir, onceFrame(actor, 'attack', 1 - p.anim / 0.25));

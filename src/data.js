@@ -106,7 +106,7 @@ var DATA = {
       lore: 'Carries the dawn into the deep. Draws the bow long and lets the light go through everything.',
       core: { name: 'Lantern Soul',
         desc: '+2 light radius. Your arrows pierce one enemy, losing 50% damage per pierce. Hold Multishot to draw it: at full draw (2 seconds) it deals +50% damage and pierces 2 more enemies.',
-        light: 2, pierce: 1, pierceKeep: 0.5, charge: { min: 0.3, full: 2, dmg: 0.5, pierce: 2 } },
+        light: 2, pierce: 1, pierceKeep: 0.5, charge: { min: 0, full: 2, dmg: 0.5, pierce: 2 } },
       nodes: [
         { id: 'focused_draw', name: 'Focused Draw', max: 3, per: 15, desc: 'A full draw deals +{v}% more damage.' },
         { id: 'quick_draw', name: 'Quick Draw', max: 2, per: 0.3, desc: 'A full draw takes {v}s less.' },
