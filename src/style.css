@@ -331,3 +331,4 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 .coop-row .lbl { color: var(--muted); font-size: 13px; min-width: 4.5em; text-align: right; }
 
 .m.u { color: #d8a8ff; }
+#updBar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: #2a1d10; border: 1px solid var(--bronze); border-radius: 4px; color: var(--bone); font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.5); max-width: calc(100vw - 32px); }

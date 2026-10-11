@@ -16,7 +16,8 @@ for f in sorted((src/'sprites').glob('*.webp')):
 h=h.replace('/*SPRITES*/','var SPRITES = '+json.dumps({'meta':spr,'img':imgs})+';')
 h=h.replace('/*TILES*/','var TILE_ATLAS = '+json.dumps({'svg':svg,'cells':cells})+';')
 import datetime
-stamp=(datetime.datetime.utcnow()+datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H:%M')
+stamp=(datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H:%M')
+h=h.replace('/*BUILD*/','var BUILD = '+json.dumps(stamp)+';',1)
 h=h.replace('<div class="tools"><button class="tb" id="bImport">','<p class="hint ver">Build '+stamp+'</p>\n    <div class="tools"><button class="tb" id="bImport">',1)
 pathlib.Path('dist').mkdir(exist_ok=True); (pathlib.Path('dist')/'ashgrave.html').write_text(h)
 print(len(h))

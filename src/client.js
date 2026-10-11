@@ -1706,6 +1706,19 @@
   function charForNet() { var c = loadStore().slots[selSlot]; return c ? JSON.parse(JSON.stringify(c)) : null; }
 
   // ----- Host -----
+  function myBuild() { return typeof BUILD !== 'undefined' ? BUILD : 'dev'; }
+  // On the hosted page, look for a newer build than the one loaded (GitHub Pages caches for a few minutes).
+  function checkForUpdate() {
+    if (!/^https?:$/.test(location.protocol) || typeof fetch !== 'function') return;
+    try {
+      fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+        var mm = /var BUILD = "([^"]+)"/.exec(t || '');
+        if (mm && mm[1] > myBuild()) { $('updBar').hidden = false; $('updTxt').textContent = 'A newer version is out (build ' + mm[1] + ').'; }
+      }).catch(function () { });
+    } catch (e) { }
+  }
+  checkForUpdate(); setInterval(function () { if (!running) checkForUpdate(); }, 120000);
+  $('updGo').addEventListener('click', function () { writeSave(); location.reload(); });
   function cleanRoom(v) { var c = (v || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); return c.length >= 3 && c.length <= 12 ? c : ''; }
   function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
   function lsSet(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) { } }
@@ -1746,7 +1759,8 @@
       if (!E.isUnlocked(c, S.difficulty)) { conn.send({ t: 'locked', difficulty: S.difficulty }); return; }
       E.addPlayer(S, conn.pid, c);
       conns.push(conn);
-      conn.send({ t: 'welcome', pid: conn.pid, room: roomCode });
+      conn.send({ t: 'welcome', pid: conn.pid, room: roomCode, build: myBuild() });
+      if (m.build !== myBuild()) addLog('Version mismatch: ' + (c.name || 'your friend') + ' has build ' + (m.build || 'unknown') + ', you have ' + myBuild() + '. Whoever is older should reload with Ctrl+Shift+R.', 'warn');
       addLog(S.players[conn.pid].name + ' joined the game.', 'gold'); showRoom();
     } else if (m.t === 'cmd' && conn.pid && m.c && ALLOWED[m.c.t]) E.command(S, conn.pid, m.c);
   }
@@ -1813,9 +1827,12 @@
       var timer = setTimeout(function () { if (MODE !== 'client') { netStatus('Could not connect. Check the code, or a firewall may be blocking a direct link.', true); try { peer.destroy(); } catch (e) { } } }, 15000);
       peer.on('open', function () {
         hostConn = peer.connect('ashgrave-' + code, { reliable: true });
-        hostConn.on('open', function () { hostConn.send({ t: 'hello', char: charForNet() }); });
+        hostConn.on('open', function () { hostConn.send({ t: 'hello', char: charForNet(), build: myBuild() }); });
         hostConn.on('data', function (m) {
-          if (m.t === 'welcome') { clearTimeout(timer); MODE = 'client'; PID = m.pid; activeSlot = selSlot; enterClient(); }
+          if (m.t === 'welcome') {
+            clearTimeout(timer); MODE = 'client'; PID = m.pid; activeSlot = selSlot; enterClient();
+            if (m.build && m.build !== myBuild()) addLog('Version mismatch: the host has build ' + m.build + ', you have ' + myBuild() + '. Whoever is older should reload with Ctrl+Shift+R.', 'warn');
+          }
           else if (m.t === 'locked') { clearTimeout(timer); netStatus('That game is on ' + DATA.difficulties[m.difficulty].name + ', which ' + loadStore().slots[selSlot].name + ' has not unlocked.', true); try { peer.destroy(); } catch (e) { } }
           else if (m.t === 'full') { clearTimeout(timer); netStatus('That game already has four players.', true); }
           else if (m.t === 'snap' && MODE === 'client') applySnap(m);
