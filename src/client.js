@@ -587,7 +587,7 @@
     ctx.restore();
     return ok;
   }
-  var WALK_CYCLE = 1.6, walkTrack = new Map();
+  var WALK_CYCLE = 2.3, walkTrack = new Map();
   function walkFrame(e, n) {
     var w = walkTrack.get(e.id);
     if (!w) { w = { x: e.x, y: e.y, d: 0 }; walkTrack.set(e.id, w); }
