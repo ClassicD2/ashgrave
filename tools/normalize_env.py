@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 SRC, OUT = sys.argv[1], sys.argv[2]
 FLOOR_INSET = 0.05
+TOP_TEXTURE = 'floor-stone-b.png'
 
 def alpha(im): return np.array(im.split()[3]) > 100
 
@@ -66,10 +67,13 @@ def norm_wall(im):
     arr = np.array(out).astype(float)
     ys2, xs2 = np.mgrid[0:H, 0:W]
     inside = (np.abs(xs2 - 64) / 64 + np.abs(ys2 - 32) / 32) <= 0.8
-    base = np.median(arr[inside][:, :3], axis=0) * 0.78
-    rng = np.random.default_rng(7)  # same grain on every block, so tops tile without a pattern break
-    grain = np.array(Image.fromarray((rng.random((H, W)) * 255).astype('uint8')).filter(ImageFilter.GaussianBlur(1.2))).astype(float) / 255 - 0.5
-    t = np.zeros((H, W, 4)); t[..., :3] = base[None, None, :] * (1 + grain[..., None] * 0.22); t[..., 3] = 255
+    base = np.median(arr[inside][:, :3], axis=0) * 0.62
+    # Cap stones: the painted floor slab (already snapped to the grid) tinted to the wall's stone and a
+    # shade darker, so wall tops read as worn stone and join their neighbours like the floor does.
+    ft = np.array(norm_floor(Image.open(os.path.join(SRC, TOP_TEXTURE)).convert('RGBA'))).astype(float)
+    fin = (np.abs(xs2[:64] - 64) / 64 + np.abs(ys2[:64] - 32) / 32) <= 0.8
+    fmed = np.median(ft[fin][:, :3], axis=0)
+    t = np.zeros((H, W, 4)); t[:64, :, :3] = ft[..., :3] * (base / np.maximum(fmed, 1))[None, None, :]; t[..., 3] = 255
     top = Image.fromarray(np.clip(t, 0, 255).astype('uint8'), 'RGBA')
     m = Image.new('L', (W, H), 0); ImageDraw.Draw(m).polygon([(64, 0), (128, 32), (64, 64), (0, 32)], fill=255)
     out.paste(top, (0, 0), m)
