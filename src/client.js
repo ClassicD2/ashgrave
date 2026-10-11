@@ -527,6 +527,9 @@
     return ((i % 8) + 8) % 8;
   }
   var SPR_ALIAS = { gravewarden: 'bonewalker' };
+  // Rows in the generated hero sheets that face the wrong way: draw the mirrored opposite row instead.
+  // Archer SW is painted facing SE; warrior SE is painted facing SW. (rows: S SW W NW N NE E SE)
+  var SPR_MIRROR = { archer: { 1: 7 }, warrior: { 7: 1 } };
   function hasSprite(actor) { actor = SPR_ALIAS[actor] || actor; return hasSprite0(actor); }
   function hasSprite0(actor) { return !!(SPR && SPR.meta.actors[actor] && sprOk(actor + '-idle')); }
   // Draws one frame with the feet at (0,0) of the current transform. Returns false if the sheet is missing.
@@ -536,7 +539,10 @@
     if (!sprOk(file)) { info = 'idle'; file = actor + '-idle'; if (!sprOk(file)) return false; }
     var a = meta.animations[info], fs = a.frameSize || meta.frameSize, an = a.anchor || meta.anchor, s = 0.5 * (meta.pxScale || 1) * (extra || 1);
     var f = Math.max(0, Math.min(a.frames - 1, frame | 0));
+    var mir = SPR_MIRROR[actor], flip = mir && (info === 'walk' || info === 'idle') && mir[dir] !== undefined;
+    if (flip) { ctx.save(); ctx.scale(-1, 1); dir = mir[dir]; }
     ctx.drawImage(sprImg[file], f * fs, dir * fs, fs, fs, -an[0] * s, -an[1] * s, fs * s, fs * s);
+    if (flip) ctx.restore();
     return true;
   }
   function loopFrame(actor, anim, fps, offset) {
