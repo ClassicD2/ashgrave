@@ -34,31 +34,71 @@ var Engine = (function () {
 
   // ---------- Map ----------
   // 0 = wall, 1 = floor, 2 = stairs down
-  function genLevel(seed, depth) {
+  // Which kind of level a depth gets: crypts near the top, then catacombs, then caves, and the
+  // Abbot's monastery at the bottom. Scaled to each difficulty's length.
+  function themeFor(depth, finalDepth) {
+    finalDepth = finalDepth || 10;
+    if (depth >= finalDepth) return 'monastery';
+    var f = (depth - 1) / Math.max(1, finalDepth - 1);
+    return f < 0.3 ? 'crypt' : f < 0.6 ? 'catacombs' : 'caves';
+  }
+  function genLevel(seed, depth, finalDepth) {
+    var theme = themeFor(depth, finalDepth);
     var r = { s: (seed * 7919 + depth * 104729) | 0 };
-    var W = 60, H = 60, t = new Array(W * H).fill(0), rooms = [], i, x, y;
-    for (i = 0; i < 300 && rooms.length < 13; i++) {
-      var w = rint(r, 5, 10), h = rint(r, 5, 10);
-      x = rint(r, 2, W - w - 3); y = rint(r, 2, H - h - 3);
-      var hit = rooms.some(function (o) { return x < o.x + o.w + 2 && x + w + 2 > o.x && y < o.y + o.h + 2 && y + h + 2 > o.y; });
-      if (hit) continue;
-      rooms.push({ x: x, y: y, w: w, h: h, cx: x + (w >> 1), cy: y + (h >> 1) });
-    }
-    rooms.forEach(function (o) {
-      for (var yy = o.y; yy < o.y + o.h; yy++) for (var xx = o.x; xx < o.x + o.w; xx++) t[yy * W + xx] = 1;
-    });
-    function carve(cx, cy) {
-      for (var dy = 0; dy < 2; dy++) for (var dx = 0; dx < 2; dx++) {
-        var xx = Math.min(W - 2, Math.max(1, cx + dx)), yy = Math.min(H - 2, Math.max(1, cy + dy));
-        t[yy * W + xx] = 1;
+    var W = theme === 'crypt' || theme === 'monastery' ? 60 : 64, H = W, t = new Array(W * H).fill(0), rooms = [], i, x, y;
+    function free(x, y, w, h, gap) { return !rooms.some(function (o) { return x < o.x + o.w + gap && x + w + gap > o.x && y < o.y + o.h + gap && y + h + gap > o.y; }); }
+    function addRoom(x, y, w, h) { var o = { x: x, y: y, w: w, h: h, cx: x + (w >> 1), cy: y + (h >> 1) }; rooms.push(o); return o; }
+    function fillRect(o) { for (var yy = o.y; yy < o.y + o.h; yy++) for (var xx = o.x; xx < o.x + o.w; xx++) t[yy * W + xx] = 1; }
+    function placeRooms(n, wmin, wmax, hmin, hmax, gap) {
+      for (var k = 0; k < 400 && n > 0; k++) {
+        var w = rint(r, wmin, wmax), h = rint(r, hmin, hmax), x = rint(r, 2, W - w - 3), y = rint(r, 2, H - h - 3);
+        if (free(x, y, w, h, gap)) { addRoom(x, y, w, h); n--; }
       }
     }
+    function set(xx, yy) { if (xx >= 1 && yy >= 1 && xx < W - 1 && yy < H - 1) t[yy * W + xx] = 1; }
+    var cw = theme === 'catacombs' ? 1 : 2;
+    function carve(cx, cy) { for (var dy = 0; dy < cw; dy++) for (var dx = 0; dx < cw; dx++) set(cx + dx, cy + dy); }
     function corridor(a, b) {
       var x0 = a.cx, y0 = a.cy, x1 = b.cx, y1 = b.cy, cx = x0, cy = y0;
       var horizFirst = rnd(r) < 0.5;
       if (horizFirst) { while (cx !== x1) { carve(cx, cy); cx += Math.sign(x1 - cx); } while (cy !== y1) { carve(cx, cy); cy += Math.sign(y1 - cy); } }
       else { while (cy !== y1) { carve(cx, cy); cy += Math.sign(y1 - cy); } while (cx !== x1) { carve(cx, cy); cx += Math.sign(x1 - cx); } }
       carve(cx, cy);
+    }
+    // A wandering tunnel for the caves: heads for the target but drifts, 2-3 tiles wide.
+    function tunnel(a, b) {
+      var cx = a.cx, cy = a.cy, guard = 0;
+      while ((cx !== b.cx || cy !== b.cy) && guard++ < 600) {
+        for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if (dx === 0 || dy === 0 || rnd(r) < 0.5) set(cx + dx, cy + dy);
+        var toX = Math.sign(b.cx - cx), toY = Math.sign(b.cy - cy), q = rnd(r);
+        if (q < 0.65) { if (toX && (!toY || rnd(r) < 0.5)) cx += toX; else cy += toY; }
+        else if (q < 0.85) { if (toX) cy += rnd(r) < 0.5 ? 1 : -1; else cx += rnd(r) < 0.5 ? 1 : -1; }
+        else { if (toX) cx += toX; if (toY) cy += toY; }
+        cx = Math.max(2, Math.min(W - 3, cx)); cy = Math.max(2, Math.min(H - 3, cy));
+      }
+    }
+    var hall = null;
+    if (theme === 'crypt') { placeRooms(13, 5, 10, 5, 10, 2); rooms.forEach(fillRect); }
+    else if (theme === 'catacombs') {
+      // Two burial halls among many small niches, joined by narrow passages.
+      placeRooms(2, 8, 10, 7, 9, 3); placeRooms(22, 3, 6, 3, 5, 2); rooms.forEach(fillRect);
+    } else if (theme === 'caves') {
+      // Rough open caverns: jagged blobs with winding tunnels between them.
+      for (var k = 0; k < 400 && rooms.length < 10; k++) {
+        var rx = rint(r, 3, 6), ry = rint(r, 3, 6), ccx = rint(r, rx + 3, W - rx - 4), ccy = rint(r, ry + 3, H - ry - 4);
+        if (!free(ccx - rx, ccy - ry, rx * 2 + 1, ry * 2 + 1, 2)) continue;
+        var o = addRoom(ccx - rx, ccy - ry, rx * 2 + 1, ry * 2 + 1); o.cx = ccx; o.cy = ccy;
+        for (var yy = o.y; yy < o.y + o.h; yy++) for (var xx = o.x; xx < o.x + o.w; xx++) {
+          var ex = (xx - ccx) / (rx + 0.5), ey = (yy - ccy) / (ry + 0.5);
+          if (ex * ex + ey * ey <= 1 + (rnd(r) - 0.5) * 0.5) set(xx, yy);
+        }
+        set(ccx, ccy);
+      }
+    } else {
+      // The monastery: a pillared nave far from the entrance chapel, side chapels around it.
+      addRoom(4, H - 12, 7, 7);
+      hall = addRoom(W - 24, 4, 19, 15);
+      placeRooms(8, 5, 8, 5, 8, 2); rooms.forEach(fillRect);
     }
     // Prim's minimum spanning tree + a few extra loops
     var inTree = [0], edges = [];
@@ -71,14 +111,39 @@ var Engine = (function () {
       }
       inTree.push(best[1]); edges.push(best);
     }
-    for (i = 0; i < 2 && rooms.length > 3; i++) edges.push([rint(r, 0, rooms.length - 1), rint(r, 0, rooms.length - 1)]);
-    edges.forEach(function (e) { if (e[0] !== e[1]) corridor(rooms[e[0]], rooms[e[1]]); });
-
+    var loops = theme === 'catacombs' ? 5 : theme === 'caves' ? 3 : 2;
+    for (i = 0; i < loops && rooms.length > 3; i++) edges.push([rint(r, 0, rooms.length - 1), rint(r, 0, rooms.length - 1)]);
+    edges.forEach(function (e) { if (e[0] !== e[1]) (theme === 'caves' ? tunnel : corridor)(rooms[e[0]], rooms[e[1]]); });
+    if (theme === 'caves') {
+      // Smooth the rock: walls mostly surrounded by floor fall away. Only adds floor, so nothing gets cut off.
+      for (var pass = 0; pass < 2; pass++) {
+        var add = [];
+        for (y = 2; y < H - 2; y++) for (x = 2; x < W - 2; x++) {
+          if (t[y * W + x]) continue;
+          var nb = 0; for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) if (t[(y + oy) * W + x + ox]) nb++;
+          if (nb >= 5) add.push(y * W + x);
+        }
+        add.forEach(function (q) { t[q] = 1; });
+      }
+    }
+    if (hall) {
+      // Columns down the nave, clear around its middle where the Abbot waits.
+      for (y = hall.y + 2; y < hall.y + hall.h - 2; y += 3) for (x = hall.x + 2; x < hall.x + hall.w - 2; x += 4)
+        if (Math.abs(x - hall.cx) > 2 || Math.abs(y - hall.cy) > 2) t[y * W + x] = 0;
+    }
+    // Drop any pocket of floor that cannot be reached from the start (rough cave edges can leave some).
+    var reach = new Uint8Array(W * H), stack = [rooms[0].cy * W + rooms[0].cx]; reach[stack[0]] = 1;
+    while (stack.length) {
+      var c0 = stack.pop(), c0x = c0 % W, c0y = (c0 / W) | 0;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dd) { var nq = (c0y + dd[1]) * W + c0x + dd[0]; if (t[nq] && !reach[nq]) { reach[nq] = 1; stack.push(nq); } });
+    }
+    for (i = 0; i < W * H; i++) if (t[i] && !reach[i]) t[i] = 0;
     var start = rooms[0], far = rooms[0], fd = -1;
-    rooms.forEach(function (o) { var d = Math.hypot(o.cx - start.cx, o.cy - start.cy); if (d > fd) { fd = d; far = o; } });
+    rooms.forEach(function (o) { if (!reach[o.cy * W + o.cx]) return; var d = Math.hypot(o.cx - start.cx, o.cy - start.cy); if (d > fd) { fd = d; far = o; } });
+    if (hall) far = hall;
     t[far.cy * W + far.cx] = 2;
     return {
-      W: W, H: H, t: t, rooms: rooms, depth: depth,
+      W: W, H: H, t: t, rooms: rooms, depth: depth, theme: theme,
       start: { x: start.cx + 0.5, y: start.cy + 0.5 },
       stairs: { x: far.cx + 0.5, y: far.cy + 0.5 },
       startRoom: 0, stairsRoom: rooms.indexOf(far)
@@ -581,7 +646,7 @@ var Engine = (function () {
 
   function loadLevel(S, depth) {
     S.depth = depth;
-    S.map = genLevel(S.seed, depth);
+    S.map = genLevel(S.seed, depth, D.difficulties[S.difficulty].finalDepth);
     var DF = D.difficulties[S.difficulty];
     if (depth >= DF.finalDepth) applyFinal(S.map);
     S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.zones = []; S.hazards = [];
@@ -740,6 +805,7 @@ var Engine = (function () {
     if (!rooms.length) return;
     var room = map.rooms[pick(r, rooms)];
     var x = room.x + 1.5 + rnd(r) * Math.max(0.1, room.w - 3), y = room.y + 1.5 + rnd(r) * Math.max(0.1, room.h - 3);
+    if (!canStand(map, x, y, 0.35)) { x = room.cx + 0.5; y = room.cy + 0.5; }
     S.monsters = S.monsters.filter(function (m) { return !(m.x > room.x - 1 && m.x < room.x + room.w + 1 && m.y > room.y - 1 && m.y < room.y + room.h + 1); });
     S.npcs.push({ id: S.nextId++, kind: 'merchant', name: M.name, x: x, y: y, face: rnd(r) * 6.28 });
     S.merchantNext = S.depth + rint(r, M.gap[0], M.gap[1]);
@@ -778,7 +844,8 @@ var Engine = (function () {
     });
     map.rooms.forEach(function (room, ri) {
       if (ri === map.startRoom) return;
-      var groups = rint(r, 1, 2) + (d > 3 && rnd(r) < 0.3 ? 1 : 0);
+      var groups = rint(r, 1, 2) + (d > 3 && rnd(r) < 0.3 ? 1 : 0) + (map.theme === 'caves' ? 1 : 0);
+      if (map.theme === 'catacombs' && room.w * room.h < 20 && rnd(r) < 0.5) groups = 0; // many niches stand empty
       for (var g = 0; g < groups; g++) {
         var pk = wpick(r, packs), champ = rnd(r) < champChance && ri !== nearest;
         var gx = room.x + 1 + rnd(r) * (room.w - 2), gy = room.y + 1 + rnd(r) * (room.h - 2);
@@ -788,6 +855,7 @@ var Engine = (function () {
             var x = gx + (rnd(r) - 0.5) * 2.4, y = gy + (rnd(r) - 0.5) * 2.4;
             x = Math.min(room.x + room.w - 0.6, Math.max(room.x + 0.6, x));
             y = Math.min(room.y + room.h - 0.6, Math.max(room.y + 0.6, y));
+            if (!canStand(map, x, y, 0.3)) { var nw = nearestWalkable(map, x, y, 3); if (!nw || !canStand(map, nw.x, nw.y, 0.3)) continue; x = nw.x; y = nw.y; }
             addMonster(S, u[0], x, y, champ);
           }
         });
@@ -1623,7 +1691,7 @@ var Engine = (function () {
   return {
     classOf: classOf, canWield: canWield, targetSlot: targetSlot,
     genUnique: genUnique, uniqueDef: uniqueDef, ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
-    SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, applyFinal: applyFinal,
+    SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, applyFinal: applyFinal, themeFor: themeFor,
     createSim: createSim, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,
     itemName: itemName, baseOf: baseOf, genItem: genItem, findPath: findPath,

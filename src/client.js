@@ -325,7 +325,11 @@
         case 'level':
           explored = new Uint8Array(S.map.W * S.map.H); corpses = []; parts = []; texts = []; prev.clear();
           setDepthLabel();
-          if (e.depth > 1) { addLog('You descend to level ' + e.depth + '.', 'gold'); sfx('stairs'); }
+          if (e.depth > 1) {
+            addLog('You descend to level ' + e.depth + '.', 'gold'); sfx('stairs');
+            if (S.map.theme !== lastTheme) addLog('You enter ' + theme().name + '.', 'rare');
+          }
+          lastTheme = S.map.theme;
           writeSave(); break;
         case 'shoot':
           if (e.pid === PID) sfx(e.multi ? 'multi' : 'bow');
@@ -609,24 +613,41 @@
   // ---------- Painted environment (floor, walls, stairs, gates, props) ----------
   var ENV = sprOk('floor-stone') ? true : null;
   function envOk() { if (ENV === null || ENV === false) ENV = sprOk('floor-stone') && sprOk('wall-straight'); return ENV; }
+  // How each kind of level looks: floor mix (per mille, cumulative order below), wall decorations and props.
+  var FLOOR_ORDER = ['floor-stone', 'floor-stone-b', 'floor-cracked', 'floor-moss', 'floor-rubble', 'floor-ash', 'floor-blood', 'floor-rune'];
+  var THEMES = {
+    crypt:     { name: 'The Crypts',        floor: [480, 320, 70, 45, 35, 25, 17, 8],  wall: { cracked: 70, moss: 70, torch: 30, banner: 22 },
+                 props: [['brazier', 22], ['urn', 22], ['skeleton-remains', 18], ['rubble-pile', 16], ['broken-pillar', 10], ['floor-grate', 12]], propChance: 110 },
+    catacombs: { name: 'The Catacombs',     floor: [300, 260, 180, 30, 60, 130, 30, 10], wall: { cracked: 140, moss: 40, torch: 22, banner: 0 },
+                 props: [['skeleton-remains', 40], ['urn', 30], ['brazier', 10], ['rubble-pile', 10], ['broken-pillar', 5], ['floor-grate', 5]], propChance: 170 },
+    caves:     { name: 'The Caverns',       floor: [150, 150, 200, 200, 230, 50, 15, 5], wall: { cracked: 160, moss: 260, torch: 0, banner: 0 },
+                 props: [['rubble-pile', 40], ['broken-pillar', 25], ['skeleton-remains', 20], ['urn', 5], ['brazier', 10]], propChance: 130 },
+    monastery: { name: 'The Burning Abbey', floor: [380, 300, 80, 10, 20, 80, 90, 40], wall: { cracked: 40, moss: 10, torch: 90, banner: 90 },
+                 props: [['brazier', 45], ['urn', 25], ['broken-pillar', 15], ['floor-grate', 15]], propChance: 120 }
+  };
+  var lastTheme = null;
+  function theme() { return THEMES[(S && S.map && S.map.theme) || 'crypt'] || THEMES.crypt; }
   function envFloor(h) {
-    var k = h % 1000;
-    return k < 480 ? 'floor-stone' : k < 800 ? 'floor-stone-b' : k < 870 ? 'floor-cracked' : k < 915 ? 'floor-moss' : k < 950 ? 'floor-rubble' : k < 975 ? 'floor-ash' : k < 992 ? 'floor-blood' : 'floor-rune';
+    var k = h % 1000, w = theme().floor, acc = 0;
+    for (var i = 0; i < w.length; i++) { acc += w[i]; if (k < acc) return FLOOR_ORDER[i]; }
+    return 'floor-stone';
   }
   // Decorated faces only where they look into a room: l = the face toward +y, r = the face toward +x.
   function envWall(tx, ty, h) {
     var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
     if (!L && !Rr) return 'wall-straight';
     var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
-    var kind = k < 70 ? 'cracked' : k < 140 ? 'moss' : k < 170 ? 'torch' : k < 192 ? 'banner' : null;
+    var tw = theme().wall, kind = null, acc = 0;
+    ['cracked', 'moss', 'torch', 'banner'].some(function (nm) { acc += tw[nm]; if (k < acc) { kind = nm; return true; } return false; });
     return kind ? 'wall-' + kind + side : 'wall-straight';
   }
   var lamps = [];
   // Props are decoration only: they never block movement, so they sit along the walls, out of the way.
-  var PROP_KINDS = [['brazier', 0.62, 220], ['urn', 0.5, 440], ['skeleton-remains', 0.6, 620], ['rubble-pile', 0.6, 780], ['broken-pillar', 0.72, 880], ['floor-grate', 0.62, 1000]];
+  var PROP_SCALE = { brazier: 0.62, urn: 0.5, 'skeleton-remains': 0.6, 'rubble-pile': 0.6, 'broken-pillar': 0.72, 'floor-grate': 0.62 };
   var propMap = null, propKey = '';
   function buildProps() {
-    var map = S.map, key = S.seed + ':' + S.depth + ':' + (S.trial ? 't' : '');
+    var map = S.map, key = S.seed + ':' + S.depth + ':' + (S.trial ? 't' : '') + ':' + map.theme, TH = theme();
+    var kinds = [], tot = 0; TH.props.forEach(function (pk) { tot += pk[1]; kinds.push([pk[0], (PROP_SCALE[pk[0]] || 0.6), tot]); });
     if (propKey === key && propMap) return propMap;
     propKey = key; propMap = {};
     var placed = [], salt = (S.seed & 0xffff) ^ (S.depth * 977), W = map.W, H = map.H;
@@ -637,11 +658,11 @@
       // Only against the walls behind (north and west on screen), so the walls in front never hide them.
       if (!(nW || nN) || nE || nS) continue;
       var h = hash(x + salt, y - salt);
-      if (h % 1000 >= 110) continue;
+      if (h % 1000 >= TH.propChance) continue;
       if (Math.hypot(x + 0.5 - st.x, y + 0.5 - st.y) < 4 || Math.hypot(x + 0.5 - sr.x, y + 0.5 - sr.y) < 3) continue;
       if (placed.some(function (p) { return Math.abs(p[0] - x) + Math.abs(p[1] - y) < 5; })) continue;
-      var r = hash(h & 0xffff, 7919) % 1000, kd = PROP_KINDS[PROP_KINDS.length - 1];
-      for (var i = 0; i < PROP_KINDS.length; i++) if (r < PROP_KINDS[i][2]) { kd = PROP_KINDS[i]; break; }
+      var r = hash(h & 0xffff, 7919) % tot, kd = kinds[kinds.length - 1];
+      for (var i = 0; i < kinds.length; i++) if (r < kinds[i][2]) { kd = kinds[i]; break; }
       var ox = nW ? -0.18 : 0, oy = nN ? -0.18 : 0;
       placed.push([x, y]);
       propMap[y * W + x] = { kind: kd[0], scale: kd[1], x: x + 0.5 + ox, y: y + 0.5 + oy, flip: (h >>> 20) & 1 };
@@ -1895,7 +1916,7 @@
     }
     if (!S || S.depth !== m.depth || S.seed !== m.seed || S.difficulty !== m.difficulty) {
       var old = S;
-      S = { seed: m.seed, depth: m.depth, difficulty: m.difficulty || 'normal', map: E.genLevel(m.seed, m.depth), players: old ? old.players : {}, monsters: [], projs: [], ground: [], npcs: [], events: [], queue: [] };
+      S = { seed: m.seed, depth: m.depth, difficulty: m.difficulty || 'normal', map: E.genLevel(m.seed, m.depth, DATA.difficulties[m.difficulty || 'normal'].finalDepth), players: old ? old.players : {}, monsters: [], projs: [], ground: [], npcs: [], events: [], queue: [] };
       if (m.final) E.applyFinal(S.map);
       explored = new Uint8Array(S.map.W * S.map.H); corpses = []; prev = new Map();
       setDepthLabel();
@@ -1943,7 +1964,7 @@
       return;
     }
     var dn = DATA.difficulties[S.difficulty || 'normal'].name;
-    $('depthN').textContent = 'Level ' + S.depth + (S.map && S.map.final ? ' (final)' : '') + ' · ' + dn;
+    $('depthN').textContent = 'Level ' + S.depth + (S.map && S.map.final ? ' (final)' : '') + ' · ' + theme().name + ' · ' + dn;
   }
   function startTrial(slot) {
     var c = JSON.parse(JSON.stringify(loadStore().slots[slot]));
