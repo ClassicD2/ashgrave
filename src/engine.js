@@ -226,8 +226,22 @@ var Engine = (function () {
     return item;
   }
 
+  function uniqueDef(id) { for (var i = 0; i < D.uniques.length; i++) if (D.uniques[i].id === id) return D.uniques[i]; return null; }
+  // A unique item: fixed name and base, stats rolled inside its ranges.
+  function genUnique(S, ilvl, id) {
+    var r = S.rng, u = id ? uniqueDef(id) : pick(r, D.uniques);
+    var b = BASES[u.base], it = { uid: S.nextId++, base: b.id, slot: b.slot, ilvl: Math.max(ilvl, D.uniqueRules.minIlvl), rarity: 3, unique: u.id, mods: {}, affixes: [] };
+    if (b.dmg) it.dmg = [b.dmg[0], b.dmg[1]];
+    if (b.armor) it.armor = rint(r, b.armor[0], b.armor[1]);
+    Object.keys(u.mods).forEach(function (k) { var v = u.mods[k]; it.mods[k] = Array.isArray(v) ? rint(r, v[0], v[1]) : v; });
+    return it;
+  }
+  // Every item roll can turn into a unique once item level is high enough.
+  function maybeUnique(S, ilvl, chance) { return ilvl >= D.uniqueRules.minIlvl && rnd(S.rng) < chance ? genUnique(S, ilvl) : null; }
+
   function itemName(item) {
     var b = baseOf(item);
+    if (item.rarity === 3) { var ud = uniqueDef(item.unique); return ud ? ud.name : b.name; }
     if (item.rarity === 2) return item.rareName;
     if (item.rarity === 0) return b.name;
     var pre = '', suf = '';
@@ -314,7 +328,15 @@ var Engine = (function () {
   }
   // ---------- Ascendancy ----------
   function ascOf(c) { return c && c.ascendancy ? D.ascendancies[c.ascendancy] || null : null; }
-  function rank(p, id) { return (p && p.ascNodes && p.ascNodes[id]) || 0; }
+  function rank(p, id) {
+    var r = (p && p.ascNodes && p.ascNodes[id]) || 0;
+    if (p && p.eq && p.ascendancy) {
+      var a = D.ascendancies[p.ascendancy];
+      if (a && a.nodes.some(function (n) { return n.id === id; }))
+        D.slots.forEach(function (s) { var it = p.eq[s]; if (it && it.mods['node_' + id]) r += it.mods['node_' + id]; });
+    }
+    return r;
+  }
   function hasNode(p, id) { return rank(p, id) > 0; }
   function nodeDef(id) {
     var out = null;
@@ -392,12 +414,15 @@ var Engine = (function () {
       maxMana: Math.round(cd.mana.base + ene * cd.mana.perEne + p.level * cd.mana.perLevel + (m.mana || 0)),
       leech: Math.min(R.leechCap, m.leech || 0),
       leechCap: R.leechCap,
-      block: nodeVal(p, 'bulwark') / 100,
-      dodge: (nodeVal(p, 'sun_evasion') + nodeVal(p, 'night_evasion')) / 100,
+      block: (nodeVal(p, 'bulwark') + (m.block || 0)) / 100,
+      dodge: (nodeVal(p, 'sun_evasion') + nodeVal(p, 'night_evasion') + (m.dodge || 0)) / 100,
+      dr: (m.dr || 0) / 100, pierce: m.pierce || 0, multiArrows: m.multiArrows || 0, rainDur: m.rainDur || 0,
+      zealDur: m.zealDur || 0, ripPct: m.ripPct || 0, chainPct: m.chainPct || 0, cleaveArea: m.cleaveArea || 0, rendMax: m.rendMax || 0,
+      darkDur: m.darkFast ? 2 : R.darkDuration, darkKillMana: m.darkKillMana || 0, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
       leechRaw: m.leech || 0,
       speed: 4.2 * (1 + (m.run || 0) / 100),
       light: 6 + (m.light || 0) + (core.light || 0),
-      aggro: core.aggro || 1,
+      aggro: (core.aggro || 1) * (1 - (m.stealth || 0) / 100),
       goldFind: m.gold || 0,
       regen: m.regen || 0,
       manaRegen: 0.8 + ene * 0.06,
@@ -637,7 +662,7 @@ var Engine = (function () {
         for (var id in S.players) {
           var q = S.players[id];
           if (q.dead || Math.hypot(q.x - m.x, q.y - m.y) > A.curse.range || !los(S.map, m, q)) continue;
-          q.slowT = A.curse.duration; q.ver++;
+          if (!q.st.noSlow) { q.slowT = A.curse.duration; q.ver++; }
           emit(S, { t: 'curse', pid: id, x: q.x, y: q.y, dur: A.curse.duration });
         }
       } else if (d <= def.range + m.r + p.r + 0.3) hurtPlayer(S, p, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul, m.lvl, m);
@@ -880,7 +905,7 @@ var Engine = (function () {
   }
   // Reaver: each hit leaves a Rend stack that bleeds dark damage; Cleave rips them open.
   function addRend(S, m, p, total) {
-    var C = coreOf(p).rend, max = C.max + nodeVal(p, 'deep_wounds');
+    var C = coreOf(p).rend, max = C.max + nodeVal(p, 'deep_wounds') + (p.st.rendMax || 0);
     m.rend = m.rend || [];
     m.rend.push({ pool: total * C.pct * p.st.darkMul, end: S.time + C.dur, by: p.id });
     while (m.rend.length > max) m.rend.shift();
@@ -901,11 +926,11 @@ var Engine = (function () {
     var sum = 0; (m.rend || []).forEach(function (r) { sum += r.pool; }); m.rend = [];
     if (sum <= 0) return;
     emit(S, { t: 'rip', id: m.id, x: m.x, y: m.y });
-    dealRaw(S, m, sum * coreOf(p).rip, p, 'rip');
+    dealRaw(S, m, sum * coreOf(p).rip * (1 + (p.st.ripPct || 0) / 100), p, 'rip');
   }
   // Templar's Chain of Light: the blow leaps on to the nearest enemies it has not touched yet.
   function chainLight(S, p, x, y, firstId, h) {
-    var C = coreOf(p).chain, pct = C.pct + nodeVal(p, 'bright_leap') / 100, hit = [firstId];
+    var C = coreOf(p).chain, pct = C.pct + (nodeVal(p, 'bright_leap') + (p.st.chainPct || 0)) / 100, hit = [firstId];
     for (var i = 0; i < C.bounces; i++) {
       var best = null, bd = C.range;
       S.monsters.forEach(function (o) {
@@ -952,7 +977,7 @@ var Engine = (function () {
   function castCleave(S, p, tx, ty) {
     var sk = D.skills.cleave, bp = hasNode(p, 'blood_price') ? nodeDef('blood_price') : null, mult = sk.mult;
     // Reaping Arc: same arc, longer reach, so the area grows by the node's factor.
-    var reach = sk.reach * Math.sqrt(1 + nodeVal(p, 'reaping_arc') / 100);
+    var reach = sk.reach * Math.sqrt(1 + (nodeVal(p, 'reaping_arc') + (p.st.cleaveArea || 0)) / 100);
     if (bp) {
       var cost = Math.ceil(p.st.maxHp * bp.pct);
       if (p.cd > 0) return;
@@ -970,7 +995,7 @@ var Engine = (function () {
       S.zones.push({ id: S.nextId++, kind: 'holy', x: zx, y: zy, r: cz.radius, end: S.time + cz.dur, dur: cz.dur, owner: p.id });
     }
     p.cd = atkCd(p); p.anim = 0.3;
-    if (p.ascendancy === 'templar') { p.zeal = coreOf(p).zeal.dur + nodeVal(p, 'long_vigil'); p.ver++; }
+    if (p.ascendancy === 'templar') { p.zeal = coreOf(p).zeal.dur + nodeVal(p, 'long_vigil') + (p.st.zealDur || 0); p.ver++; }
     emit(S, { t: 'swing', pid: p.id, x: p.x, y: p.y, face: a, arc: sk.arc / 2, big: true, reach: reach });
     S.monsters.slice().forEach(function (m) {
       var d = Math.hypot(m.x - p.x, m.y - p.y);
@@ -989,7 +1014,7 @@ var Engine = (function () {
     p.mana -= ms.mana; skillOrder(p);
     var C = coreOf(p).charge, mult = ms.mult, extra = 0;
     if (C && draw > 0) { mult *= 1 + draw * (C.dmg + nodeVal(p, 'focused_draw') / 100); extra = Math.round(draw * C.pierce); }
-    var n = hasNode(p, 'radiant_volley') ? nodeDef('radiant_volley').arrows : ms.arrows, half = (n - 1) / 2;
+    var n = (hasNode(p, 'radiant_volley') ? nodeDef('radiant_volley').arrows : ms.arrows) + (p.st.multiArrows || 0), half = (n - 1) / 2;
     for (var i = 0; i < n; i++) fireArrow(S, p, tx, ty, (i - half) * ms.spread, mult, extra);
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
     emit(S, { t: 'shoot', pid: p.id, multi: true, draw: draw || 0 });
@@ -1002,7 +1027,7 @@ var Engine = (function () {
     if (d > p.st.range) { tx = p.x + dx / d * p.st.range; ty = p.y + dy / d * p.st.range; }
     p.mana -= sk.mana; skillOrder(p);
     var st = p.st, hit = (st.dmin + st.dmax + st.lmin + st.lmax) / 2 + (st.dkmin + st.dkmax) / 2;
-    var dur = sk.dur + nodeVal(p, 'long_night');
+    var dur = sk.dur + nodeVal(p, 'long_night') + (p.st.rainDur || 0);
     S.zones.push({ id: S.nextId++, kind: 'rain', x: tx, y: ty, r: sk.radius * (1 + nodeVal(p, 'wide_rain') / 100), end: S.time + dur, dur: dur,
       owner: p.id, dmg: hit * sk.pct * st.darkMul, slow: nodeVal(p, 'grasping_dark') / 100, tickT: 0 });
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
@@ -1013,7 +1038,7 @@ var Engine = (function () {
     var h = rollHit(S, p, mult);
     S.projs.push({ id: S.nextId++, kind: 'arrow', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35,
       vx: Math.cos(a) * R.arrowSpeed, vy: Math.sin(a) * R.arrowSpeed, life: st.range / R.arrowSpeed + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
-      pierce: (coreOf(p).pierce || 0) + (extraPierce || 0), keep: (coreOf(p).pierceKeep || 0) + nodeVal(p, 'piercing_light') / 100, hitIds: [] });
+      pierce: (coreOf(p).pierce || 0) + (extraPierce || 0) + (st.pierce || 0), keep: (coreOf(p).pierceKeep || 0.5) + nodeVal(p, 'piercing_light') / 100, hitIds: [] });
   }
   function shoot(S, p, tx, ty) {
     if (p.cd > 0) return false;
@@ -1081,7 +1106,7 @@ var Engine = (function () {
   function dealRaw(S, m, amt, by, kind) {
     m.hpFrac = (m.hpFrac || 0) + amt * (1 - (m.dr || 0));
     var whole = Math.floor(m.hpFrac); if (whole <= 0) return;
-    m.hpFrac -= whole; m.hp -= whole; wake(S, m);
+    m.hpFrac -= whole; m.hp -= whole; m.lastKind = kind; wake(S, m);
     if (kind === 'dark' || kind === 'rip') emit(S, { t: 'dot', id: m.id, v: whole, x: m.x, y: m.y, big: kind === 'rip' || undefined });
     if (m.hp <= 0) killMonster(S, m, by);
   }
@@ -1324,7 +1349,7 @@ var Engine = (function () {
     if (p.st.block && rnd(S.rng) < p.st.block) { emit(S, { t: 'block', pid: p.id, x: p.x, y: p.y }); return; }
     if (p.st.dodge && rnd(S.rng) < p.st.dodge) { emit(S, { t: 'dodge', pid: p.id, x: p.x, y: p.y }); return; }
     var armor = p.st.armor;
-    var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0))));
+    var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0)) * (1 - (p.st.dr || 0))));
     p.hp -= dmg;
     if (src && src.vamp && src.hp > 0) src.hp = Math.min(src.max, src.hp + dmg * src.vamp);
     emit(S, { t: 'phit', pid: p.id, v: dmg, x: p.x, y: p.y });
@@ -1345,14 +1370,15 @@ var Engine = (function () {
       if (m.markT > S.time && m.markBy !== p.id) mult *= 1 + nodeDef('mark_for_death').pct;
     }
     var total = Math.max(1, Math.round((dmg + light) * mult * (1 - (m.dr || 0))));
-    m.hp -= total; m.hitT = 0.14; m.blindUntil = 0; wake(S, m);
+    m.hp -= total; m.hitT = 0.14; m.blindUntil = 0; m.lastKind = kind; wake(S, m);
     emit(S, { t: 'hit', id: m.id, v: total, light: light > 0, dark: dark > 0, x: m.x, y: m.y, mtype: m.type, ambush: ambush || undefined });
     if (p) {
       if (p.st.leech && !m.noLeech) p.hp = Math.min(p.st.maxHp, p.hp + total * p.st.leech / 100);
       if (hasNode(p, 'mark_for_death')) { m.markT = S.time + nodeDef('mark_for_death').dur; m.markBy = p.id; }
       var dk = (dark || 0) * mult;
       if (kind === 'arrow' && coreOf(p).blackPct) dk += total * coreOf(p).blackPct * p.st.darkMul;
-      if (dk > 0 && m.hp > 0) { m.darkPool = (m.darkPool || 0) + dk; m.darkEnd = S.time + R.darkDuration; m.darkBy = p.id; }
+      if (dk > 0 && m.hp > 0) { m.darkPool = (m.darkPool || 0) + dk; m.darkEnd = S.time + (p.st.darkDur || R.darkDuration); m.darkBy = p.id; }
+      if (p.st.hitHeal) p.hp = Math.min(p.st.maxHp, p.hp + p.st.maxHp * p.st.hitHeal);
     }
     if (m.hp <= 0) killMonster(S, m, p);
     return total;
@@ -1360,6 +1386,7 @@ var Engine = (function () {
   // What a kill gives the one who made it.
   function onKill(S, m, p) {
     if (!p || p.dead) return;
+    if (p.st.darkKillMana && m.lastKind === 'dark') p.mana = Math.min(p.st.maxMana, p.mana + p.st.darkKillMana);
     if (hasNode(p, 'bloodlust')) {
       var BL = nodeDef('bloodlust');
       p.blN = Math.min(BL.stacks, (p.blT > S.time ? p.blN : 0) + 1); p.blT = S.time + BL.dur; p.ver++;
@@ -1392,7 +1419,7 @@ var Engine = (function () {
         var RW = D.trial.reward, rr = S.rng;
         for (var g3 = 0; g3 < 3; g3++) S.ground.push({ id: S.nextId++, x: m.x + (rnd(rr) - 0.5) * 1.6, y: m.y + (rnd(rr) - 0.5) * 1.6, kind: 'gold', amount: rint(rr, RW.gold[0], RW.gold[1]) });
         for (var k3 = 0; k3 < RW.items; k3++) {
-          var it3 = genItem(S, RW.ilvl, null, RW.rarity);
+          var it3 = (k3 === 0 && maybeUnique(S, RW.ilvl, D.uniqueRules.trial)) || genItem(S, RW.ilvl, null, RW.rarity);
           S.ground.push({ id: S.nextId++, x: m.x + (rnd(rr) - 0.5) * 1.6, y: m.y + (rnd(rr) - 0.5) * 1.6, kind: 'item', item: it3 });
           emit(S, { t: 'itemdrop', rarity: it3.rarity, x: m.x, y: m.y });
         }
@@ -1417,7 +1444,8 @@ var Engine = (function () {
     if (m.boss === 'true') { n = 4; minR = 2; ib = 4; }
     if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
     for (var i = 0; i < n; i++) {
-      var it = genItem(S, S.depth + D.difficulties[S.difficulty].ilvl + ib, null, minR);
+      var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
+      var it = maybeUnique(S, il, m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
       s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: it });
       emit(S, { t: 'itemdrop', rarity: it.rarity, x: s[0], y: s[1] });
     }
@@ -1533,7 +1561,7 @@ var Engine = (function () {
 
   return {
     classOf: classOf, canWield: canWield, targetSlot: targetSlot,
-    ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
+    genUnique: genUnique, uniqueDef: uniqueDef, ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
     SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, applyFinal: applyFinal,
     createSim: createSim, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,

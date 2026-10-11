@@ -395,10 +395,11 @@
           if (e.pid !== PID) break;
           if (e.kind === 'gold') { floatText(e.x, e.y, e.text, '#d9b46c'); sfx('gold'); }
           else if (e.kind === 'potion') { addLog('Picked up: ' + e.text); sfx('pick'); }
-          else { addLog('Picked up: ' + e.text, e.rarity === 2 ? 'rare' : e.rarity === 1 ? 'magic' : ''); sfx(e.rarity === 2 ? 'rare' : 'pick'); }
+          else { addLog('Picked up: ' + e.text, e.rarity === 3 ? 'unique' : e.rarity === 2 ? 'rare' : e.rarity === 1 ? 'magic' : ''); sfx(e.rarity >= 2 ? 'rare' : 'pick'); }
           break;
         case 'itemdrop':
-          if (e.rarity === 2) { sfx('rare'); spray(e.x, e.y, 16, { colors: ['#f0d06a', '#fff2c0'], speed: 0.6, up: 260, life: 1.2, glow: true, grav: 150, size: 2 }); }
+          if (e.rarity === 3) { sfx('rare'); addLog('A unique item drops!', 'unique'); spray(e.x, e.y, 28, { colors: ['#c070ff', '#e8c8ff', '#8a3ad0'], speed: 0.8, up: 320, life: 1.5, glow: true, grav: 150, size: 2.4 }); }
+          else if (e.rarity === 2) { sfx('rare'); spray(e.x, e.y, 16, { colors: ['#f0d06a', '#fff2c0'], speed: 0.6, up: 260, life: 1.2, glow: true, grav: 150, size: 2 }); }
           break;
         case 'msg': if (e.pid === PID) addLog(e.text, 'warn', e.quiet); break;
         case 'potion':
@@ -1053,7 +1054,7 @@
     var x = sx(g.x, g.y), y = sy(g.x, g.y);
     ctx.save(); ctx.translate(x, y); ctx.scale(Z, Z);
     var gname = g.kind === 'gold' ? 'ground-gold' : g.kind === 'potion' ? (g.pot === 'hp' ? 'ground-life_potion' : 'ground-mana_potion') : GROUND_SPR[itemKind(g.item)];
-    if (g.kind === 'item' && g.item.rarity) { ellipse(0, -2, 13, 5, g.item.rarity === 2 ? 'rgba(240,208,106,0.28)' : 'rgba(142,168,255,0.25)'); }
+    if (g.kind === 'item' && g.item.rarity) { ellipse(0, -2, 13, 5, g.item.rarity === 3 ? 'rgba(192,112,255,0.4)' : g.item.rarity === 2 ? 'rgba(240,208,106,0.28)' : 'rgba(142,168,255,0.25)'); }
     if (gname && drawGroundSprite(gname)) { ctx.restore(); return; }
     if (g.kind === 'gold') { ellipse(0, 0, 6, 2.6, '#6d5530'); ellipse(-1, -1.5, 4.5, 2, '#d1a85a'); ellipse(2, -2.5, 3, 1.4, '#f0d06a'); }
     else if (g.kind === 'potion') {
@@ -1061,7 +1062,7 @@
       ctx.fillStyle = g.pot === 'hp' ? '#c4232b' : '#3a62d6'; ctx.beginPath(); ctx.arc(0, -4, 4, 0, 6.283); ctx.fill();
       ctx.fillStyle = '#c8bca6'; ctx.fillRect(-1.3, -10, 2.6, 3);
     } else {
-      var col = ['#cfc5b4', '#8ea8ff', '#f0d06a'][g.item.rarity];
+      var col = ['#cfc5b4', '#8ea8ff', '#f0d06a', '#c070ff'][g.item.rarity];
       ellipse(0, 0, 8, 3, 'rgba(0,0,0,0.4)');
       ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
       if (g.item.slot === 'weapon' && E.baseOf(g.item).wclass === 'melee') { ctx.beginPath(); ctx.moveTo(-9, -1); ctx.lineTo(9, -4); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(-4, 2); ctx.stroke(); }
@@ -1305,7 +1306,7 @@
       }
       else if (g.kind === 'gold') { txt = g.amount + ' gold'; col = '#d1a85a'; }
       else if (g.kind === 'potion') { txt = g.pot === 'hp' ? 'Healing Potion' : 'Mana Potion'; col = '#cfc5b4'; }
-      else { txt = E.itemName(g.item); col = ['#e8dfcf', '#8ea8ff', '#f0d06a'][g.item.rarity]; }
+      else { txt = E.itemName(g.item); col = ['#e8dfcf', '#8ea8ff', '#f0d06a', '#c070ff'][g.item.rarity]; }
       var w = ctx.measureText(txt).width + 12, h = 20, x = sx(g.x, g.y) - w / 2, y = sy(g.x, g.y) - (g.stairs ? 34 : g.npc ? 44 : 28) * Z - h;
       for (var k = 0; k < placed.length; k++) { var o = placed[k]; if (x < o.x + o.w && x + w > o.x && y < o.y + o.h && y + h > o.y) { y = o.y - h - 2; k = -1; } }
       placed.push({ x: x, y: y, w: w, h: h });
@@ -1507,7 +1508,7 @@
   function icon(it, empty) {
     var sk = !empty && ICON_SPR[itemKind(it)];
     if (sk && SPR && SPR.img[sk]) return '<img src="' + SPR.img[sk] + '" alt="" width="64" height="64" style="width:84%;height:84%;object-fit:contain;image-rendering:auto">';
-    var col = empty ? '#3a3029' : ['#cfc5b4', '#8ea8ff', '#f0d06a'][it.rarity];
+    var col = empty ? '#3a3029' : ['#cfc5b4', '#8ea8ff', '#f0d06a', '#c070ff'][it.rarity];
     var slot = empty || (it.slot === 'weapon' && E.baseOf(it).wclass === 'melee' ? 'melee' : it.slot);
     if (slot === 'ring2') slot = 'ring';
     return '<svg viewBox="0 0 24 24" width="80%" height="80%" aria-hidden="true" fill="' + col + '" fill-opacity="' + (empty ? 0.6 : 0.35) + '" stroke="' + col + '" stroke-width="1.4" stroke-linejoin="round">' + ICON[slot] + '</svg>';
@@ -1522,7 +1523,7 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function itemHtml(it, cmpWith) {
     var b = E.baseOf(it), h = '<div class="t r' + it.rarity + '">' + esc(E.itemName(it)) + '</div>';
-    if (it.rarity === 2) h += '<div class="b">' + b.name + '</div>';
+    if (it.rarity >= 2) h += '<div class="b">' + (it.rarity === 3 ? 'Unique ' : '') + b.name + '</div>';
     if (b.wclass) h += '<div class="b">' + (b.wclass === 'bow' ? 'Bow · Archer' : 'Melee weapon · Warrior') + '</div>';
     if (it.dmg) h += '<div>Damage: ' + it.dmg[0] + '–' + it.dmg[1] + '</div><div class="b">' + b.aps.toFixed(2) + ' attacks per second</div>';
     if (it.armor) h += '<div>Defense: ' + it.armor + '</div>';
@@ -1530,6 +1531,8 @@
     if (m.lightMin) h += '<div class="m">+' + m.lightMin + '–' + m.lightMax + ' light damage</div>';
     if (m.darkMin) h += '<div class="m">+' + m.darkMin + '–' + m.darkMax + ' dark damage over ' + R.darkDuration + 's</div>';
     Object.keys(m).forEach(function (k) { if (MODF[k]) h += '<div class="m">' + MODF[k](m[k]) + '</div>'; });
+    var ud = it.rarity === 3 && E.uniqueDef(it.unique);
+    if (ud) ud.fx.forEach(function (f) { h += '<div class="m u">' + esc(f) + '</div>'; });
     h += '<div class="b">Item level ' + it.ilvl + '</div>';
     if (cmpWith && it.slot === 'ring' && cmpWith.eq.ring && cmpWith.eq.ring2) h += compareHtml(cmpWith, it, 'ring', 'Instead of left ring: ') + compareHtml(cmpWith, it, 'ring2', 'Instead of right ring: ');
     else if (cmpWith) h += compareHtml(cmpWith, it);

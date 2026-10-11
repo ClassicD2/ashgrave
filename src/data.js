@@ -133,6 +133,46 @@ var DATA = {
     }
   },
 
+  // Unique items (rarity 3). mods: [min, max] or a fixed number. Special keys are read by the engine:
+  // pierce, multiArrows, rainDur, stealth (% later noticed), dodge, block, dr (% less damage), zealDur,
+  // ripPct, chainPct, cleaveArea, rendMax, darkFast (dark lands in 2s), darkKillMana, hitHeal (% life per hit),
+  // noSlow, and node_<id> (+ranks to that tree node, above its max).
+  uniqueRules: { minIlvl: 12, chance: 0.015, mini: 0.08, boss: 0.2, trial: 0.15 },
+  uniques: [
+    { id: 'dawnpiercer', name: 'Dawnpiercer', base: 'war_bow', cls: 'archer', mods: { dmgPct: [50, 70], lightMin: [5, 7], lightMax: [9, 12], dex: 8, pierce: 1, node_focused_draw: 1 },
+      fx: ['Arrows pierce 1 more enemy', '+1 to Focused Draw (Sunwarden)'] },
+    { id: 'veil_of_gloom', name: 'Veil of Gloom', base: 'storm_hood', cls: 'archer', mods: { dex: [10, 15], life: [20, 30], stealth: 20 },
+      fx: ['Sleeping enemies notice you 20% later'] },
+    { id: 'wanderers_mantle', name: "Wanderer's Mantle", base: 'ring_mail', cls: 'archer', mods: { armorPct: [40, 60], run: 10, dodge: 8 },
+      fx: ['8% chance to dodge an attack'] },
+    { id: 'fletchers_grips', name: "Fletcher's Grips", base: 'gloves', cls: 'archer', mods: { ias: 15, dex: [5, 8], multiArrows: 2 },
+      fx: ['Multishot fires 2 more arrows'] },
+    { id: 'shadowstride', name: 'Shadowstride', base: 'boots', cls: 'archer', mods: { run: 20, life: [15, 20], rainDur: 1, node_night_evasion: 1 },
+      fx: ['Rain of Arrows lasts 1s longer', '+1 to Shadowstep (Nightstalker)'] },
+    { id: 'eye_of_the_long_night', name: 'Eye of the Long Night', base: 'amulet', cls: 'archer', mods: { darkMin: [6, 9], darkMax: [10, 15], mana: 15, darkFast: 1 },
+      fx: ['Your dark damage lands in 2 seconds instead of 3'] },
+    { id: 'sunspark_loop', name: 'Sunspark Loop', base: 'ring', cls: 'archer', mods: { lightMin: [2, 4], lightMax: [5, 8], mana: 10, light: 2, node_piercing_light: 1 },
+      fx: ['+1 to Piercing Light (Sunwarden)'] },
+    { id: 'nightglass_band', name: 'Nightglass Band', base: 'ring', cls: 'archer', mods: { darkMin: [3, 5], darkMax: [6, 9], leech: 4, darkKillMana: 3 },
+      fx: ['Enemies killed by your dark damage give 3 mana'] },
+    { id: 'oathbreaker', name: 'Oathbreaker', base: 'great_sword', cls: 'warrior', mods: { dmgPct: [60, 80], darkMin: [5, 8], darkMax: [9, 14], str: 8, rendMax: 1, cleaveArea: 20 },
+      fx: ['Rend stacks 1 more time (Reaver)', 'Cleave covers 20% more area'] },
+    { id: 'crown_of_vigil', name: 'Crown of Vigil', base: 'helm', cls: 'warrior', mods: { armorPct: [50, 70], life: [20, 30], block: 10 },
+      fx: ['10% chance to block a blow entirely'] },
+    { id: 'bastion', name: 'Bastion of the Last Oath', base: 'plate', cls: 'warrior', mods: { armorPct: [70, 90], life: [30, 40], dr: 5 },
+      fx: ['You take 5% less damage'] },
+    { id: 'zealots_gauntlets', name: "Zealot's Gauntlets", base: 'chain_gloves', cls: 'warrior', mods: { ias: 15, lightMin: [2, 3], lightMax: [4, 7], zealDur: 1, node_fervor: 1 },
+      fx: ['Zeal lasts 1s longer (Templar)', '+1 to Fervor (Templar)'] },
+    { id: 'ironmarch', name: 'Ironmarch Greaves', base: 'iron_boots', cls: 'warrior', mods: { armorPct: 40, run: 10, noSlow: 1 },
+      fx: ['You cannot be slowed'] },
+    { id: 'heart_of_the_reaver', name: 'Heart of the Reaver', base: 'amulet', cls: 'warrior', mods: { str: [10, 15], leech: 5, ripPct: 25 },
+      fx: ['Rip Open deals 25% more damage (Reaver)'] },
+    { id: 'bright_vow', name: 'Ring of the Bright Vow', base: 'ring', cls: 'warrior', mods: { lightMin: [3, 5], lightMax: [6, 10], life: 15, chainPct: 10, node_bright_leap: 1 },
+      fx: ['Chain of Light leaps deal 10% more (Templar)', '+1 to Bright Leap (Templar)'] },
+    { id: 'bloodsigil', name: 'Bloodsigil', base: 'ring', cls: 'warrior', mods: { darkMin: [3, 5], darkMax: [6, 10], str: 3, hitHeal: 1 },
+      fx: ['Each hit heals 1% of your life'] }
+  ],
+
   // wclass: which class can wield a weapon
   bases: [
     { id: 'short_bow',     name: 'Short Bow',     slot: 'weapon', wclass: 'bow',   ilvl: 1,  dmg: [2, 5],   aps: 1.5 },
