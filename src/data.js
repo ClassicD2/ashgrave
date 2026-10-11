@@ -11,6 +11,8 @@ var DATA = {
                   abilities: ['Judgement', 'Shadow Step', 'Bloodless'] },
     abbot:      { name: 'The Ember Abbot', hp: 140, dmg: [4, 8], speed: 1.7, range: 0.9, atkTime: 0.5, atkCd: 1.6, xp: 400, r: 0.45, ai: 'abbot', aggro: 10, boltSpeed: 6.5,
                   abilities: ['Fireball Volley', 'Withering Curse'] },
+    gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
+                  abilities: ['Bone Spikes', 'Raise the Dead'] },
     ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 }
   },
 
@@ -311,7 +313,9 @@ var DATA = {
       { ilvl: 18, name: 'of Avarice', mods: { gold: [61, 100] } } ] },
     { id: 'regen', kind: 'suffix', slots: ['chest', 'amulet'], tiers: [
       { ilvl: 3, name: 'of Renewal', mods: { regen: [1, 1] } },
-      { ilvl: 8, name: 'of Life',    mods: { regen: [2, 3] } } ] }
+      { ilvl: 8, name: 'of Life',    mods: { regen: [2, 3] } },
+      { ilvl: 18, name: 'of Vigor',       mods: { regen: [4, 6] } },
+      { ilvl: 34, name: 'of Immortality', mods: { regen: [7, 10] } } ] }
   ],
 
   // Wandering merchant: shows up on the level you start on, then every 1-3 levels.
@@ -386,11 +390,16 @@ var DATA = {
       // Bloodless: life steal does not work on it. Frenzied: faster below half life.
       traits: ['Swift', 'Stoneskin', 'Burning Aura', 'Vampiric', 'Bloodless', 'Frenzied']
     },
+    // Optional boss in its own room on level 8 of every difficulty. Never seals the stairs.
+    warden: {
+      depth: 8, scale: 1.9,
+      spikes: { every: 6, cast: 0.6, count: 5, step: 0.9, radius: 0.6, fuse: 0.9, stagger: 0.12, dmg: [4, 7] },
+      raise: { at: [0.6, 0.3], count: 3 },
+      reward: { items: 3, minRarity: 2, ilvlBonus: 4, unique: 0.25, gold: [15, 30] }
+    },
     abbot: {
       scale: 2.0, escorts: [['bonewalker', 2]],
-      volley: { every: 5, cast: 0.9, bolts: 5, spread: 0.3, dmg: [3, 5,
-      { ilvl: 18, name: 'of Vigor',       mods: { regen: [4, 6] } },
-      { ilvl: 34, name: 'of Immortality', mods: { regen: [7, 10] } } ] },
+      volley: { every: 5, cast: 0.9, bolts: 5, spread: 0.3, dmg: [3, 5] },
       curse: { every: 10, cast: 0.7, range: 8, duration: 4, slow: 0.4 }
     }
   },

@@ -311,7 +311,7 @@
     }
   }
   function floatText(x, y, txt, color, big) { texts.push({ x: x, y: y, h: 30, txt: txt, c: color, life: big ? 1.6 : 0.9, max: big ? 1.6 : 0.9, big: !!big }); }
-  var MCOL = { judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
+  var MCOL = { gravewarden: ['#efe6d2', '#c9bda4', '#8c816d'], judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
 
   function processEvents() {
     var evs = S.events; S.events = [];
@@ -406,6 +406,12 @@
           if (e.pid === PID) { sfx('potion'); spray(e.x, e.y, 12, { colors: e.kind === 'hp' ? ['#ff5a4f', '#ff9a8a'] : ['#7d9bff', '#b5c7ff'], speed: 0.7, up: 150, life: 0.8, glow: true, grav: -30, size: 2 }); }
           break;
         case 'cast': sfx('cast'); break;
+        case 'ossuary':
+          addLog('A cold draft rises from the ossuary. Something old keeps watch.', 'rare'); sfx('stairs'); break;
+        case 'raise':
+          spray(e.x, e.y, 16, { colors: ['#efe6d2', '#9a8f7a', '#3a3530'], speed: 1.2, up: 140, life: 0.7, size: 2.4, grav: 120 }); break;
+        case 'wardenDown':
+          addLog(e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
         case 'bossAppear':
           addLog((e.isTrue ? 'The air burns. ' : 'Something old stirs by the stairs: ') + e.name + '.', e.isTrue ? 'warn' : 'rare');
           if (e.isTrue) sfx('die'); break;
@@ -425,7 +431,8 @@
           spray(e.x, e.y, 30, { colors: ['#ff7a5a', '#ffd0a0', '#b02a1a'], speed: 1.4, up: 220, life: 1.1, glow: true, grav: 60, size: 2.5 });
           addLog('A seal breaks. The ash gives back some of your strength.', 'gold'); sfx('stairs'); setDepthLabel(); break;
         case 'hazardBoom':
-          spray(e.x, e.y, 22, { colors: ['#ffffff', '#d8c8ff', '#9a7aff'], speed: 2.2, up: 160, life: 0.6, glow: true, grav: 200, size: 2.5 });
+          if (e.kind === 'bone') spray(e.x, e.y, 18, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 1.6, up: 220, life: 0.5, grav: 320, size: 2.6 });
+          else spray(e.x, e.y, 22, { colors: ['#ffffff', '#d8c8ff', '#9a7aff'], speed: 2.2, up: 160, life: 0.6, glow: true, grav: 200, size: 2.5 });
           sfx('boom'); break;
         case 'frenzy': floatText(e.x, e.y, 'Frenzied!', '#ff6a4a', true); spray(e.x, e.y, 20, { colors: ['#ff3a2a', '#ff9a6a'], speed: 1.4, up: 160, life: 0.7, glow: true, size: 2.5 }); break;
         case 'blink':
@@ -500,7 +507,9 @@
     var i = Math.round((screenAngle(face) - Math.PI / 2) / (Math.PI / 4));
     return ((i % 8) + 8) % 8;
   }
-  function hasSprite(actor) { return !!(SPR && SPR.meta.actors[actor] && sprOk(actor + '-idle')); }
+  var SPR_ALIAS = { gravewarden: 'bonewalker' };
+  function hasSprite(actor) { actor = SPR_ALIAS[actor] || actor; return hasSprite0(actor); }
+  function hasSprite0(actor) { return !!(SPR && SPR.meta.actors[actor] && sprOk(actor + '-idle')); }
   // Draws one frame with the feet at (0,0) of the current transform. Returns false if the sheet is missing.
   function drawSprite(actor, anim, dir, frame, extra) {
     var meta = SPR && SPR.meta.actors[actor]; if (!meta) return false;
@@ -564,7 +573,11 @@
     return drawIdle(actor, dir, 1, (p.id || '').length);
   }
   function drawMonsterSprite(m) {
-    var actor = m.type, dir = dirIndex(m.face || 0), off = (m.id || 0) % 7, extra = 1;
+    var actor = SPR_ALIAS[m.type] || m.type, dir = dirIndex(m.face || 0), off = (m.id || 0) % 7, extra = 1;
+    if (m.type === 'gravewarden') { ctx.filter = 'brightness(1.35) saturate(0.55) sepia(0.15)'; try { return drawMonsterSprite0(m, actor, dir, off, extra); } finally { ctx.filter = 'none'; } }
+    return drawMonsterSprite0(m, actor, dir, off, extra);
+  }
+  function drawMonsterSprite0(m, actor, dir, off, extra) {
     if (actor === 'abbot' && m.scale) extra = 1 / m.scale; // the Abbot has his own large sheet
     if (m.atk > 0) {
       var anim = 'attack', total = ATK_TIME[actor] || 0.5;
@@ -649,7 +662,11 @@
   function drawFloor(tx, ty, tile) {
     if (envOk()) {
       var se = 2 * HW / 128, fx = sx(tx, ty) - 64 * se, fy = sy(tx, ty);
-      ctx.drawImage(sprImg[envFloor(hash(tx, ty))], fx, fy, 128 * se, 64 * se);
+      var os = S.ossuary, fl = envFloor(hash(tx, ty));
+      if (os && tx >= os.x && tx < os.x + os.w && ty >= os.y && ty < os.y + os.h) {
+        fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
+      }
+      ctx.drawImage(sprImg[fl], fx, fy, 128 * se, 64 * se);
       if (tile === 2) {
         var sn = S.seal ? 'stairs-sealed' : 'stairs-down';
         if (sprOk(sn)) ctx.drawImage(sprImg[sn], fx, fy, 128 * se, 96 * se);
@@ -1092,6 +1109,11 @@
     function onScreen(tx, ty) { var x = sx(tx + 0.5, ty + 0.5), y = sy(tx + 0.5, ty + 0.5); return x > -marg && x < vw + marg && y > -marg && y < vh + marg * 2; }
     // floor
     var walls = [], props = [], pm = envOk() ? buildProps() : null;
+    var os2 = S.ossuary;
+    if (os2 && pm && explored[Math.floor(os2.cy) * W + Math.floor(os2.cx)]) {
+      [[os2.x + 0.7, os2.y + 0.7], [os2.x + os2.w - 0.7, os2.y + 0.7], [os2.x + 0.7, os2.y + os2.h - 0.7], [os2.x + os2.w - 0.7, os2.y + os2.h - 0.7]].forEach(function (c) { props.push({ kind: 'brazier', scale: 0.62, x: c[0], y: c[1] }); });
+      props.push({ kind: 'skeleton-remains', scale: 0.6, x: os2.cx - 1.4, y: os2.cy + 0.8, flip: 1 });
+    }
     lamps = [];
     for (var ty = 0; ty < H; ty++) for (var tx = 0; tx < W; tx++) {
       var i = ty * W + tx; if (!explored[i] || !onScreen(tx, ty)) continue;
@@ -1103,8 +1125,9 @@
     (S.hazards || []).forEach(function (h) {
       var cx = sx(h.x, h.y), cy = sy(h.x, h.y), rx = h.r * HW * 1.414, ry = h.r * HH * 1.414, k = 1 - Math.max(0, h.t) / h.fuse;
       ctx.save();
-      ctx.fillStyle = 'rgba(150,110,255,' + (0.12 + 0.25 * k) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy, rx * k, ry * k, 0, 0, 6.283); ctx.fill();
-      ctx.strokeStyle = 'rgba(225,210,255,' + (0.55 + 0.4 * Math.sin(gameTime * 18) * k) + ')'; ctx.lineWidth = 2 * Z;
+      var bone = h.kind === 'bone';
+      ctx.fillStyle = bone ? 'rgba(230,215,180,' + (0.1 + 0.28 * k) + ')' : 'rgba(150,110,255,' + (0.12 + 0.25 * k) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy, rx * k, ry * k, 0, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = bone ? 'rgba(255,245,220,' + (0.55 + 0.4 * Math.sin(gameTime * 18) * k) + ')' : 'rgba(225,210,255,' + (0.55 + 0.4 * Math.sin(gameTime * 18) * k) + ')'; ctx.lineWidth = 2 * Z;
       ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
       ctx.restore();
     });
@@ -1293,12 +1316,16 @@
     var items = S.ground.filter(function (g) { return Math.hypot(g.x - pp.x, g.y - pp.y) < vis; });
     if (!S.map.final && explored[Math.floor(S.map.stairs.y) * S.map.W + Math.floor(S.map.stairs.x)] && Math.hypot(S.map.stairs.x - pp.x, S.map.stairs.y - pp.y) < vis + 2) items.push({ stairs: true, x: S.map.stairs.x, y: S.map.stairs.y });
     (S.npcs || []).forEach(function (n) { if (Math.hypot(n.x - pp.x, n.y - pp.y) < vis + 4) items.push({ npc: n, x: n.x, y: n.y, id: n.id }); });
+    var oss = S.ossuary;
+    if (oss && !oss.done && Math.hypot(oss.cx - pp.x, oss.cy - pp.y) < vis + Math.max(oss.w, oss.h) / 2 + 3 && !(pp.x > oss.x && pp.x < oss.x + oss.w && pp.y > oss.y && pp.y < oss.y + oss.h))
+      items.push({ ossuary: true, x: oss.cx, y: oss.cy });
     Object.keys(S.players).forEach(function (id) { var q = S.players[id]; if (id !== PID && q.dead && q.x != null && Math.hypot(q.x - pp.x, q.y - pp.y) < vis + 2) items.push({ fallen: q, x: q.x, y: q.y, id: id }); });
     items.sort(function (a, b) { return (b.x + b.y) - (a.x + a.y); });
     var placed = [];
     items.forEach(function (g) {
       var txt, col;
       if (g.stairs) { txt = S.seal ? 'Stairs down · sealed' : 'Stairs down'; col = S.seal ? '#ff8a6a' : '#e8dfcf'; }
+      else if (g.ossuary) { txt = 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
       else if (g.npc) { txt = g.npc.name; col = g.npc.kind === 'keeper' ? '#d8c2ff' : '#ffd98a'; }
       else if (g.fallen) {
         var left = Math.ceil(R.reviveDelay - ((S.time || 0) - (g.fallen.deadAt || 0)));
@@ -1336,6 +1363,7 @@
     ctx.stroke();
     var st = map.stairs;
     if (!map.final && explored[Math.floor(st.y) * map.W + Math.floor(st.x)]) { ctx.fillStyle = '#e14a4a'; ctx.fillRect(mx(st.x, st.y) - 4, my(st.x, st.y) - 4, 8, 8); }
+    if (S.ossuary && !S.ossuary.done) drawSkull(mx(S.ossuary.cx, S.ossuary.cy), my(S.ossuary.cx, S.ossuary.cy));
     (S.npcs || []).forEach(function (n) {
       if (!explored[Math.floor(n.y) * map.W + Math.floor(n.x)]) return;
       ctx.fillStyle = '#ffd98a'; ctx.beginPath(); ctx.arc(mx(n.x, n.y), my(n.x, n.y), 4, 0, 6.283); ctx.fill();
@@ -1352,6 +1380,12 @@
     ctx.restore();
   }
 
+  function drawSkull(x, y) {
+    ctx.save(); ctx.fillStyle = '#e14a4a'; ctx.strokeStyle = '#0c0a09'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(x, y - 1, 6, 0, 6.283); ctx.fill(); ctx.stroke(); ctx.fillRect(x - 3.5, y + 3, 7, 4);
+    ctx.fillStyle = '#0c0a09'; ctx.beginPath(); ctx.arc(x - 2.3, y - 1.5, 1.6, 0, 6.283); ctx.arc(x + 2.3, y - 1.5, 1.6, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
   function updateFx(dt) {
     gameTime += dt; hurtFlash = Math.max(0, hurtFlash - dt);
     swings = swings.filter(function (w) { w.t += dt; return w.t < 0.18; });
@@ -1789,7 +1823,7 @@
       return o;
     });
     var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner }; });
-    var msg = { t: 'snap', seed: S.seed, depth: S.depth, difficulty: S.difficulty, final: !!S.map.final, time: S.time, seal: S.seal, players: players, monsters: mons, projs: projs, npcs: S.npcs, zones: S.zones || [], ev: pendingEv };
+    var msg = { t: 'snap', hazards: S.hazards || [], ossuary: S.ossuary || null, seed: S.seed, depth: S.depth, difficulty: S.difficulty, final: !!S.map.final, time: S.time, seal: S.seal, players: players, monsters: mons, projs: projs, npcs: S.npcs, zones: S.zones || [], ev: pendingEv };
     var gk = S.depth + ':' + S.ground.map(function (g) { return g.id; }).join(',');
     if (gk !== conn.groundKey) { conn.groundKey = gk; msg.ground = S.ground; }
     return msg;
@@ -1874,6 +1908,7 @@
     });
     S.time = m.time || 0; S.seal = m.seal || null; S.players = np; S.monsters = m.monsters; S.projs = m.projs; S.npcs = m.npcs || []; S.zones = m.zones || [];
     if (m.ground) S.ground = m.ground;
+    S.hazards = m.hazards || []; S.ossuary = m.ossuary || null;
     snapAt = performance.now(); alpha = 0;
     if (!running && S.players[PID] && S.players[PID].st) running = true;
     handleEvents(m.ev || []);

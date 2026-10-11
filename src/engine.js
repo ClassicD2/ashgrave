@@ -559,7 +559,7 @@ var Engine = (function () {
       var h = S.hazards[i]; h.t -= dt;
       if (h.t > 0) continue;
       for (var id in S.players) { var p = S.players[id]; if (!p.dead && Math.hypot(p.x - h.x, p.y - h.y) < h.r + p.r * 0.5) hurtPlayer(S, p, h.dmg, h.lvl, null); }
-      emit(S, { t: 'hazardBoom', x: h.x, y: h.y, r: h.r });
+      emit(S, { t: 'hazardBoom', x: h.x, y: h.y, r: h.r, kind: h.kind });
       S.hazards.splice(i, 1);
     }
   }
@@ -584,7 +584,7 @@ var Engine = (function () {
     S.map = genLevel(S.seed, depth);
     var DF = D.difficulties[S.difficulty];
     if (depth >= DF.finalDepth) applyFinal(S.map);
-    S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.zones = [];
+    S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.zones = []; S.hazards = [];
     spawnMonsters(S);
     S.seal = null;
     var B = D.bosses;
@@ -592,6 +592,8 @@ var Engine = (function () {
     if (depth === DF.finalDepth) { placeBoss(S, true); S.bossNext = depth + rint(S.rng, B.gap[0], B.gap[1]); }
     else if (depth >= S.bossNext) { placeBoss(S, false); S.bossNext = depth + rint(S.rng, B.gap[0], B.gap[1]); }
     if (S.merchantNext === null || depth >= S.merchantNext) placeMerchant(S);
+    S.ossuary = null;
+    if (depth === D.bosses.warden.depth && depth < DF.finalDepth) placeWarden(S);
     var i = 0;
     Object.keys(S.players).forEach(function (id) {
       var q = S.players[id];
@@ -618,6 +620,56 @@ var Engine = (function () {
     } else boss = makeMini(S, c[0], c[1], S.depth >= B.mini.thirdTraitDepth ? 3 : 2, null);
     S.seal = boss.id;
     emit(S, { t: 'bossAppear', name: boss.name, isTrue: isTrue, traits: boss.traits });
+  }
+  // The Gravewarden takes the largest room that is neither start nor stairs, as far from the start as possible.
+  function placeWarden(S) {
+    var map = S.map, W = D.bosses.warden, best = -1, bs = -1;
+    map.rooms.forEach(function (rm, i) {
+      if (i === map.startRoom || i === map.stairsRoom) return;
+      var cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2, sc = rm.w * rm.h + Math.hypot(cx - map.start.x, cy - map.start.y) * 2;
+      if (rm.w >= 5 && rm.h >= 5 && sc > bs) { bs = sc; best = i; }
+    });
+    if (best < 0) return;
+    var rm = map.rooms[best], cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2;
+    S.monsters = S.monsters.filter(function (m) { return !(m.x > rm.x - 1 && m.x < rm.x + rm.w + 1 && m.y > rm.y - 1 && m.y < rm.y + rm.h + 1); });
+    S.npcs = S.npcs.filter(function (n) { return !(n.x > rm.x - 1 && n.x < rm.x + rm.w + 1 && n.y > rm.y - 1 && n.y < rm.y + rm.h + 1); });
+    var b = addMonster(S, 'gravewarden', cx, cy, false);
+    b.boss = 'warden'; b.name = D.monsters.gravewarden.name; b.traits = D.monsters.gravewarden.abilities.slice();
+    b.scale = W.scale; b.spikes = 3; b.raised = 0; b.cast = null; b.home = { x: cx, y: cy };
+    S.ossuary = { x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: b.id };
+    emit(S, { t: 'ossuary', name: b.name });
+  }
+  function wardenAI(S, m, p, d, dt) {
+    var W = D.bosses.warden, def = D.monsters.gravewarden, seen = los(S.map, m, p);
+    m.spikes -= dt;
+    // Raise the Dead at each life threshold, once each.
+    if (m.raised < W.raise.at.length && m.hp < m.max * W.raise.at[m.raised]) {
+      m.raised++;
+      emit(S, { t: 'bossCast', id: m.id, name: 'Raise the Dead', x: m.x, y: m.y });
+      for (var k = 0, n = 0; k < 30 && n < W.raise.count; k++) {
+        var a = rnd(S.rng) * 6.283, rr = 1.2 + rnd(S.rng) * 1.3, x = m.x + Math.cos(a) * rr, y = m.y + Math.sin(a) * rr;
+        if (!canStand(S.map, x, y, 0.35)) continue;
+        var s = addMonster(S, 'bonewalker', x, y, false); s.state = 'hunt'; s.xp = 0; n++;
+        emit(S, { t: 'raise', x: x, y: y });
+      }
+    }
+    if (m.atk > 0) {
+      m.atk -= dt; m.face = Math.atan2(p.y - m.y, p.x - m.x);
+      if (m.atk > 0) return;
+      if (m.cast === 'spikes') {
+        var SP = W.spikes, a0 = Math.atan2(p.y - m.y, p.x - m.x);
+        for (var i = 0; i < SP.count; i++) {
+          var hx = m.x + Math.cos(a0) * SP.step * (i + 1), hy = m.y + Math.sin(a0) * SP.step * (i + 1);
+          if (!walkable(S.map, hx, hy)) break;
+          S.hazards.push({ id: S.nextId++, kind: 'bone', x: hx, y: hy, r: SP.radius, t: SP.fuse + i * SP.stagger, fuse: SP.fuse + i * SP.stagger, dmg: rint(S.rng, SP.dmg[0], SP.dmg[1]) * m.dmgMul, lvl: m.lvl });
+        }
+      } else if (d <= def.range + m.r + p.r + 0.3) hurtPlayer(S, p, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul, m.lvl, m);
+      m.cast = null;
+      return;
+    }
+    if (m.spikes <= 0 && seen && d < 6) { m.cast = 'spikes'; m.atk = W.spikes.cast; m.spikes = W.spikes.every; emit(S, { t: 'bossCast', id: m.id, name: 'Bone Spikes', x: m.x, y: m.y }); return; }
+    if (d <= def.range + m.r + p.r && m.cd <= 0) { m.cast = 'melee'; m.atk = def.atkTime; m.cd = def.atkCd; return; }
+    if (d > def.range + m.r + p.r - 0.05) chase(S, m, p, dt, seen);
   }
   function makeMini(S, cx, cy, nTraits, nMinions, forceType) {
     var r = S.rng, M = D.bosses.mini, map = S.map, type = forceType || pick(r, ['gnawer', 'bonewalker', 'ashpriest']);
@@ -1283,6 +1335,7 @@ var Engine = (function () {
     }
     if (def.ai === 'abbot') { abbotAI(S, m, p, d, dt); return; }
     if (def.ai === 'judge') { judgeAI(S, m, p, d, dt); return; }
+    if (def.ai === 'warden') { wardenAI(S, m, p, d, dt); return; }
     if (m.atk > 0) {
       m.atk -= dt;
       if (m.atk <= 0) {
@@ -1441,11 +1494,19 @@ var Engine = (function () {
     var n = rnd(r) < (m.champ ? 0.9 : 0.15) ? 1 : 0, minR = 0, ib = m.champ ? 2 : 0;
     if (m.champ && rnd(r) < 0.45) n++;
     if (m.boss === 'mini') { n = 2; minR = 1; ib = 3; }
+    if (m.boss === 'warden') {
+      var WR = D.bosses.warden.reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
+      if (S.ossuary) S.ossuary.done = true;
+      emit(S, { t: 'wardenDown', name: m.name });
+      var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib;
+      if (rnd(r) < WR.unique) { n--; s = spot(); var uw = genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
+      for (var gw = 0; gw < 3; gw++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, WR.gold[0], WR.gold[1]) * S.depth }); }
+    }
     if (m.boss === 'true') { n = 4; minR = 2; ib = 4; }
     if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
     for (var i = 0; i < n; i++) {
       var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
-      var it = maybeUnique(S, il, m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
+      var it = maybeUnique(S, il, m.boss === 'warden' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
       s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: it });
       emit(S, { t: 'itemdrop', rarity: it.rarity, x: s[0], y: s[1] });
     }
