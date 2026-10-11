@@ -334,3 +334,9 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 #updBar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: #2a1d10; border: 1px solid var(--bronze); border-radius: 4px; color: var(--bone); font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.5); max-width: calc(100vw - 32px); }
 .fs-pref { display: flex; gap: 8px; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; cursor: pointer; }
 .fs-pref input { accent-color: var(--bronze); width: 16px; height: 16px; }
+/* Interface scale: grows with tall screens (set from script as --ui). */
+:root { --ui: 1; }
+#hud, .panel, .overlay > .card, #topRight, #depth, #log, #bossBar, #debuff, #buff, #chan, #target, #room, #updBar { zoom: var(--ui); }
+#tooltip { font-size: calc(14px * var(--ui)); }
+#tooltip .t { font-size: calc(18px * var(--ui)); }
+#tooltip .cmp { font-size: calc(13px * var(--ui)); }

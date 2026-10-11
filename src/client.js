@@ -129,10 +129,24 @@
     dpr = Math.min(2, window.devicePixelRatio || 1);
     vw = window.innerWidth; vh = window.innerHeight;
     cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr);
-    Z = Math.max(vw < 640 ? 0.9 : 0.62, Math.min(1.25, Math.min(vw / 900, vh / 640)));
+    // The world fills the screen: about 12 tiles of floor from top to bottom, whatever the monitor.
+    var base = Math.max(vw < 640 ? 0.9 : 0.8, Math.min(2.6, Math.min(vh / 470, vw / 760)));
+    Z = Math.max(0.7, Math.min(3, base * zoomMul));
     HW = 32 * Z; HH = 16 * Z;
+    // Panels, menus and the HUD grow with tall screens too.
+    UI = Math.max(1, Math.min(1.7, vh / 820, vw / 1000));
+    document.documentElement.style.setProperty('--ui', UI.toFixed(3));
   }
+  var zoomMul = 1, UI = 1;
+  try { zoomMul = Math.max(0.7, Math.min(1.5, parseFloat(localStorage.getItem('ashgrave.zoom')) || 1)); } catch (e) { }
   window.addEventListener('resize', resize); resize();
+  // Mouse wheel zooms the world in and out (kept between sessions).
+  cv.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    zoomMul = Math.max(0.7, Math.min(1.5, zoomMul * (e.deltaY < 0 ? 1.08 : 1 / 1.08)));
+    try { localStorage.setItem('ashgrave.zoom', zoomMul.toFixed(3)); } catch (er) { }
+    resize();
+  }, { passive: false });
   function sx(x, y) { return (x - y) * HW + oxC; }
   function sy(x, y) { return (x + y) * HH + oyC; }
   function toWorld(px, py) { var a = (px - oxC) / HW, b = (py - oyC) / HH; return { x: (a + b) / 2, y: (b - a) / 2 }; }
@@ -1309,7 +1323,7 @@
     // text and labels above the dark
     texts.forEach(function (tx2) {
       var a = Math.min(1, tx2.life / tx2.max * 2), x = sx(tx2.x, tx2.y), y = sy(tx2.x, tx2.y) - tx2.h * Z;
-      ctx.globalAlpha = a; ctx.font = (tx2.big ? '700 22px ' : '700 15px ') + "'Alegreya Sans', sans-serif"; ctx.textAlign = 'center';
+      ctx.globalAlpha = a; ctx.font = '700 ' + Math.round((tx2.big ? 22 : 15) * UI) + "px 'Alegreya Sans', sans-serif"; ctx.textAlign = 'center';
       ctx.fillStyle = '#000'; ctx.fillText(tx2.txt, x + 1, y + 1); ctx.fillStyle = tx2.c; ctx.fillText(tx2.txt, x, y);
     });
     ctx.globalAlpha = 1;
@@ -1334,7 +1348,7 @@
   }
   function drawLabels(pp, vis, psx, psy) {
     var pr = { x: psx - 14 * Z, y: psy - 44 * Z, w: 28 * Z, h: 46 * Z };
-    labels = []; ctx.font = "500 13px 'Alegreya Sans', sans-serif"; ctx.textAlign = 'left';
+    labels = []; ctx.font = "500 " + Math.round(13 * UI) + "px 'Alegreya Sans', sans-serif"; ctx.textAlign = 'left';
     var items = S.ground.filter(function (g) { return Math.hypot(g.x - pp.x, g.y - pp.y) < vis; });
     if (!S.map.final && explored[Math.floor(S.map.stairs.y) * S.map.W + Math.floor(S.map.stairs.x)] && Math.hypot(S.map.stairs.x - pp.x, S.map.stairs.y - pp.y) < vis + 2) items.push({ stairs: true, x: S.map.stairs.x, y: S.map.stairs.y });
     (S.npcs || []).forEach(function (n) { if (Math.hypot(n.x - pp.x, n.y - pp.y) < vis + 4) items.push({ npc: n, x: n.x, y: n.y, id: n.id }); });
@@ -1356,7 +1370,7 @@
       else if (g.kind === 'gold') { txt = g.amount + ' gold'; col = '#d1a85a'; }
       else if (g.kind === 'potion') { txt = g.pot === 'hp' ? 'Healing Potion' : 'Mana Potion'; col = '#cfc5b4'; }
       else { txt = E.itemName(g.item); col = ['#e8dfcf', '#8ea8ff', '#f0d06a', '#c070ff'][g.item.rarity]; }
-      var w = ctx.measureText(txt).width + 12, h = 20, x = sx(g.x, g.y) - w / 2, y = sy(g.x, g.y) - (g.stairs ? 34 : g.npc ? 44 : 28) * Z - h;
+      var w = ctx.measureText(txt).width + 12 * UI, h = 20 * UI, x = sx(g.x, g.y) - w / 2, y = sy(g.x, g.y) - (g.stairs ? 34 : g.npc ? 44 : 28) * Z - h;
       for (var k = 0; k < placed.length; k++) { var o = placed[k]; if (x < o.x + o.w && x + w > o.x && y < o.y + o.h && y + h > o.y) { y = o.y - h - 2; k = -1; } }
       placed.push({ x: x, y: y, w: w, h: h });
       var hov = mouse.x >= x && mouse.x <= x + w && mouse.y >= y && mouse.y <= y + h && !mouse.touch;
@@ -1364,7 +1378,7 @@
       ctx.globalAlpha = overP && !hov ? 0.35 : 1;
       ctx.fillStyle = hov ? 'rgba(60,45,30,0.92)' : 'rgba(8,6,5,0.78)'; ctx.fillRect(x, y, w, h);
       if (hov) { ctx.strokeStyle = '#b38f58'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); }
-      ctx.fillStyle = col; ctx.fillText(txt, x + 6, y + 14.5); ctx.globalAlpha = 1;
+      ctx.fillStyle = col; ctx.fillText(txt, x + 6 * UI, y + 14.5 * UI); ctx.globalAlpha = 1;
       labels.push({ x: x, y: y, w: w, h: h, id: g.id, kind: g.stairs ? 'stairs' : g.npc ? 'npc' : g.fallen ? 'revive' : 'item' });
     });
   }
