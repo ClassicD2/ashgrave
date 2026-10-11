@@ -506,7 +506,7 @@
     var meta = SPR && SPR.meta.actors[actor]; if (!meta) return false;
     var info = meta.animations[anim] ? anim : 'idle', file = actor + '-' + info;
     if (!sprOk(file)) { info = 'idle'; file = actor + '-idle'; if (!sprOk(file)) return false; }
-    var a = meta.animations[info], fs = meta.frameSize, an = meta.anchor, s = 0.5 * (meta.pxScale || 1) * (extra || 1);
+    var a = meta.animations[info], fs = a.frameSize || meta.frameSize, an = a.anchor || meta.anchor, s = 0.5 * (meta.pxScale || 1) * (extra || 1);
     var f = Math.max(0, Math.min(a.frames - 1, frame | 0));
     ctx.drawImage(sprImg[file], f * fs, dir * fs, fs, fs, -an[0] * s, -an[1] * s, fs * s, fs * s);
     return true;
@@ -546,8 +546,8 @@
   // so use only the frames that follow the facing (wind-up, raise, recover) and a short lunge;
   // the swing trail the game already draws shows the strike itself.
   function drawWarriorAttack(dir, progress, face) {
-    var f = progress < 0.3 ? 0 : progress < 0.65 ? 1 : 5;
-    var lunge = Math.sin(Math.min(1, progress) * Math.PI) * 5, sa = screenAngle(face || 0);
+    var f = Math.min(5, Math.floor(Math.max(0, progress) * 6));
+    var lunge = Math.sin(Math.min(1, progress) * Math.PI) * 2, sa = screenAngle(face || 0);
     ctx.save(); ctx.translate(Math.cos(sa) * lunge, Math.sin(sa) * lunge * 0.5);
     var ok = drawSprite('warrior', 'attack', dir, f);
     ctx.restore();
