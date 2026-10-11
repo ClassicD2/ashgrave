@@ -1703,24 +1703,32 @@
   function charForNet() { var c = loadStore().slots[selSlot]; return c ? JSON.parse(JSON.stringify(c)) : null; }
 
   // ----- Host -----
+  function cleanRoom(v) { var c = (v || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); return c.length >= 3 && c.length <= 12 ? c : ''; }
+  function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function lsSet(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) { } }
+  $('roomIn').value = lsGet('ashgrave.room'); $('codeIn').value = lsGet('ashgrave.lastJoin');
+  $('roomIn').addEventListener('keydown', function (e) { if (e.key === 'Enter') hostGame(); e.stopPropagation(); });
   function hostGame() {
     if (selSlot < 0 || !loadStore().slots[selSlot]) { netStatus('Choose a character first.', true); return; }
     if (!E.isUnlocked(store.slots[selSlot], selDiff)) { netStatus(DATA.difficulties[selDiff].lockText, true); return; }
     ensureAudio(); netStatus('Opening a room…');
     prepare().then(function () {
-      roomCode = makeCode();
+      var chosen = cleanRoom($('roomIn').value);
+      if ($('roomIn').value.trim() && !chosen) { netStatus('A room name is 3 to 12 letters or digits.', true); return; }
+      lsSet('ashgrave.room', chosen);
+      roomCode = chosen || makeCode();
       peer = newPeer('ashgrave-' + roomCode);
       peer.on('open', function () {
         MODE = 'host'; startGame(selSlot, selDiff);
         showRoom();
-        addLog('Room ' + roomCode + ' is open. Give your friend the code.', 'gold');
+        addLog('Room ' + roomCode + ' is open. Your friend joins with ' + roomCode + '.', 'gold');
       });
       peer.on('connection', function (conn) {
         conn.on('data', function (m) { onClientMsg(conn, m); });
         conn.on('close', function () { dropConn(conn); });
       });
       peer.on('error', function (err) {
-        if (err && err.type === 'unavailable-id') { netStatus('That code was taken. Try again.', true); return; }
+        if (err && err.type === 'unavailable-id') { netStatus('The room name ' + roomCode + ' is in use right now. If you just closed it, wait half a minute and try again; otherwise pick another name.', true); try { peer.destroy(); } catch (e2) { } return; }
         if (MODE === 'host') addLog('Network: ' + (err && err.type || err), 'warn'); else netStatus('Could not open a room: ' + (err && err.type || err), true);
       });
     }).catch(function (e) { netStatus(e.message, true); });
@@ -1784,7 +1792,7 @@
   }
   $('roomCopy').addEventListener('click', function () {
     var b = $('roomCopy');
-    try { navigator.clipboard.writeText(roomCode).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy code'; }, 1500); }, function () { b.textContent = roomCode; }); }
+    try { navigator.clipboard.writeText(roomCode).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy name'; }, 1500); }, function () { b.textContent = roomCode; }); }
     catch (e) { b.textContent = roomCode; }
   });
 
@@ -1792,8 +1800,9 @@
   function joinGame() {
     ensureAudio();
     if (selSlot < 0 || !loadStore().slots[selSlot]) { netStatus('Choose a character first.', true); return; }
-    var code = ($('codeIn').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (code.length !== 5) { netStatus('Enter the 5-character room code from the host.', true); return; }
+    var code = cleanRoom($('codeIn').value);
+    if (!code) { netStatus('Enter the host\'s room name (3 to 12 letters or digits).', true); return; }
+    lsSet('ashgrave.lastJoin', code);
     netStatus('Connecting…');
     prepare().then(function () {
       roomCode = code;

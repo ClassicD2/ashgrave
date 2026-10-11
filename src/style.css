@@ -210,9 +210,9 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 .coop { display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 14px 16px; border: 1px solid var(--edge); background: rgba(12,10,9,.55); }
 .coop-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
 .coop label { color: var(--muted); font-size: 14px; }
-.coop input { font: inherit; color: var(--bone); background: #120e0c; border: 1px solid var(--edge); border-radius: 3px; padding: 8px 10px; min-height: 38px; width: 9.5em; }
-#codeIn { width: 7.5em; text-transform: uppercase; letter-spacing: .15em; font-variant-numeric: tabular-nums; }
-.coop input:focus-visible { outline: 2px solid var(--bronze); outline-offset: 1px; }
+.coop input, .coop-row input { font: inherit; color: var(--bone); background: #120e0c; border: 1px solid var(--edge); border-radius: 3px; padding: 8px 10px; min-height: 38px; width: 9.5em; }
+#codeIn, #roomIn { width: 10.5em; text-transform: uppercase; letter-spacing: .15em; font-variant-numeric: tabular-nums; }
+.coop input:focus-visible, .coop-row input:focus-visible { outline: 2px solid var(--bronze); outline-offset: 1px; }
 .coop .or { color: var(--muted); font-size: 13px; }
 .coop .hint { margin: 0; min-height: 1.2em; }
 .hint.warn { color: var(--bad); }
@@ -326,3 +326,5 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 #cAsc { display: flex; flex-direction: column; gap: 6px; }
 #chan.full #chanBar { background: #fff1b0; box-shadow: 0 0 8px #ffe08a; }
 .nodes small { color: var(--muted); font-weight: 400; }
+.room-hint { margin: 0; text-align: center; font-size: 12px; }
+.coop-row .lbl { color: var(--muted); font-size: 13px; min-width: 4.5em; text-align: right; }

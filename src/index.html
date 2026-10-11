@@ -9,7 +9,7 @@
 <div id="game"><canvas id="cv"></canvas></div>
 
 <div id="topRight"><button class="tb" id="bMenu" title="Menu (Esc)">Menu</button><button class="tb" id="bSnd" title="Sound on/off">Sound</button></div>
-<div id="room" hidden><span id="roomTxt"></span><button class="tb" id="roomCopy">Copy code</button></div>
+<div id="room" hidden><span id="roomTxt"></span><button class="tb" id="roomCopy">Copy name</button></div>
 <div id="depth">Ashgrave · <b id="depthN">Level 1</b></div>
 <div id="target" hidden><div class="nm" id="tName"></div><div class="hb"><div id="tBar"></div></div></div>
 <div id="log" aria-live="polite"></div>
@@ -82,7 +82,9 @@
         <p class="hint">Solo. Three sealed chambers and the Hollow Judge. You carry five healing potions. If you fall, you return here with nothing lost and can try again.</p>
       </div>
       <div class="altar-row" id="altarRow" hidden><button class="big altar" id="bAltar">The Ash Altar</button><p class="hint" id="altarNote"></p></div>
-      <div class="coop-row"><button class="tb" id="bHost">Host co-op</button><span class="or">or join</span><input id="codeIn" maxlength="5" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bJoin">Join</button></div>
+      <div class="coop-row"><span class="lbl">Host as</span><input id="roomIn" class="room" maxlength="12" placeholder="ROOM NAME" aria-label="Your room name" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bHost">Host co-op</button></div>
+      <div class="coop-row"><span class="lbl">Join</span><input id="codeIn" class="room" maxlength="12" placeholder="ROOM NAME" aria-label="Room to join" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bJoin">Join co-op</button></div>
+      <p class="hint room-hint">Pick a room name once and your friend joins with the same name every time. Letters and digits, 3 to 12.</p>
     </section>
     <p class="hint" id="netStatus" role="status"></p>
     <details class="controls-wrap"><summary>Controls</summary>

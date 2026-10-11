@@ -216,9 +216,9 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 .coop { display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 14px 16px; border: 1px solid var(--edge); background: rgba(12,10,9,.55); }
 .coop-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
 .coop label { color: var(--muted); font-size: 14px; }
-.coop input { font: inherit; color: var(--bone); background: #120e0c; border: 1px solid var(--edge); border-radius: 3px; padding: 8px 10px; min-height: 38px; width: 9.5em; }
-#codeIn { width: 7.5em; text-transform: uppercase; letter-spacing: .15em; font-variant-numeric: tabular-nums; }
-.coop input:focus-visible { outline: 2px solid var(--bronze); outline-offset: 1px; }
+.coop input, .coop-row input { font: inherit; color: var(--bone); background: #120e0c; border: 1px solid var(--edge); border-radius: 3px; padding: 8px 10px; min-height: 38px; width: 9.5em; }
+#codeIn, #roomIn { width: 10.5em; text-transform: uppercase; letter-spacing: .15em; font-variant-numeric: tabular-nums; }
+.coop input:focus-visible, .coop-row input:focus-visible { outline: 2px solid var(--bronze); outline-offset: 1px; }
 .coop .or { color: var(--muted); font-size: 13px; }
 .coop .hint { margin: 0; min-height: 1.2em; }
 .hint.warn { color: var(--bad); }
@@ -332,12 +332,14 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 #cAsc { display: flex; flex-direction: column; gap: 6px; }
 #chan.full #chanBar { background: #fff1b0; box-shadow: 0 0 8px #ffe08a; }
 .nodes small { color: var(--muted); font-weight: 400; }
+.room-hint { margin: 0; text-align: center; font-size: 12px; }
+.coop-row .lbl { color: var(--muted); font-size: 13px; min-width: 4.5em; text-align: right; }
 </style>
 
 <div id="game"><canvas id="cv"></canvas></div>
 
 <div id="topRight"><button class="tb" id="bMenu" title="Menu (Esc)">Menu</button><button class="tb" id="bSnd" title="Sound on/off">Sound</button></div>
-<div id="room" hidden><span id="roomTxt"></span><button class="tb" id="roomCopy">Copy code</button></div>
+<div id="room" hidden><span id="roomTxt"></span><button class="tb" id="roomCopy">Copy name</button></div>
 <div id="depth">Ashgrave · <b id="depthN">Level 1</b></div>
 <div id="target" hidden><div class="nm" id="tName"></div><div class="hb"><div id="tBar"></div></div></div>
 <div id="log" aria-live="polite"></div>
@@ -410,7 +412,9 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
         <p class="hint">Solo. Three sealed chambers and the Hollow Judge. You carry five healing potions. If you fall, you return here with nothing lost and can try again.</p>
       </div>
       <div class="altar-row" id="altarRow" hidden><button class="big altar" id="bAltar">The Ash Altar</button><p class="hint" id="altarNote"></p></div>
-      <div class="coop-row"><button class="tb" id="bHost">Host co-op</button><span class="or">or join</span><input id="codeIn" maxlength="5" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bJoin">Join</button></div>
+      <div class="coop-row"><span class="lbl">Host as</span><input id="roomIn" class="room" maxlength="12" placeholder="ROOM NAME" aria-label="Your room name" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bHost">Host co-op</button></div>
+      <div class="coop-row"><span class="lbl">Join</span><input id="codeIn" class="room" maxlength="12" placeholder="ROOM NAME" aria-label="Room to join" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bJoin">Join co-op</button></div>
+      <p class="hint room-hint">Pick a room name once and your friend joins with the same name every time. Letters and digits, 3 to 12.</p>
     </section>
     <p class="hint" id="netStatus" role="status"></p>
     <details class="controls-wrap"><summary>Controls</summary>
@@ -425,7 +429,7 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
       <b>Esc</b><span>Menu.</span>
     </div>
     </details>
-    <p class="hint ver">Build 2026-10-11 16:57</p>
+    <p class="hint ver">Build 2026-10-11 17:05</p>
     <div class="tools"><button class="tb" id="bImport">Import character</button><button class="tb" id="tKeys">Key bindings</button></div>
   </div>
 </div>
@@ -4106,24 +4110,32 @@ if (typeof module !== 'undefined') module.exports = Engine;
   function charForNet() { var c = loadStore().slots[selSlot]; return c ? JSON.parse(JSON.stringify(c)) : null; }
 
   // ----- Host -----
+  function cleanRoom(v) { var c = (v || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); return c.length >= 3 && c.length <= 12 ? c : ''; }
+  function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function lsSet(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) { } }
+  $('roomIn').value = lsGet('ashgrave.room'); $('codeIn').value = lsGet('ashgrave.lastJoin');
+  $('roomIn').addEventListener('keydown', function (e) { if (e.key === 'Enter') hostGame(); e.stopPropagation(); });
   function hostGame() {
     if (selSlot < 0 || !loadStore().slots[selSlot]) { netStatus('Choose a character first.', true); return; }
     if (!E.isUnlocked(store.slots[selSlot], selDiff)) { netStatus(DATA.difficulties[selDiff].lockText, true); return; }
     ensureAudio(); netStatus('Opening a room…');
     prepare().then(function () {
-      roomCode = makeCode();
+      var chosen = cleanRoom($('roomIn').value);
+      if ($('roomIn').value.trim() && !chosen) { netStatus('A room name is 3 to 12 letters or digits.', true); return; }
+      lsSet('ashgrave.room', chosen);
+      roomCode = chosen || makeCode();
       peer = newPeer('ashgrave-' + roomCode);
       peer.on('open', function () {
         MODE = 'host'; startGame(selSlot, selDiff);
         showRoom();
-        addLog('Room ' + roomCode + ' is open. Give your friend the code.', 'gold');
+        addLog('Room ' + roomCode + ' is open. Your friend joins with ' + roomCode + '.', 'gold');
       });
       peer.on('connection', function (conn) {
         conn.on('data', function (m) { onClientMsg(conn, m); });
         conn.on('close', function () { dropConn(conn); });
       });
       peer.on('error', function (err) {
-        if (err && err.type === 'unavailable-id') { netStatus('That code was taken. Try again.', true); return; }
+        if (err && err.type === 'unavailable-id') { netStatus('The room name ' + roomCode + ' is in use right now. If you just closed it, wait half a minute and try again; otherwise pick another name.', true); try { peer.destroy(); } catch (e2) { } return; }
         if (MODE === 'host') addLog('Network: ' + (err && err.type || err), 'warn'); else netStatus('Could not open a room: ' + (err && err.type || err), true);
       });
     }).catch(function (e) { netStatus(e.message, true); });
@@ -4187,7 +4199,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
   }
   $('roomCopy').addEventListener('click', function () {
     var b = $('roomCopy');
-    try { navigator.clipboard.writeText(roomCode).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy code'; }, 1500); }, function () { b.textContent = roomCode; }); }
+    try { navigator.clipboard.writeText(roomCode).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy name'; }, 1500); }, function () { b.textContent = roomCode; }); }
     catch (e) { b.textContent = roomCode; }
   });
 
@@ -4195,8 +4207,9 @@ if (typeof module !== 'undefined') module.exports = Engine;
   function joinGame() {
     ensureAudio();
     if (selSlot < 0 || !loadStore().slots[selSlot]) { netStatus('Choose a character first.', true); return; }
-    var code = ($('codeIn').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (code.length !== 5) { netStatus('Enter the 5-character room code from the host.', true); return; }
+    var code = cleanRoom($('codeIn').value);
+    if (!code) { netStatus('Enter the host\'s room name (3 to 12 letters or digits).', true); return; }
+    lsSet('ashgrave.lastJoin', code);
     netStatus('Connecting…');
     prepare().then(function () {
       roomCode = code;
