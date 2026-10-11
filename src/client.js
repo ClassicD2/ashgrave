@@ -588,7 +588,11 @@
       if (actor === 'warrior') return drawWarriorAttack(dir, 1 - p.anim / 0.25, p.face);
       return drawSprite(actor, 'attack', dir, onceFrame(actor, 'attack', 1 - p.anim / 0.25));
     }
-    if (p.moving) return drawWalk(actor, dir, 1, 9, (p.id || '').length);
+    if (p.moving) {
+      // The hero sheets have a real 8-frame step cycle, so play them straight.
+      var wa = SPR.meta.actors[actor].animations.walk;
+      return drawSprite(actor, 'walk', dir, loopFrame(actor, 'walk', wa.fps || 9, (p.id || '').length));
+    }
     return drawIdle(actor, dir, 1, (p.id || '').length);
   }
   function drawMonsterSprite(m) {

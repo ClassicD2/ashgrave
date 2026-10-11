@@ -51,7 +51,8 @@
      "file": "archer-walk.png",
      "frames": 8,
      "columns": 8,
-     "rows": 8
+     "rows": 8,
+     "fps": 9
     }
    }
   },
@@ -96,7 +97,8 @@
      "file": "warrior-walk.png",
      "frames": 8,
      "columns": 8,
-     "rows": 8
+     "rows": 8,
+     "fps": 9
     }
    }
   },
