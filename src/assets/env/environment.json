@@ -1,0 +1,284 @@
+{
+  "projection": "2:1 isometric",
+  "directions": null,
+  "floor": {
+    "cell": [
+      128,
+      64
+    ],
+    "anchor": [
+      64,
+      0
+    ],
+    "atlas": "floor-tiles.png",
+    "tiles": [
+      "floor-stone",
+      "floor-stone-b",
+      "floor-cracked",
+      "floor-moss",
+      "floor-rubble",
+      "floor-blood",
+      "floor-rune",
+      "floor-ash"
+    ],
+    "frames": {
+      "floor-stone": [
+        0,
+        0,
+        128,
+        64
+      ],
+      "floor-stone-b": [
+        128,
+        0,
+        128,
+        64
+      ],
+      "floor-cracked": [
+        256,
+        0,
+        128,
+        64
+      ],
+      "floor-moss": [
+        384,
+        0,
+        128,
+        64
+      ],
+      "floor-rubble": [
+        0,
+        64,
+        128,
+        64
+      ],
+      "floor-blood": [
+        128,
+        64,
+        128,
+        64
+      ],
+      "floor-rune": [
+        256,
+        64,
+        128,
+        64
+      ],
+      "floor-ash": [
+        384,
+        64,
+        128,
+        64
+      ]
+    }
+  },
+  "walls": {
+    "cell": [
+      128,
+      128
+    ],
+    "anchor": [
+      64,
+      64
+    ],
+    "atlas": "wall-tiles.png",
+    "tiles": [
+      "wall-straight",
+      "wall-cracked-l",
+      "wall-cracked-r",
+      "wall-moss-l",
+      "wall-moss-r",
+      "wall-alcove-l",
+      "wall-alcove-r",
+      "wall-torch-l",
+      "wall-torch-r",
+      "wall-banner-l",
+      "wall-banner-r"
+    ],
+    "frames": {
+      "wall-straight": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "wall-cracked-l": [
+        128,
+        0,
+        128,
+        128
+      ],
+      "wall-cracked-r": [
+        256,
+        0,
+        128,
+        128
+      ],
+      "wall-moss-l": [
+        384,
+        0,
+        128,
+        128
+      ],
+      "wall-moss-r": [
+        0,
+        128,
+        128,
+        128
+      ],
+      "wall-alcove-l": [
+        128,
+        128,
+        128,
+        128
+      ],
+      "wall-alcove-r": [
+        256,
+        128,
+        128,
+        128
+      ],
+      "wall-torch-l": [
+        384,
+        128,
+        128,
+        128
+      ],
+      "wall-torch-r": [
+        0,
+        256,
+        128,
+        128
+      ],
+      "wall-banner-l": [
+        128,
+        256,
+        128,
+        128
+      ],
+      "wall-banner-r": [
+        256,
+        256,
+        128,
+        128
+      ]
+    }
+  },
+  "props": {
+    "cell": [
+      128,
+      128
+    ],
+    "anchor": [
+      64,
+      120
+    ],
+    "atlas": "environment-props.png",
+    "tiles": [
+      "prop-brazier",
+      "prop-urn",
+      "prop-skeleton-remains",
+      "prop-chest",
+      "prop-rubble-pile",
+      "prop-broken-pillar",
+      "prop-floor-grate",
+      "prop-ritual-altar"
+    ],
+    "frames": {
+      "prop-brazier": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "prop-urn": [
+        128,
+        0,
+        128,
+        128
+      ],
+      "prop-skeleton-remains": [
+        256,
+        0,
+        128,
+        128
+      ],
+      "prop-chest": [
+        384,
+        0,
+        128,
+        128
+      ],
+      "prop-rubble-pile": [
+        0,
+        128,
+        128,
+        128
+      ],
+      "prop-broken-pillar": [
+        128,
+        128,
+        128,
+        128
+      ],
+      "prop-floor-grate": [
+        256,
+        128,
+        128,
+        128
+      ],
+      "prop-ritual-altar": [
+        384,
+        128,
+        128,
+        128
+      ]
+    }
+  },
+  "specials": {
+    "stairs-down": {
+      "file": "stairs-down.png",
+      "cell": [
+        128,
+        96
+      ],
+      "anchor": [
+        64,
+        0
+      ]
+    },
+    "stairs-sealed": {
+      "file": "stairs-sealed.png",
+      "cell": [
+        128,
+        96
+      ],
+      "anchor": [
+        64,
+        0
+      ]
+    },
+    "gate-sealed": {
+      "file": "gate-sealed.png",
+      "cell": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        64
+      ]
+    },
+    "portal": {
+      "file": "portal.png",
+      "cell": [
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        184
+      ]
+    }
+  }
+}

@@ -1,0 +1,146 @@
+<meta charset="utf-8">
+<title>Ashgrave</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>/*STYLE*/</style>
+
+<div id="game"><canvas id="cv"></canvas></div>
+
+<div id="topRight"><button class="tb" id="bMenu" title="Menu (Esc)">Menu</button><button class="tb" id="bSnd" title="Sound on/off">Sound</button></div>
+<div id="room" hidden><span id="roomTxt"></span><button class="tb" id="roomCopy">Copy code</button></div>
+<div id="depth">Ashgrave · <b id="depthN">Level 1</b></div>
+<div id="target" hidden><div class="nm" id="tName"></div><div class="hb"><div id="tBar"></div></div></div>
+<div id="log" aria-live="polite"></div>
+<div id="bossBar" hidden><div class="bn" id="bbName"></div><div class="bt" id="bbTraits"></div><div class="bh"><div id="bbFill"></div></div></div>
+<div id="debuff" hidden><span class="dot"></span><span id="debuffTxt"></span></div>
+<div id="buff" hidden><span class="dot"></span><span id="buffTxt"></span></div>
+
+<div id="hud">
+  <div class="orb life" title="Life"><div class="fill" id="hpFill"></div><span id="hpTxt"></span></div>
+  <div class="mid">
+    <div class="xp" title="Experience"><div id="xpFill"></div></div>
+    <div class="bar">
+      <button class="tb pot-hp" id="bPotHp" title="Healing potion (1)"><span class="dot"></span><span class="n" id="nHp">0</span><kbd data-bind="potionHp">1</kbd></button>
+      <button class="tb skill" id="bSkill" title="Multishot: five arrows in a fan. 5 mana. Right-click or Q."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14 L14 2 M2 14 L8 1 M2 14 L15 8 M2 14 L12 0.5 M2 14 L15.5 4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg><span class="lbl-long" id="skName">Multishot</span><kbd data-bind="skill">Q</kbd></button>
+      <button class="tb pot-mp" id="bPotMp" title="Mana potion (2)"><span class="dot"></span><span class="n" id="nMp">0</span><kbd data-bind="potionMp">2</kbd></button>
+      <button class="tb" id="bChar" title="Character (C)">Character<kbd data-bind="character">C</kbd></button>
+      <button class="tb" id="bInv" title="Inventory (I)">Inventory<kbd data-bind="inventory">I</kbd></button>
+      <button class="tb" id="bMap" title="Map (Tab)">Map<kbd data-bind="map">Tab</kbd></button>
+    </div>
+  </div>
+  <div class="orb mana" title="Mana"><div class="fill" id="mpFill"></div><span id="mpTxt"></span></div>
+</div>
+
+<section class="panel" id="charPanel" hidden aria-label="Character">
+  <div class="ph"><h2 id="cTitle">Archer</h2><button class="x" data-close="charPanel" aria-label="Close">×</button></div>
+  <dl class="kv" id="cTop"></dl>
+  <div class="sub">Attributes <span class="pts" id="cPts"></span></div>
+  <div class="stats" id="cStats"></div>
+  <div id="cAsc" hidden></div>
+  <div class="sub">Combat</div>
+  <dl class="kv" id="cCombat"></dl>
+</section>
+
+<section class="panel" id="shopPanel" hidden aria-label="Merchant">
+  <div class="ph"><h2 id="shopName">Peddler</h2><button class="x" data-close="shopPanel" aria-label="Close">×</button></div>
+  <p class="hint">“Coin for comfort, friend. The dead don't haggle.”</p>
+  <div class="shop-list" id="shopList"></div>
+  <div class="gold"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="#b38f58" stroke="#6d5530"/></svg><span id="shopGold">0</span> gold</div>
+</section>
+
+<section class="panel" id="talkPanel" hidden aria-label="Conversation">
+  <div class="ph"><h2 id="talkName">The Veiled Keeper</h2><button class="x" data-close="talkPanel" aria-label="Close">×</button></div>
+  <p class="talk-line" id="talkLine"></p>
+  <div class="acts"><button class="tb primary" id="talkMenu">Return to main menu</button><button class="tb" id="talkStay">Stay a while</button></div>
+  <p class="hint" id="talkNote"></p>
+</section>
+
+<section class="panel" id="invPanel" hidden aria-label="Inventory">
+  <div class="ph"><h2>Inventory</h2><button class="x" data-close="invPanel" aria-label="Close">×</button></div>
+  <div class="eqgrid" id="eqGrid"></div>
+  <div class="invgrid" id="invGrid"></div>
+  <div class="gold"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="#b38f58" stroke="#6d5530"/></svg><span id="goldN">0</span> gold</div>
+  <div class="detail" id="detail" hidden></div>
+  <div class="hint" id="invHint">Select an item to inspect it, then equip or drop it. Ctrl + click drops it at once.</div>
+</section>
+
+<div id="tooltip" class="tip" hidden></div>
+
+<div class="overlay" id="title">
+  <div class="card">
+    <h1>Ashgrave</h1>
+    <p class="tag">Beneath the monastery something burns that never goes out. Take up arms and go down.</p>
+    <section class="slots" id="slots" aria-label="Characters"></section>
+    <section class="play" id="playBox" hidden aria-label="Play">
+      <div class="sub">Play as <span id="playWho"></span></div>
+      <div class="diffs" id="diffs"></div>
+      <div class="play-row"><button class="big" id="bPlay">Play solo</button></div>
+      <div class="trial-row" id="trialRow" hidden>
+        <button class="big trial" id="bTrial">Enter the Trial of Ash</button>
+        <p class="hint">Solo. Three sealed chambers and the Hollow Judge. You carry five healing potions. If you fall, you return here with nothing lost and can try again.</p>
+      </div>
+      <div class="altar-row" id="altarRow" hidden><button class="big altar" id="bAltar">The Ash Altar</button><p class="hint" id="altarNote"></p></div>
+      <div class="coop-row"><button class="tb" id="bHost">Host co-op</button><span class="or">or join</span><input id="codeIn" maxlength="5" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bJoin">Join</button></div>
+    </section>
+    <p class="hint" id="netStatus" role="status"></p>
+    <details class="controls-wrap"><summary>Controls</summary>
+    <div class="controls">
+      <b>Click</b><span>Move. Click an enemy to attack until it falls.</span>
+      <b>Hold</b><span>Keep walking toward the cursor.</span>
+      <b>Shift + click</b><span>Attack in place.</span>
+      <b>Right-click / <span data-bind="skill">Q</span></b><span>Class skill: Multishot or Cleave.</span>
+      <b><span data-bind="potionHp">1</span> / <span data-bind="potionMp">2</span></b><span>Healing / mana potion.</span>
+      <b><span data-bind="character">C</span> · <span data-bind="inventory">I</span> · <span data-bind="map">Tab</span></b><span>Character, inventory, map.</span>
+      <b>Ctrl + click</b><span>Drop an item from your inventory.</span>
+      <b>Esc</b><span>Menu.</span>
+    </div>
+    </details>
+    <div class="tools"><button class="tb" id="bImport">Import character</button><button class="tb" id="tKeys">Key bindings</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="dead" hidden><div class="card"><h1>You have fallen</h1><p class="tag" id="deadTxt"></p><div class="btns"><button class="big ghost" id="giveUp" hidden>Return to the level start</button></div></div></div>
+<div id="chan" hidden><span id="chanTxt"></span><div class="cb"><div id="chanBar"></div></div></div>
+
+<div class="overlay" id="menu" hidden><div class="card menu-card">
+  <h2 class="mh">Ashgrave</h2>
+  <div class="btns"><button class="big" id="mResume">Resume</button><button class="big ghost" id="mSettings">Key bindings</button><button class="big ghost" id="mQuit">Save and quit to main menu</button></div>
+  <p class="hint" id="menuNote"></p>
+</div></div>
+<div class="overlay" id="settings" hidden><div class="card menu-card">
+  <h2 class="mh">Key bindings</h2>
+  <p class="hint">Click an action, then press the key you want. Pressing a key that is already used swaps the two.</p>
+  <div class="binds" id="bindList"></div>
+  <div class="btns"><button class="big ghost" id="bindReset">Reset to defaults</button><button class="big" id="bindBack">Done</button></div>
+</div></div>
+
+<div class="overlay" id="exportBox" hidden><div class="card menu-card">
+  <h2 class="mh" id="exTitle">Export</h2>
+  <p class="hint">Keep this file somewhere safe. Import it on any browser or computer to get the character back.</p>
+  <textarea id="exText" readonly rows="6" aria-label="Exported character"></textarea>
+  <div class="tools"><button class="tb primary" id="exDownload">Save as file</button><button class="tb" id="exCopy">Copy text</button><button class="tb" id="exClose">Close</button></div>
+  <p class="hint" id="exStatus" role="status"></p>
+</div></div>
+<div class="overlay" id="altar" hidden><div class="card altar-card" role="dialog" aria-labelledby="altarH">
+  <div class="altar-head"><h2 class="mh" id="altarH">The Ash Altar</h2><span class="who" id="altarWho"></span></div>
+  <p class="hint" id="altarIntro"></p>
+  <div id="altarBody"></div>
+  <p class="hint altar-status" id="altarStatus" role="status"></p>
+  <div class="tools"><button class="tb" id="altarClose">Leave the altar</button></div>
+</div></div>
+<div class="overlay" id="importBox" hidden><div class="card menu-card">
+  <h2 class="mh">Import character</h2>
+  <p class="hint">Choose an exported file, or paste its text below. The character goes into the first empty slot.</p>
+  <label class="tb filebtn">Choose file<input type="file" id="imFile" accept=".json,application/json,text/plain"></label>
+  <textarea id="imText" rows="5" placeholder="Paste exported text here" aria-label="Exported text"></textarea>
+  <div class="tools"><button class="tb primary" id="imGo">Import</button><button class="tb" id="imClose">Cancel</button></div>
+  <p class="hint" id="imStatus" role="status"></p>
+</div></div>
+
+<script>/*TILES*/</script>
+<script>/*SPRITES*/</script>
+<script>/*DATA*/</script>
+<script>/*ENGINE*/</script>
+<script>/*CLIENT*/</script>
