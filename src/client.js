@@ -11,7 +11,7 @@
   var dpr = 1, vw = 0, vh = 0, Z = 1, HW = 32, HH = 16;
 
   var S = null, running = false, explored = null, prev = new Map(), alpha = 0;
-  var trialFailing = false, deadHits = [], deadLost = 0, deadWaiting = false, npcHits = [], shopId = null, swings = [], chains = [], corpses = [], parts = [], texts = [], hoverList = [], labels = [], hoverId = null, hoverLabel = null;
+  var trialFailing = false, deadHits = [], deadLost = 0, deadWaiting = false, npcHits = [], shopId = null, swings = [], novas = [], chains = [], corpses = [], parts = [], texts = [], hoverList = [], labels = [], hoverId = null, hoverLabel = null;
   var mapOpen = false, hurtFlash = 0, gameTime = 0, lastSave = 0;
   var mouse = { x: 0, y: 0, down: false, held: 'none', last: 0, touch: false };
   var oxC = 0, oyC = 0;
@@ -103,6 +103,8 @@
     cleave: function () { noise(0.18, 'bandpass', 650, 0.9, 0.38); tone('sawtooth', 160, 70, 0.14, 0.05); },
     draw: function () { noise(0.09, 'bandpass', 900, 3, 0.12); tone('sine', 140, 170, 0.1, 0.06); },
     bow: function () { noise(0.06, 'bandpass', 2600, 1.4, 0.3); tone('triangle', 210, 95, 0.12, 0.2); },
+    spark: function () { tone('sine', 900, 1500, 0.08, 0.12); noise(0.05, 'highpass', 4000, 0.7, 0.12); },
+    nova: function () { noise(0.35, 'bandpass', 500, 0.6, 0.4); tone('sine', 120, 380, 0.3, 0.18); },
     multi: function () { noise(0.12, 'bandpass', 2000, 0.9, 0.35); tone('triangle', 240, 90, 0.16, 0.2); },
     hit: function () { noise(0.07, 'lowpass', 900, 1, 0.35); },
     bone: function () { noise(0.05, 'highpass', 2500, 2, 0.25); tone('square', 900, 500, 0.04, 0.05); },
@@ -354,7 +356,7 @@
           lastTheme = S.map.theme;
           writeSave(); break;
         case 'shoot':
-          if (e.pid === PID) sfx(e.multi ? 'multi' : 'bow');
+          if (e.pid === PID) sfx(e.spark ? 'spark' : e.multi ? 'multi' : 'bow');
           if (e.draw >= 1) { var sp = S.players[e.pid]; if (sp) spray(sp.x, sp.y, 14, { colors: ['#ffffff', '#fff1b0', '#ffe08a'], speed: 1.6, up: 120, life: 0.4, size: 2, glow: true, h: 20 }); }
           break;
         case 'hit':
@@ -479,6 +481,11 @@
         case 'chain':
           chains.push({ x: e.x, y: e.y, x2: e.x2, y2: e.y2, t: 0 });
           spray(e.x2, e.y2, 8, { colors: ['#ffffff', '#fff1b0', '#ffe08a'], speed: 1.2, up: 120, life: 0.4, size: 1.8, glow: true, grav: -10 }); break;
+        case 'nova': novas.push({ x: e.x, y: e.y, r: e.r, pull: !!e.pull, crush: !!e.crush, side: e.side, t: 0 }); sfx('nova');
+          spray(e.x, e.y, 18, { colors: e.pull ? ['#2a1840', '#7a4ad0', '#b48cff'] : ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: e.pull ? -1.5 : 2.2, up: 60, life: 0.5, size: 2.2, glow: true, h: 16 }); break;
+        case 'blink': spray(e.x0, e.y0, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); spray(e.x, e.y, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); break;
+        case 'absorb': spray(e.x, e.y, 6, { colors: ['#fff1b0', '#ffe08a'], speed: 1, up: 80, life: 0.35, size: 2, glow: true, h: 22 }); break;
+        case 'decaySpread': for (var dsi = 1; dsi <= 4; dsi++) spray(e.x0 + (e.x - e.x0) * dsi / 4, e.y0 + (e.y - e.y0) * dsi / 4, 2, { colors: ['#6a8a3a', '#b48cff'], speed: 0.4, up: 40, life: 0.6, size: 2.2, glow: true, h: 14 }); break;
         case 'swing': swings.push({ x: e.x, y: e.y, face: e.face, arc: e.arc, big: !!e.big, reach: e.reach, t: 0 }); sfx(e.big ? 'cleave' : 'swing'); break;
         case 'wall':
           if (e.kind === 'bolt') { spray(e.x, e.y, 10, { colors: ['#ff7a2a', '#ffcf80'], speed: 1.4, up: 100, life: 0.5, glow: true, size: 2 }); sfx('boom'); }
@@ -603,9 +610,20 @@
     w.x = e.x; w.y = e.y;
     return Math.floor(w.d / WALK_CYCLE * n) % n;
   }
+  function drawShield(p, t) {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    var g = ctx.createRadialGradient(0, -22, 4, 0, -22, 26); g.addColorStop(0, 'rgba(255,240,180,0)'); g.addColorStop(0.75, 'rgba(255,230,150,' + (0.12 + 0.05 * Math.sin(t * 5)) + ')'); g.addColorStop(1, 'rgba(255,220,120,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, -22, 20, 26, 0, 0, 6.283); ctx.fill(); ctx.restore();
+  }
   var ATK_TIME = { gnawer: 0.28, bonewalker: 0.45, ashpriest: 0.6, abbot: 0.5 };
   function drawPlayerSprite(p) {
     var actor = p.cls === 'warrior' ? 'warrior' : 'archer', dir = dirIndex(p.face || 0);
+    // The Mage has no painted sheets yet: borrow the archer's, recoloured, until they arrive.
+    if (p.cls === 'mage' && !hasSprite0('mage')) { ctx.filter = 'hue-rotate(205deg) saturate(1.4) brightness(1.05)'; try { return drawPlayerSprite0(p, actor, dir); } finally { ctx.filter = 'none'; } }
+    if (p.cls === 'mage') actor = 'mage';
+    return drawPlayerSprite0(p, actor, dir);
+  }
+  function drawPlayerSprite0(p, actor, dir) {
     if (p.charge != null && actor === 'archer') {
       // Drawing the bow: face the cursor (own hero) and hold the draw frames of the attack sheet.
       var face = p.face;
@@ -969,13 +987,14 @@
       ctx.restore();
       if (Math.random() < 0.12) spray(it.x, it.y, 1, { colors: ['#6a0d1c', '#a3142a'], speed: 0.4, up: 20, life: 0.6, size: 2, h: 14 });
     }
+    if ((e.decay === 1 || (e.decay && e.decay.end > (S.time || 0))) && Math.random() < 0.3) spray(it.x, it.y, 1, { colors: ['#203018', '#6a8a3a', '#b48cff'], speed: 0.3, up: 30, life: 0.9, size: 2.6, grav: -15, h: 14 });
     if ((e.dark || e.darkPool > 0) && Math.random() < 0.22) spray(it.x, it.y, 1, { colors: ['#1a1022', '#5a3a7a', '#9a6cff'], speed: 0.35, up: 40, life: 0.8, size: 2.4, grav: -25, h: 18 });
     if ((e.sun || (e.sunT && now - e.sunT < 0.6)) && Math.random() < 0.22) spray(it.x, it.y, 1, { colors: ['#ffe08a', '#ffb347', '#fff3c0'], speed: 0.5, up: 90, life: 0.6, glow: true, grav: -50, size: 1.8, h: 16 });
   }
   // A fallen player: body on the floor with a faint soul light above it.
   function drawFallen(q, t) {
     var x = sx(q.x, q.y), y = sy(q.x, q.y), ready = (S.time || 0) - (q.deadAt || 0) >= R.reviveDelay;
-    var pa = q.cls === 'warrior' ? 'warrior' : 'archer';
+    var pa = q.cls === 'warrior' ? 'warrior' : q.cls === 'mage' && hasSprite0('mage') ? 'mage' : 'archer';
     if (hasSprite(pa)) {
       ctx.save(); ctx.translate(x, y); ctx.scale(Z, Z);
       drawSprite(pa, 'death', dirIndex(q.face || 0), Math.floor(((S.time || 0) - (q.deadAt || 0)) * 10));
@@ -1289,7 +1308,7 @@
           if (e.kind === 'keeper') { drawPortal(t, e); if (!(hasSprite('keeper') && drawIdle('keeper', dirIndex(e.face || 0), 1, 1))) drawKeeper(e, t, true); }
           else if (!(hasSprite('corvin') && drawIdle('corvin', dirIndex(e.face || 0), 1, 2))) drawPeddler(e, t);
         }
-        else if (it.k === 'p' && hasSprite(e.cls === 'warrior' ? 'warrior' : 'archer')) drawPlayerSprite(e);
+        else if (it.k === 'p' && hasSprite(e.cls === 'warrior' ? 'warrior' : 'archer')) { drawPlayerSprite(e); if (e.shield > 0) drawShield(e, t); }
         else if (it.k === 'm' && hasSprite(e.type)) drawMonsterSprite(e);
         else if (it.k === 'p') { if (e.cls === 'warrior') drawWarrior(e, t, e.id === PID ? ['#5a2420', '#3f1916'] : ['#2c3e5a', '#1f2c40']); else drawArcher(e, t, e.id === PID ? ['#2f4a2c', '#22351f'] : ['#4a2c4a', '#351f35']); }
         else if (e.type === 'gnawer') drawGnawer(e, t);
@@ -1315,6 +1334,14 @@
       });
       ctx.restore();
     }
+    novas.forEach(function (w) {
+      // an expanding (or, for the Voidcaller, collapsing) ring on the ground
+      var k = w.t / 0.35, rr = w.pull ? w.r * (1 - k * 0.85) : w.r * (0.25 + 0.75 * k), cx = sx(w.x, w.y), cy = sy(w.x, w.y);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = w.pull ? 'rgba(170,120,255,' + (0.8 * (1 - k)) + ')' : w.side === 'light' ? 'rgba(255,236,170,' + (0.85 * (1 - k)) + ')' : 'rgba(170,205,255,' + (0.85 * (1 - k)) + ')';
+      ctx.lineWidth = (w.crush ? 7 : 4) * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rr * HW * 1.414, rr * HH * 1.414, 0, 0, 6.283); ctx.stroke();
+      ctx.restore();
+    });
     swings.forEach(function (w) {
       var k = w.t / 0.18, r = w.big ? (w.reach ? w.reach * 0.85 : 1.6) : 1.0, n = 10;
       ctx.strokeStyle = 'rgba(235,225,205,' + (0.55 * (1 - k)) + ')'; ctx.lineWidth = (w.big ? 4 : 2.5) * Z; ctx.beginPath();
@@ -1360,6 +1387,14 @@
     // fireballs and embers shine through the dark
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     S.projs.forEach(function (pr) {
+      if (pr.kind === 'spark') {
+        var sl = lerpE(pr), spx = sx(sl.x, sl.y), spy = sy(sl.x, sl.y) - 18 * Z, srr = (pr.small ? 7 : 10) * Z;
+        var sg = ctx.createRadialGradient(spx, spy, 0, spx, spy, srr);
+        sg.addColorStop(0, 'rgba(255,255,255,1)'); sg.addColorStop(0.35, pr.dark ? 'rgba(170,120,255,0.9)' : pr.light ? 'rgba(255,230,150,0.9)' : 'rgba(140,190,255,0.9)'); sg.addColorStop(1, 'rgba(90,120,255,0)');
+        ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(spx, spy, srr, 0, 6.283); ctx.fill();
+        if (Math.random() < 0.5) parts.push({ x: sl.x, y: sl.y, h: 18, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, vh: 10, life: 0.3, max: 0.3, c: '#aac8ff', s: 1.6, glow: true, grav: -10 });
+        return;
+      }
       if (pr.kind !== 'bolt') return; var lp = lerpE(pr), bx2 = sx(lp.x, lp.y), by2 = sy(lp.x, lp.y) - 18 * Z, r = (pr.big ? 20 : 14) * Z;
       var gb = ctx.createRadialGradient(bx2, by2, 0, bx2, by2, r); gb.addColorStop(0, 'rgba(255,230,170,1)'); gb.addColorStop(0.35, 'rgba(255,120,40,0.85)'); gb.addColorStop(1, 'rgba(255,60,10,0)');
       ctx.fillStyle = gb; ctx.beginPath(); ctx.arc(bx2, by2, r, 0, 6.283); ctx.fill();
@@ -1477,6 +1512,7 @@
   function updateFx(dt) {
     gameTime += dt; hurtFlash = Math.max(0, hurtFlash - dt);
     swings = swings.filter(function (w) { w.t += dt; return w.t < 0.18; });
+    novas = novas.filter(function (w) { w.t += dt; return w.t < 0.35; });
     chains = chains.filter(function (c) { c.t += dt; return c.t < 0.28; });
     for (var i = parts.length - 1; i >= 0; i--) {
       var q = parts[i]; q.life -= dt; if (q.life <= 0) { parts.splice(i, 1); continue; }
@@ -1526,6 +1562,7 @@
     var buffs = [];
     if (p.blN && p.blT > (S.time || 0)) buffs.push('Bloodlust ×' + p.blN + ' · ' + Math.ceil(p.blT - S.time) + 's');
     if ((p.zeal || 0) > 0) buffs.push('Zeal · ' + Math.ceil(p.zeal) + 's');
+    if ((p.shield || 0) > 0) buffs.push('Shield ' + Math.round(p.shield));
     if (buffs.length) { $('buff').hidden = false; setTxt('buffTxt', buffs.join('   ')); } else $('buff').hidden = true;
     if (p.charge != null && !p.dead) {
       var df = E.drawFrac(S, p);
@@ -1648,7 +1685,7 @@
   function itemHtml(it, cmpWith) {
     var b = E.baseOf(it), h = '<div class="t r' + it.rarity + '">' + esc(E.itemName(it)) + '</div>';
     if (it.rarity >= 2) h += '<div class="b">' + (it.rarity === 3 ? 'Unique ' : '') + b.name + '</div>';
-    if (b.wclass) h += '<div class="b">' + (b.wclass === 'bow' ? 'Bow · Archer' : 'Melee weapon · Warrior') + '</div>';
+    if (b.wclass) h += '<div class="b">' + (b.wclass === 'bow' ? 'Bow · Archer' : b.wclass === 'staff' ? 'Staff · Mage' : 'Melee weapon · Warrior') + '</div>';
     if (it.dmg) h += '<div>Damage: ' + it.dmg[0] + '–' + it.dmg[1] + '</div><div class="b">' + b.aps.toFixed(2) + ' attacks per second</div>';
     if (it.armor) h += '<div>Defense: ' + it.armor + '</div>';
     var m = it.mods;
@@ -1696,7 +1733,7 @@
           '<div class="gifts compact ' + ca.side + '">' + ca.nodes.map(function (n) { return nodeHtml(p, n, cun, 'data-cnode'); }).join('') + '</div>';
       } else { cAsc.hidden = true; cAsc.innerHTML = ''; }
       $('cPts').textContent = p.pts ? '· ' + p.pts + ' points left' : '';
-      var cd = E.classOf(p), DESC = { str: '+1% melee damage per point', dex: '+1% bow damage per point', vit: '+' + cd.life.perVit + ' life per point', ene: '+' + cd.mana.perEne + ' mana per point' };
+      var cd = E.classOf(p), DESC = { str: '+1% melee damage per point', dex: '+1% bow damage per point', vit: '+' + cd.life.perVit + ' life per point', ene: '+' + cd.mana.perEne + ' mana' + (cd.primary === 'ene' ? ' and +1% spell damage' : '') + ' per point' };
       var defs = cd.attrs.map(function (k) { return [k, DATA.attrNames[k], DESC[k]]; });
       $('cStats').innerHTML = defs.map(function (d) {
         return '<div class="stat"><div>' + d[1] + '<small>' + d[2] + '</small></div><span class="v">' + st[d[0]] + '</span><button class="plus" data-alloc="' + d[0] + '" ' + (p.pts ? '' : 'disabled') + ' aria-label="Increase ' + d[1] + '">+</button></div>';
@@ -1785,7 +1822,7 @@
   var LIB = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
   var ICE = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
   var LOCAL = /[?&]transport=local/.test(location.search);
-  var LITE = ['x', 'y', 'hp', 'mana', 'face', 'moving', 'anim', 'dead', 'respawn', 'cd', 'order', 'ver', 'level', 'xp', 'name', 'deadAt', 'chan', 'slowT', 'blN', 'blT', 'charge', 'zeal', 'rainCd'];
+  var LITE = ['x', 'y', 'hp', 'mana', 'face', 'moving', 'anim', 'dead', 'respawn', 'cd', 'order', 'ver', 'level', 'xp', 'name', 'deadAt', 'chan', 'slowT', 'blN', 'blT', 'charge', 'zeal', 'rainCd', 'shield', 'shieldEnd'];
 
   function netStatus(t, bad) { var el = $('netStatus'); el.textContent = t; el.classList.toggle('warn', !!bad); }
   function webrtcOk() { try { return typeof RTCPeerConnection !== 'undefined' && !!new RTCPeerConnection(); } catch (e) { return false; } }
@@ -1908,6 +1945,7 @@
       if (m.boss) { o.boss = m.boss; o.name = m.name; o.traits = m.traits; o.scale = m.scale; o.cast = m.cast; o.aura = m.aura; }
       if (m.markT > S.time) o.mark = 1;
       if (m.darkPool > 0) o.dark = 1;
+      if (m.decay && m.decay.end > S.time) o.decay = 1;
       if (m.rend && m.rend.length) o.rendN = m.rend.length;
       if (m.sunT && S.time - m.sunT < 0.6) o.sun = 1;
       return o;
@@ -2092,7 +2130,7 @@
 
   // ---------- Title: character slots ----------
   var selSlot = -1, selDiff = 'normal', creating = -1, newCls = 'archer', armedDel = -1, armedTimer = 0;
-  var CLASS_BLURB = { archer: 'Bow and Multishot. Keeps distance.', warrior: 'Sword and Cleave. Takes 15% less damage.' };
+  var CLASS_BLURB = { archer: 'Bow and Multishot. Keeps distance.', warrior: 'Sword and Cleave. Takes 15% less damage.', mage: 'Staff, Spark and Nova. Mana soaks a quarter of every hit.' };
   function progressLine(c) {
     var D2 = DATA.difficulties, order = Object.keys(D2), parts = [];
     var cur = 'normal';
@@ -2115,7 +2153,7 @@
       if (creating === i) {
         return '<div class="slot creating" data-slot="' + i + '">' +
           '<label class="sub" for="newName">Name</label><input id="newName" maxlength="16" placeholder="Name your hero" autocomplete="off" spellcheck="false">' +
-          '<div class="clsrow">' + ['archer', 'warrior'].map(function (k) {
+          '<div class="clsrow">' + ['archer', 'warrior', 'mage'].map(function (k) {
             return '<button class="cls' + (newCls === k ? ' on' : '') + '" data-cls="' + k + '" aria-pressed="' + (newCls === k) + '"><b>' + DATA.classes[k].name + '</b><small>' + CLASS_BLURB[k] + '</small></button>';
           }).join('') + '</div>' +
           '<div class="slrow"><button class="tb" data-cancel="1">Cancel</button><button class="tb primary" data-make="' + i + '">Create</button></div></div>';

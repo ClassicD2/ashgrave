@@ -50,12 +50,20 @@ var DATA = {
       base: { str: 20, vit: 18, ene: 6 },
       life: { base: 40, perLevel: 4, perVit: 4 }, mana: { base: 6, perLevel: 1, perEne: 1.5 },
       skill: 'cleave', reach: 0.75, dr: 0.15, start: { weapon: 'short_sword', chest: 'leather_coat', helm: 'hood' }
+    },
+    // Mid range, control and mana. Energy raises spell damage; Arcane Ward pays part of every hit with mana.
+    mage: {
+      name: 'Mage', weapon: 'staff', primary: 'ene', attrs: ['ene', 'vit'],
+      base: { ene: 20, vit: 12, dex: 8 },
+      life: { base: 26, perLevel: 3, perVit: 3 }, mana: { base: 20, perLevel: 2, perEne: 2 },
+      skill: 'nova', ward: 0.25, start: { weapon: 'gnarled_staff', chest: 'leather_coat' }
     }
   },
   attrNames: { str: 'Strength', dex: 'Dexterity', vit: 'Vitality', ene: 'Energy' },
   skills: {
     multishot: { name: 'Multishot', mana: 5, arrows: 5, spread: 0.16, mult: 0.7, desc: 'Five arrows in a fan.' },
     cleave:    { name: 'Cleave',    mana: 4, arc: 2.1, reach: 1.9, mult: 1.15, desc: 'Strike every enemy in an arc in front of you.' },
+    nova:      { name: 'Nova', mana: 6, radius: 3, mult: 0.9, push: 1.3, desc: 'A ring of force around you that strikes every enemy within 3 tiles and throws them back.' },
     // Nightstalker only: a patch of falling arrows at the cursor. Damage per half second = pct x your average hit.
     rain:      { name: 'Rain of Arrows', mana: 7, radius: 1.8, dur: 3, tick: 0.5, pct: 0.45, cooldown: 1.5, desc: 'Arrows rain on an area you can see, dealing dark damage over 3 seconds. 1.5 second cooldown.' }
   },
@@ -135,6 +143,38 @@ var DATA = {
         { id: 'fade', name: 'Fade', max: 1, per: 1, req: 4, desc: 'When you kill an enemy, others within 8 tiles lose track of you for 2 seconds. Bosses are not fooled.', range: 8, dur: 2 },
         { id: 'mark_for_death', name: 'Mark for Death', max: 1, per: 1, req: 8, desc: 'Enemies you hit take 15% more damage from your allies for 4 seconds.', pct: 0.15, dur: 4 }
       ]
+    },
+    lightbinder: {
+      name: 'Lightbinder', cls: 'mage', side: 'light', skill: 'nova',
+      lore: 'Keeps the light around the ones who stand with her. Nova becomes a shield as much as a blow.',
+      core: { name: 'Radiant Ward',
+        desc: 'Nova shields you and every ally within its ring for 15% of your life for 4 seconds.',
+        shield: { pct: 0.15, dur: 4 } },
+      nodes: [
+        { id: 'radiant_shield', name: 'Radiant Shield', max: 7, per: 10, desc: 'Nova shields absorb +{v}% more.' },
+        { id: 'wide_nova', name: 'Wide Nova', max: 7, per: 5, desc: 'Nova reaches +{v}% further.' },
+        { id: 'clear_mind', name: 'Clear Mind', max: 5, per: 0.6, desc: 'Nova costs {v} less mana.' },
+        { id: 'dazzle', name: 'Dazzle', max: 6, per: 0.3, desc: 'Enemies struck by Nova lose track of you for {v}s. Bosses are not fooled.' },
+        { id: 'blink', name: 'Blink', max: 1, per: 1, req: 4, desc: 'Nova first carries you to the cursor (up to 6 tiles, where you can see), then bursts there.', range: 6 },
+        { id: 'sanctuary', name: 'Sanctuary', max: 1, per: 1, req: 8, desc: 'Nova leaves holy ground for 3 seconds. Allies on it heal 3% of their life each second.', dur: 3, radius: 2, pct: 0.03 },
+        { id: 'prism', name: 'Prism', max: 1, per: 1, req: 16, desc: 'Spark splits into two more sparks when it hits, each dealing 50%.', pct: 0.5 }
+      ]
+    },
+    voidcaller: {
+      name: 'Voidcaller', cls: 'mage', side: 'dark', skill: 'nova',
+      lore: 'Pulls the world in and lets it rot. What dies in the Decay passes it on.',
+      core: { name: 'Decay',
+        desc: 'Nova pulls enemies toward you instead of throwing them back, and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. When an enemy dies in Decay, it passes to the nearest enemy.',
+        pull: true, decay: { pct: 0.6, dur: 4, spread: 3 } },
+      nodes: [
+        { id: 'virulence', name: 'Virulence', max: 7, per: 8, desc: 'Decay deals +{v}% damage.' },
+        { id: 'lingering', name: 'Lingering Rot', max: 6, per: 0.5, desc: 'Decay lasts {v}s longer.' },
+        { id: 'event_horizon', name: 'Event Horizon', max: 7, per: 5, desc: 'Nova pulls from +{v}% further.' },
+        { id: 'withering', name: 'Withering', max: 6, per: 5, desc: 'Enemies in Decay are slowed by {v}%.' },
+        { id: 'siphon', name: 'Siphon', max: 1, per: 1, req: 4, desc: 'Each Spark that hits restores 2 mana.', mana: 2 },
+        { id: 'contagion', name: 'Contagion', max: 1, per: 1, req: 8, desc: 'Decay passes on to two enemies at full strength when its host dies.' },
+        { id: 'collapse', name: 'Collapse', max: 1, per: 1, req: 16, desc: 'Every second Nova crushes the enemies it pulls in for 200% of your hit.', mult: 2 }
+      ]
     }
   },
 
@@ -191,6 +231,11 @@ var DATA = {
     { id: 'broad_sword',   name: 'Broad Sword',   slot: 'weapon', wclass: 'melee', ilvl: 7,  dmg: [6, 13],  aps: 1.35 },
     { id: 'war_axe',       name: 'War Axe',       slot: 'weapon', wclass: 'melee', ilvl: 10, dmg: [8, 17],  aps: 1.2 },
     { id: 'great_sword',   name: 'Great Sword',   slot: 'weapon', wclass: 'melee', ilvl: 13, dmg: [11, 22], aps: 1.2 },
+    { id: 'gnarled_staff', name: 'Gnarled Staff', slot: 'weapon', wclass: 'staff', ilvl: 1,  dmg: [2, 5],   aps: 1.35 },
+    { id: 'ashen_staff',   name: 'Ashen Staff',   slot: 'weapon', wclass: 'staff', ilvl: 3,  dmg: [3, 7],   aps: 1.35 },
+    { id: 'rune_staff',    name: 'Rune Staff',    slot: 'weapon', wclass: 'staff', ilvl: 6,  dmg: [4, 11],  aps: 1.3 },
+    { id: 'bone_staff',    name: 'Bone Staff',    slot: 'weapon', wclass: 'staff', ilvl: 9,  dmg: [6, 13],  aps: 1.35 },
+    { id: 'battle_staff',  name: 'Battle Staff',  slot: 'weapon', wclass: 'staff', ilvl: 13, dmg: [8, 19],  aps: 1.3 },
     { id: 'hood',          name: 'Hood',          slot: 'helm',   ilvl: 1,  armor: [2, 4] },
     { id: 'helm',          name: 'Helm',          slot: 'helm',   ilvl: 4,  armor: [5, 8] },
     { id: 'storm_hood',    name: 'Storm Hood',    slot: 'helm',   ilvl: 9,  armor: [9, 14] },
@@ -206,6 +251,10 @@ var DATA = {
     { id: 'ashwood_bow',   name: 'Ashwood Bow',   slot: 'weapon', wclass: 'bow',   ilvl: 24, dmg: [15, 33], aps: 1.45 },
     { id: 'grave_bow',     name: 'Grave Bow',     slot: 'weapon', wclass: 'bow',   ilvl: 31, dmg: [19, 41], aps: 1.4 },
     { id: 'ember_longbow', name: 'Ember Longbow', slot: 'weapon', wclass: 'bow',   ilvl: 40, dmg: [24, 52], aps: 1.45 },
+    { id: 'warlock_staff', name: 'Warlock Staff', slot: 'weapon', wclass: 'staff', ilvl: 18, dmg: [11, 24], aps: 1.35 },
+    { id: 'grave_staff',   name: 'Grave Staff',   slot: 'weapon', wclass: 'staff', ilvl: 24, dmg: [14, 31], aps: 1.3 },
+    { id: 'obsidian_staff', name: 'Obsidian Staff', slot: 'weapon', wclass: 'staff', ilvl: 31, dmg: [18, 39], aps: 1.3 },
+    { id: 'ember_staff',   name: 'Ember Staff',   slot: 'weapon', wclass: 'staff', ilvl: 40, dmg: [23, 49], aps: 1.35 },
     { id: 'bastard_sword', name: 'Bastard Sword', slot: 'weapon', wclass: 'melee', ilvl: 18, dmg: [14, 28], aps: 1.3 },
     { id: 'battle_axe',    name: 'Battle Axe',    slot: 'weapon', wclass: 'melee', ilvl: 24, dmg: [17, 36], aps: 1.2 },
     { id: 'war_hammer',    name: 'War Hammer',    slot: 'weapon', wclass: 'melee', ilvl: 31, dmg: [23, 44], aps: 1.15 },
@@ -421,6 +470,7 @@ var DATA = {
     arrowSpeed: 15,
     playerRadius: 0.3,
     bowRange: 9,
+    staffRange: 6.5, sparkSpeed: 11,
     respawnTime: 3,
     deathGoldLoss: 0.1,
     darkDuration: 3,    // seconds that dark damage takes to land

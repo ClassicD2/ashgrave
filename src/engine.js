@@ -287,7 +287,7 @@ var Engine = (function () {
     if (slot === 'weapon') {
       // Lean drops toward the weapons the party can use, but keep some of the other kind.
       var inParty = Object.keys(S.players).map(function (id) { return D.classes[S.players[id].cls || 'archer'].weapon; });
-      wclass = inParty.length && rnd(r) < 0.7 ? pick(r, inParty) : (rnd(r) < 0.5 ? 'bow' : 'melee');
+      wclass = inParty.length && rnd(r) < 0.7 ? pick(r, inParty) : pick(r, ['bow', 'melee', 'staff']);
     }
     var cands = D.bases.filter(function (b) { return b.slot === slot && b.ilvl <= ilvl && (!wclass || b.wclass === wclass); });
     cands.sort(function (a, b) { return a.ilvl - b.ilvl; });
@@ -507,7 +507,7 @@ var Engine = (function () {
     var str = (p.base.str || 0) + (m.str || 0), dex = (p.base.dex || 0) + (m.dex || 0), vit = p.base.vit + (m.vit || 0), ene = p.base.ene + (m.ene || 0);
     var w = p.eq.weapon, wb = w ? baseOf(w) : null;
     if (wb && wb.wclass !== cd.weapon) { w = null; wb = null; }
-    var primary = cd.primary === 'str' ? str : dex;
+    var primary = cd.primary === 'str' ? str : cd.primary === 'ene' ? ene : dex;
     var mult = 1 + (m.dmgPct || 0) / 100 + primary / 100;
     var armor = 0;
     D.slots.forEach(function (s) { var it = p.eq[s]; if (it && it.armor) armor += it.armor; });
@@ -516,7 +516,7 @@ var Engine = (function () {
     armor = Math.round(armor * (1 + ((m.armorPct || 0) + nodeVal(p, 'hallowed_plate')) / 100));
     return {
       asc: p.ascendancy || null,
-      str: str, dex: dex, vit: vit, ene: ene, melee: cd.weapon === 'melee',
+      str: str, dex: dex, vit: vit, ene: ene, melee: cd.weapon === 'melee', caster: cd.weapon === 'staff',
       dmin: Math.max(1, Math.round((w ? w.dmg[0] : 1) * mult)),
       dmax: Math.max(2, Math.round((w ? w.dmg[1] : 2) * mult)),
       lmin: Math.round((m.lightMin || 0) * lightMul), lmax: Math.round((m.lightMax || 0) * lightMul),
@@ -540,7 +540,7 @@ var Engine = (function () {
       goldFind: m.gold || 0,
       regen: m.regen || 0,
       manaRegen: 0.8 + ene * 0.06,
-      range: cd.weapon === 'melee' ? (cd.reach || 0.75) : R.bowRange
+      range: cd.weapon === 'melee' ? (cd.reach || 0.75) : cd.weapon === 'staff' ? R.staffRange : R.bowRange
     };
   }
   function refresh(p) {
@@ -1136,7 +1136,7 @@ var Engine = (function () {
   function castSkill(S, p, tx, ty, draw) {
     p.queued = null;
     var sk = skillOf(p);
-    if (sk === 'cleave') castCleave(S, p, tx, ty); else if (sk === 'rain') castRain(S, p, tx, ty); else castMultishot(S, p, tx, ty, draw || 0);
+    if (sk === 'cleave') castCleave(S, p, tx, ty); else if (sk === 'rain') castRain(S, p, tx, ty); else if (sk === 'nova') castNova(S, p, tx, ty); else castMultishot(S, p, tx, ty, draw || 0);
   }
   // Sunwarden: how far the bow is drawn, 0 (a tap) to 1 (full draw).
   function drawFrac(S, p) {
@@ -1192,6 +1192,91 @@ var Engine = (function () {
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
     emit(S, { t: 'shoot', pid: p.id, multi: true, draw: draw || 0 });
   }
+  // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
+  function castNova(S, p, tx, ty) {
+    var sk = D.skills.nova, cost = Math.max(1, sk.mana - nodeVal(p, 'clear_mind'));
+    if (p.cd > 0 || p.mana < cost) { if (p.mana < cost) emit(S, { t: 'msg', pid: p.id, text: 'Not enough mana.', quiet: true }); return; }
+    p.mana -= cost; skillOrder(p);
+    var core = coreOf(p);
+    if (hasNode(p, 'blink')) {
+      var B = nodeDef('blink'), dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy) || 1, go = Math.min(d, B.range), bx = p.x, by = p.y;
+      for (var i = 1; i <= Math.ceil(go / 0.2); i++) {
+        var f = Math.min(go, i * 0.2), x = p.x + dx / d * f, y = p.y + dy / d * f;
+        if (!walkable(S.map, x, y)) break;
+        if (canStand(S.map, x, y, p.r)) { bx = x; by = y; }
+      }
+      emit(S, { t: 'blink', pid: p.id, x0: p.x, y0: p.y, x: bx, y: by });
+      p.x = bx; p.y = by; p.path = null;
+    }
+    var rad = sk.radius * (1 + (nodeVal(p, 'wide_nova') + nodeVal(p, 'event_horizon')) / 100), pull = !!core.pull;
+    p.novaN = (p.novaN || 0) + 1;
+    var crush = hasNode(p, 'collapse') && p.novaN % 2 === 0, struck = [];
+    S.monsters.slice().forEach(function (m) {
+      var mdx = m.x - p.x, mdy = m.y - p.y, md = Math.hypot(mdx, mdy);
+      if (md > rad + m.r || !los(S.map, p, m)) return;
+      var h = rollHit(S, p, sk.mult);
+      hurtMonster(S, m, h.dmg, h.light, p, 'nova', h.dark);
+      if (m.dead) return;
+      var ux = md > 0.01 ? mdx / md : 1, uy = md > 0.01 ? mdy / md : 0, heavy = m.boss ? 0.3 : 1;
+      if (pull) {
+        var to = Math.max(0, md - (p.r + m.r + 0.15)) * heavy;
+        for (var k = 0; k < 8; k++) moveEntity(S, m, -ux * to / 8, -uy * to / 8);
+      } else {
+        for (var k2 = 0; k2 < 8; k2++) moveEntity(S, m, ux * sk.push * heavy / 8, uy * sk.push * heavy / 8);
+      }
+      if (hasNode(p, 'dazzle') && !m.boss) { m.state = 'idle'; m.path = null; m.atk = 0; m.wx = null; m.blindUntil = S.time + nodeVal(p, 'dazzle'); }
+      if (core.decay) applyDecay(S, m, p);
+      struck.push(m);
+    });
+    if (crush) {
+      var C = nodeDef('collapse');
+      struck.forEach(function (m) { if (!m.dead) { var h2 = rollHit(S, p, C.mult); hurtMonster(S, m, h2.dmg, h2.light, p, 'nova', h2.dark); } });
+    }
+    if (core.shield) {
+      var amt = Math.round(p.st.maxHp * core.shield.pct * (1 + nodeVal(p, 'radiant_shield') / 100));
+      for (var id in S.players) {
+        var q = S.players[id];
+        if (q.dead || Math.hypot(q.x - p.x, q.y - p.y) > rad) continue;
+        q.shield = Math.max(q.shield || 0, amt); q.shieldEnd = S.time + core.shield.dur; q.ver++;
+      }
+    }
+    if (hasNode(p, 'sanctuary')) {
+      var SN = nodeDef('sanctuary');
+      S.zones.push({ id: S.nextId++, kind: 'holy', x: p.x, y: p.y, r: SN.radius, end: S.time + SN.dur, dur: SN.dur, owner: p.id, pct: SN.pct });
+    }
+    p.cd = atkCd(p); p.anim = 0.3;
+    emit(S, { t: 'nova', pid: p.id, x: p.x, y: p.y, r: rad, pull: pull || undefined, crush: crush || undefined, side: ascOf(p) ? ascOf(p).side : null });
+  }
+  // Voidcaller's Decay: dark damage over time that moves on when its host dies.
+  function applyDecay(S, m, p, fresh) {
+    var core = coreOf(p); if (!core.decay) return;
+    var st = p.st, hit = (st.dmin + st.dmax + st.lmin + st.lmax) / 2 + (st.dkmin + st.dkmax) / 2;
+    var dur = core.decay.dur + nodeVal(p, 'lingering'), total = hit * core.decay.pct * (1 + nodeVal(p, 'virulence') / 100) * st.darkMul;
+    m.decay = { dps: total / dur, end: S.time + dur, by: p.id, t: 0 };
+  }
+  function updateDecay(S, dt) {
+    S.monsters.slice().forEach(function (m) {
+      var dc = m.decay; if (!dc) return;
+      if (S.time >= dc.end) { m.decay = null; return; }
+      var p = S.players[dc.by] || null;
+      if (p && hasNode(p, 'withering')) { m.slowUntil = S.time + 0.2; m.slowPct = Math.max(m.slowPct && m.slowUntil > S.time ? m.slowPct : 0, nodeVal(p, 'withering') / 100); }
+      dc.t += dt; if (dc.t < 0.5) return;
+      var step = dc.t; dc.t = 0;
+      dealRaw(S, m, dc.dps * step, p, 'dark');
+    });
+  }
+  function spreadDecay(S, m) {
+    var dc = m.decay; if (!dc || S.time >= dc.end) return;
+    var p = S.players[dc.by]; if (!p || !coreOf(p).decay) return;
+    var n = hasNode(p, 'contagion') ? 2 : 1, range = coreOf(p).decay.spread;
+    var near = S.monsters.filter(function (o) { return o !== m && !o.dead && Math.hypot(o.x - m.x, o.y - m.y) <= range && !(o.decay && o.decay.end > S.time); })
+      .sort(function (a, b) { return Math.hypot(a.x - m.x, a.y - m.y) - Math.hypot(b.x - m.x, b.y - m.y); }).slice(0, n);
+    near.forEach(function (o) {
+      if (n === 2) applyDecay(S, o, p);
+      else o.decay = { dps: dc.dps, end: dc.end, by: dc.by, t: 0 };
+      emit(S, { t: 'decaySpread', x0: m.x, y0: m.y, x: o.x, y: o.y });
+    });
+  }
   // Nightstalker: a patch of falling arrows that deals dark damage to everything under it.
   function castRain(S, p, tx, ty) {
     var sk = D.skills.rain;
@@ -1221,11 +1306,18 @@ var Engine = (function () {
       vx: Math.cos(a) * R.arrowSpeed, vy: Math.sin(a) * R.arrowSpeed, life: st.range / R.arrowSpeed + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
       pierce: (coreOf(p).pierce || 0) + (extraPierce || 0) + (st.pierce || 0), keep: (coreOf(p).pierceKeep || 0.5) + nodeVal(p, 'piercing_light') / 100, hitIds: [] });
   }
+  // Mage: a bolt of force that bends a little toward the nearest enemy in its path.
+  function fireSpark(S, p, tx, ty) {
+    var a = Math.atan2(ty - p.y, tx - p.x), h = rollHit(S, p, 1);
+    S.projs.push({ id: S.nextId++, kind: 'spark', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35,
+      vx: Math.cos(a) * R.sparkSpeed, vy: Math.sin(a) * R.sparkSpeed, life: p.st.range / R.sparkSpeed + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
+      pierce: 0, keep: 0, hitIds: [], home: true, prism: hasNode(p, 'prism') });
+  }
   function shoot(S, p, tx, ty) {
     if (p.cd > 0) return false;
-    fireArrow(S, p, tx, ty, 0, 1);
+    if (p.st.caster) fireSpark(S, p, tx, ty); else fireArrow(S, p, tx, ty, 0, 1);
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
-    emit(S, { t: 'shoot', pid: p.id });
+    emit(S, { t: 'shoot', pid: p.id, spark: p.st.caster || undefined });
     return true;
   }
 
@@ -1303,6 +1395,7 @@ var Engine = (function () {
     var st = p.st;
     p.hp = Math.min(st.maxHp, p.hp + st.regen * dt);
     p.mana = Math.min(st.maxMana, p.mana + st.manaRegen * dt);
+    if (p.shield && S.time >= (p.shieldEnd || 0)) { p.shield = 0; p.ver++; }
     p.cd = Math.max(0, p.cd - dt); if (p.rainCd) p.rainCd = Math.max(0, p.rainCd - dt); p.anim = Math.max(0, p.anim - dt); p.slowT = Math.max(0, (p.slowT || 0) - dt);
     if (p.ascendancy) ascTick(S, p, dt);
     p.zeal = Math.max(0, (p.zeal || 0) - dt);
@@ -1532,6 +1625,9 @@ var Engine = (function () {
     if (p.st.dodge && rnd(S.rng) < p.st.dodge) { emit(S, { t: 'dodge', pid: p.id, x: p.x, y: p.y }); return; }
     var armor = p.st.armor;
     var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0)) * (1 - (p.st.dr || 0))));
+    if (p.shield > 0) { var ab = Math.min(p.shield, dmg); p.shield -= ab; dmg -= ab; if (p.shield <= 0) p.shield = 0; p.ver++; if (dmg <= 0) { emit(S, { t: 'absorb', pid: p.id, x: p.x, y: p.y }); return; } }
+    var ward = classOf(p).ward;
+    if (ward && p.mana > 0) { var wm = Math.min(p.mana, dmg * ward); p.mana -= wm; dmg = Math.max(1, Math.round(dmg - wm)); }
     p.hp -= dmg;
     if (src && src.vamp && src.hp > 0) src.hp = Math.min(src.max, src.hp + dmg * src.vamp);
     emit(S, { t: 'phit', pid: p.id, v: dmg, x: p.x, y: p.y });
@@ -1587,6 +1683,7 @@ var Engine = (function () {
     m.dead = true;
     var idx = S.monsters.indexOf(m); if (idx >= 0) S.monsters.splice(idx, 1);
     emit(S, { t: 'death', x: m.x, y: m.y, mtype: m.type, champ: m.champ, face: m.face, boss: m.boss || null });
+    if (m.decay) spreadDecay(S, m);
     onKill(S, m, by);
     if (m.boss) {
       emit(S, { t: 'bossDeath', name: m.name, isTrue: m.boss === 'true', x: m.x, y: m.y });
@@ -1671,6 +1768,7 @@ var Engine = (function () {
     for (var i = S.projs.length - 1; i >= 0; i--) {
       var pr = S.projs[i], sp = Math.hypot(pr.vx, pr.vy), n = Math.max(1, Math.ceil(sp * dt / 0.25)), dead = false;
       for (var k = 0; k < n && !dead; k++) {
+        if (pr.home) steerSpark(S, pr, dt / n);
         pr.x += pr.vx * dt / n; pr.y += pr.vy * dt / n;
         if (!walkable(S.map, pr.x, pr.y)) { dead = true; emit(S, { t: 'wall', kind: pr.kind, x: pr.x - pr.vx * dt / n, y: pr.y - pr.vy * dt / n }); break; }
         if (pr.from === 'p') {
@@ -1679,6 +1777,7 @@ var Engine = (function () {
             if (pr.hitIds && pr.hitIds.indexOf(m.id) >= 0) continue;
             if (Math.hypot(m.x - pr.x, m.y - pr.y) < m.r + 0.15) {
               hurtMonster(S, m, pr.dmg, pr.light || 0, S.players[pr.owner], pr.kind, pr.dark || 0);
+              if (pr.kind === 'spark') sparkHit(S, pr, m);
               if (pr.pierce > 0) { pr.pierce--; pr.hitIds.push(m.id); pr.dmg *= pr.keep; pr.light *= pr.keep; pr.dark *= pr.keep; } else dead = true;
               break;
             }
@@ -1695,6 +1794,29 @@ var Engine = (function () {
     }
   }
 
+  function steerSpark(S, pr, dt) {
+    var sp = Math.hypot(pr.vx, pr.vy), ux = pr.vx / sp, uy = pr.vy / sp, best = null, bd = 2.6;
+    for (var j = 0; j < S.monsters.length; j++) {
+      var m = S.monsters[j]; if (pr.hitIds.indexOf(m.id) >= 0) continue;
+      var dx = m.x - pr.x, dy = m.y - pr.y, d = Math.hypot(dx, dy);
+      if (d < bd && (dx * ux + dy * uy) > d * 0.5) { bd = d; best = m; }
+    }
+    if (!best) return;
+    var want = Math.atan2(best.y - pr.y, best.x - pr.x), cur = Math.atan2(pr.vy, pr.vx);
+    var diff = ((want - cur + Math.PI * 3) % (Math.PI * 2)) - Math.PI, turn = Math.max(-5 * dt, Math.min(5 * dt, diff));
+    pr.vx = Math.cos(cur + turn) * sp; pr.vy = Math.sin(cur + turn) * sp;
+  }
+  function sparkHit(S, pr, m) {
+    var p = S.players[pr.owner]; if (!p) return;
+    if (hasNode(p, 'siphon')) p.mana = Math.min(p.st.maxMana, p.mana + nodeDef('siphon').mana);
+    if (pr.prism) {
+      var a = Math.atan2(pr.vy, pr.vx), sp = Math.hypot(pr.vx, pr.vy), k = nodeDef('prism').pct;
+      [-0.6, 0.6].forEach(function (o) {
+        S.projs.push({ id: S.nextId++, kind: 'spark', from: 'p', owner: pr.owner, x: m.x, y: m.y, vx: Math.cos(a + o) * sp, vy: Math.sin(a + o) * sp,
+          life: 0.45, dmg: pr.dmg * k, light: (pr.light || 0) * k, dark: (pr.dark || 0) * k, pierce: 0, keep: 0, hitIds: [m.id], home: true, prism: false, small: true });
+      });
+    }
+  }
   function separate(S) {
     var ms = S.monsters;
     for (var i = 0; i < ms.length; i++) for (var j = i + 1; j < ms.length; j++) {
@@ -1724,6 +1846,7 @@ var Engine = (function () {
     updateProjectiles(S, dt);
     updateHazards(S, dt);
     updateZones(S, dt);
+    updateDecay(S, dt);
   }
   // Holy ground from Consecrate: heals everyone standing on it.
   function updateZones(S, dt) {
@@ -1744,7 +1867,7 @@ var Engine = (function () {
       }
       for (var id in S.players) {
         var p = S.players[id];
-        if (!p.dead && Math.hypot(p.x - z.x, p.y - z.y) < z.r) p.hp = Math.min(p.st.maxHp, p.hp + p.st.maxHp * pct * dt);
+        if (!p.dead && Math.hypot(p.x - z.x, p.y - z.y) < z.r) p.hp = Math.min(p.st.maxHp, p.hp + p.st.maxHp * (z.pct || pct) * dt);
       }
     }
   }
