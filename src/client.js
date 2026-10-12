@@ -1989,6 +1989,7 @@
     $('menu').hidden = true; $('settings').hidden = true;
     $('room').hidden = true; $('dead').hidden = true; closePanel('charPanel'); closePanel('invPanel'); closePanel('shopPanel'); closePanel('talkPanel');
     activeSlot = -1; $('log').innerHTML = ''; document.body.classList.add('at-title');
+    if (typeof TEST !== 'undefined') { TEST.run = false; var tb = $('testBadge'); if (tb) tb.hidden = true; }
     renderTitle(); $('title').hidden = false; netStatus(msg || '', !good);
   }
   window.addEventListener('beforeunload', function () {
@@ -2231,6 +2232,110 @@
     if (!E.isUnlocked(c, selDiff)) { netStatus(DATA.difficulties[selDiff].lockText, true); return; }
     ensureAudio(); netStatus('', false); startGame(selSlot, selDiff);
   });
+
+  // ---------- TEST MODE (developer tool, remove before release) ----------
+  // Turned on with ?test in the address or F9 on the title screen. Starts a throwaway hero
+  // on any map level and difficulty. Nothing is saved: activeSlot stays -1, so writeSave does nothing.
+  var TEST = { on: false, run: false, god: false };
+  try { TEST.on = /[?&]test\b/.test(location.search) || localStorage.getItem('ashgrave.test') === '1'; } catch (e) { }
+  function testSuggestLevel(diff, depth) {
+    return diff === 'hell' ? 30 + Math.round(depth * 1.4) : diff === 'nightmare' ? 15 + Math.round(depth * 1.3) : Math.max(1, Math.round(1 + depth * 1.6));
+  }
+  function testFill() {
+    var cls = $('tCls').value;
+    $('tPath').innerHTML = '<option value="">None</option>' + Object.keys(DATA.ascendancies).filter(function (k) { return DATA.ascendancies[k].cls === cls; })
+      .map(function (k) { return '<option value="' + k + '">' + DATA.ascendancies[k].name + '</option>'; }).join('');
+    if (!$('tDiff').options.length) $('tDiff').innerHTML = Object.keys(DATA.difficulties).map(function (k) { return '<option value="' + k + '">' + DATA.difficulties[k].name + '</option>'; }).join('');
+    testDepths();
+  }
+  function testDepths() {
+    var diff = $('tDiff').value, fd = DATA.difficulties[diff].finalDepth, cur = +$('tDepth').value || 1, h = '';
+    for (var d = 1; d <= fd; d++) {
+      var notes = [];
+      if (d === fd) notes.push('final boss');
+      if (DATA.bosses.warden && DATA.bosses.warden.depth === d && diff === 'normal') notes.push('Gravewarden');
+      var th = E.themeFor(d, fd); notes.push(THEMES[th] ? THEMES[th].name : th);
+      h += '<option value="' + d + '">' + d + (notes.filter(Boolean).length ? ' · ' + notes.filter(Boolean).join(', ') : '') + '</option>';
+    }
+    $('tDepth').innerHTML = h; $('tDepth').value = Math.min(cur, fd);
+    $('tLvl').value = testSuggestLevel(diff, +$('tDepth').value);
+  }
+  function testShow() { $('testBox').hidden = !TEST.on; if (TEST.on) testFill(); }
+  $('tCls').addEventListener('change', testFill);
+  $('tDiff').addEventListener('change', testDepths);
+  $('tDepth').addEventListener('change', function () { $('tLvl').value = testSuggestLevel($('tDiff').value, +$('tDepth').value); });
+  function testHero() {
+    var cls = $('tCls').value, L = Math.max(1, Math.min(60, +$('tLvl').value || 1)), path = $('tPath').value;
+    var c = E.newCharacter('Tester', cls), cd = DATA.classes[cls];
+    c.id = 'test'; c.level = L; c.xp = 0;
+    var pts = (L - 1) * 5, prim = Math.round(pts * 0.6);   // spend the points: 60% main stat, 40% vitality
+    c.base[cd.primary] = (c.base[cd.primary] || 0) + prim; c.base.vit = (c.base.vit || 0) + pts - prim; c.pts = 0;
+    if (path) { c.trial = 'done'; c.ascendancy = path; c.ascNodes = {}; }
+    else if (L >= 12) c.trial = 'unlocked';
+    if ($('tRich').checked) { c.potions = { hp: R.maxPotions || 10, mp: R.maxPotions || 10 }; c.gold = 5000; }
+    return c;
+  }
+  function testGear(S0, p) {
+    var mode = $('tGear').value; if (mode === 'start') return;
+    var ilvl = Math.max(1, (S0.monsters[0] && S0.monsters[0].lvl) || p.level), min = mode === 'rare' ? 2 : 1;
+    Object.keys(p.eq).forEach(function (slot) {
+      for (var tries = 0; tries < 40; tries++) {
+        var it = null; try { it = E.genItem(S0, ilvl, slot === 'ring2' ? 'ring' : slot, min); } catch (er) { break; }
+        if (it && it.unique) continue;
+        if (it && (slot !== 'weapon' || E.canWield(p, it))) { it.slot = slot; p.eq[slot] = it; break; }
+      }
+    });
+  }
+  function testStart(depth, diff, hero) {
+    $('title').hidden = true; document.body.classList.remove('at-title');
+    MODE = 'solo'; PID = 'p1'; activeSlot = -1;
+    S = E.createSim((Math.random() * 2147483647) | 0, depth, diff);
+    S.testGod = TEST.god;
+    E.addPlayer(S, PID, hero);
+    explored = new Uint8Array(S.map.W * S.map.H); corpses = [];
+    processEvents(); setDepthLabel();
+    running = true; lastVer = -1; TEST.run = true; testBadge();
+  }
+  function testBadge() {
+    var b = $('testBadge');
+    if (!b) { b = document.createElement('div'); b.id = 'testBadge'; document.body.appendChild(b); }
+    b.hidden = !TEST.run || !S;
+    if (S) b.textContent = 'TEST · ' + DATA.difficulties[S.difficulty].name + ' level ' + S.depth + (S.testGod ? ' · invulnerable' : '') + ' · PgDn/PgUp level · G invulnerable';
+  }
+  $('bTest').addEventListener('click', function () {
+    ensureAudio(); netStatus('', false);
+    TEST.god = $('tGod').checked;
+    var hero = testHero(), diff = $('tDiff').value, depth = +$('tDepth').value;
+    testStart(depth, diff, hero);
+    var p = S.players[PID];
+    testGear(S, p);
+    E.refresh(p);
+    p.hp = p.st.maxHp; p.mana = p.st.maxMana; p.ver++;
+    addLog('Test run: ' + DATA.difficulties[diff].name + ' level ' + depth + '. Nothing is saved.', '');
+  });
+  function testJump(delta) {
+    if (!TEST.run || !S || MODE !== 'solo') return;
+    var p = S.players[PID]; if (!p) return;
+    var fd = DATA.difficulties[S.difficulty].finalDepth, d = Math.max(1, Math.min(fd, S.depth + delta));
+    if (d === S.depth) return;
+    var c = E.characterOf(p);
+    testStart(d, S.difficulty, c);
+    addLog('Test: jumped to level ' + d + '.', '');
+  }
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'F9' && !running) {
+      e.preventDefault(); TEST.on = !TEST.on;
+      try { localStorage.setItem('ashgrave.test', TEST.on ? '1' : '0'); } catch (er) { }
+      testShow(); return;
+    }
+    if (!TEST.run || !running) return;
+    if (e.target && /input|select|textarea/i.test(e.target.tagName)) return;
+    if (e.key === 'PageDown') { e.preventDefault(); testJump(1); }
+    else if (e.key === 'PageUp') { e.preventDefault(); testJump(-1); }
+    else if ((e.key === 'g' || e.key === 'G') && !e.ctrlKey) { TEST.god = !TEST.god; S.testGod = TEST.god; testBadge(); addLog('Test: invulnerable ' + (TEST.god ? 'on' : 'off') + '.', ''); }
+  });
+  testShow();
+  // ---------- end TEST MODE ----------
 
   // ---------- Export / import ----------
   function exportText(c) { return JSON.stringify({ game: 'ashgrave', version: E.SAVE_VERSION, exported: new Date().toISOString(), character: c }, null, 1); }

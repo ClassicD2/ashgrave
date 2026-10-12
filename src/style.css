@@ -340,3 +340,13 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 #tooltip { font-size: calc(14px * var(--ui)); }
 #tooltip .t { font-size: calc(18px * var(--ui)); }
 #tooltip .cmp { font-size: calc(13px * var(--ui)); }
+
+/* TEST MODE (dev only) */
+.testbox { border-color: #4a3a6a; background: rgba(24,16,36,.6); }
+.testtag { color: #b48cff; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.testgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; text-align: left; }
+.testgrid label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--ash, #a99); }
+.testgrid label.chk { flex-direction: row; align-items: center; gap: 6px; }
+.testgrid select, .testgrid input[type=number] { background: #14100e; color: var(--bone, #e8dcc8); border: 1px solid var(--edge, #3a2e26); padding: 5px 6px; font: inherit; }
+#testBadge { position: fixed; left: 50%; top: 6px; transform: translateX(-50%); z-index: 30; padding: 3px 10px; font-size: 12px; color: #e6d8ff; background: rgba(60,30,100,.75); border: 1px solid #7a5ab0; pointer-events: none; }
+@media (max-width: 640px) { .testgrid { grid-template-columns: 1fr; } }

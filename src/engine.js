@@ -1466,7 +1466,7 @@ var Engine = (function () {
     emit(S, { t: 'revived', pid: q.id, name: q.name, by: by.name, byId: by.id, x: q.x, y: q.y });
   }
   function hurtPlayer(S, p, raw, mlvl, src) {
-    if (p.dead) return;
+    if (p.dead || S.testGod) return; // TEST MODE: invulnerable
     if (p.st.block && rnd(S.rng) < p.st.block) { emit(S, { t: 'block', pid: p.id, x: p.x, y: p.y }); return; }
     if (p.st.dodge && rnd(S.rng) < p.st.dodge) { emit(S, { t: 'dodge', pid: p.id, x: p.x, y: p.y }); return; }
     var armor = p.st.armor;
@@ -1691,7 +1691,7 @@ var Engine = (function () {
   return {
     classOf: classOf, canWield: canWield, targetSlot: targetSlot,
     genUnique: genUnique, uniqueDef: uniqueDef, ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
-    SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, applyFinal: applyFinal, themeFor: themeFor,
+    SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, refresh: refresh, applyFinal: applyFinal, themeFor: themeFor,
     createSim: createSim, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,
     itemName: itemName, baseOf: baseOf, genItem: genItem, findPath: findPath,

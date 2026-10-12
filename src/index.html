@@ -87,6 +87,22 @@
       <div class="coop-row"><span class="lbl">Join</span><input id="codeIn" class="room" maxlength="12" placeholder="ROOM NAME" aria-label="Room to join" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="tb" id="bJoin">Join co-op</button></div>
       <p class="hint room-hint">Pick a room name once and your friend joins with the same name every time. Letters and digits, 3 to 12.</p>
     </section>
+    <!-- TEST MODE: developer tool, remove before release (see client.js "TEST MODE") -->
+    <section class="play testbox" id="testBox" hidden aria-label="Test level">
+      <div class="sub">Test level <span class="testtag">dev only · nothing is saved</span></div>
+      <div class="testgrid">
+        <label>Class<select id="tCls"><option value="archer">Archer</option><option value="warrior">Warrior</option></select></label>
+        <label>Path<select id="tPath"></select></label>
+        <label>Difficulty<select id="tDiff"></select></label>
+        <label>Level (map)<select id="tDepth"></select></label>
+        <label>Character level<input id="tLvl" type="number" min="1" max="60"></label>
+        <label>Gear<select id="tGear"><option value="rare">Rare, matching level</option><option value="magic">Magic, matching level</option><option value="start">Starting gear</option></select></label>
+        <label class="chk"><input type="checkbox" id="tGod"> Invulnerable</label>
+        <label class="chk"><input type="checkbox" id="tRich" checked> 10 potions + 5000 gold</label>
+      </div>
+      <div class="play-row"><button class="big" id="bTest">Start test</button></div>
+      <p class="hint">In a test run: <b>PageDown</b> next level, <b>PageUp</b> previous level, <b>G</b> toggles invulnerable. F9 on this screen hides this box.</p>
+    </section>
     <p class="hint" id="netStatus" role="status"></p>
     <details class="controls-wrap"><summary>Controls</summary>
     <div class="controls">
