@@ -1415,7 +1415,7 @@
         }
         drawWall(it.tx, it.ty, fade);
       } else if (it.k === 'q') { drawProp(it.e);
-      } else if (it.k === 'a' && it.e.kind === 'blade') {
+      } else if (it.k === 'a' && (it.e.kind === 'blade' || it.e.mantle)) {
         // a rusted blade from the King's mantle, spinning as it flies
         var bl = it.e, bsx = sx(it.x, it.y), bsy = sy(it.x, it.y) - 20 * Z;
         if (sprOk('king-blade')) { ctx.save(); ctx.translate(bsx, bsy); ctx.rotate(gameTime * 18 + bl.id); ctx.drawImage(sprImg['king-blade'], -16 * Z, -16 * Z, 32 * Z, 32 * Z); ctx.restore(); }
@@ -2092,7 +2092,7 @@
       if (m.cast === 'chargeWind') { o.cdx = r2(m.cdx); o.cdy = r2(m.cdy); o.cleft = r2(m.cleft); }
       return o;
     });
-    var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner }; });
+    var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner, mantle: pr.mantle }; });
     var msg = { t: 'snap', hazards: S.hazards || [], ossuary: S.ossuary || null, seed: S.seed, depth: S.depth, difficulty: S.difficulty, final: !!S.map.final, time: S.time, seal: S.seal, players: players, monsters: mons, projs: projs, npcs: S.npcs, zones: S.zones || [], ev: pendingEv };
     var gk = S.depth + ':' + S.ground.map(function (g) { return g.id; }).join(',');
     if (gk !== conn.groundKey) { conn.groundKey = gk; msg.ground = S.ground; }

@@ -245,7 +245,18 @@ var DATA = {
       fx: ['Arrows pierce 1 more enemy', 'Arrows that kill burst into 3 bone shards dealing 50% damage'] },
     { id: 'gravewardens_crook', name: "Gravewarden's Crook", base: 'bone_staff', cls: 'mage', drop: 'warden', diffs: ['normal'],
       mods: { dmgPct: [60, 80], ene: [8, 12], mana: [15, 25], killMana: 3, novaCost: 2 },
-      fx: ['Each kill restores 3% of your mana', 'Nova costs 2% less of your mana'] }
+      fx: ['Each kill restores 3% of your mana', 'Nova costs 2% less of your mana'] },
+    // The Hollowed King's weapons (Nightmare), made for a character around level 27.
+    // dmg overrides the base's damage so the weapon matches that level.
+    { id: 'kingsfall', name: 'Kingsfall', base: 'bastard_sword', dmg: [17, 35], cls: 'warrior', drop: 'king', diffs: ['nightmare'],
+      mods: { dmgPct: [80, 100], str: [10, 15], life: [25, 40], cleaveBlades: 3 },
+      fx: ['Cleave hurls 3 rusted blades forward, each dealing 40% of your hit'] },
+    { id: 'mantlethorn', name: 'Mantlethorn', base: 'ashwood_bow', dmg: [16, 35], cls: 'archer', drop: 'king', diffs: ['nightmare'],
+      mods: { dmgPct: [70, 90], dex: [10, 15], ias: 10, mantleEvery: 4 },
+      fx: ['Every 4th arrow is a spinning mantle blade that passes through every enemy'] },
+    { id: 'hollow_court', name: 'Scepter of the Hollow Court', base: 'grave_staff', dmg: [15, 33], cls: 'mage', drop: 'king', diffs: ['nightmare'],
+      mods: { dmgPct: [70, 90], ene: [12, 18], darkMin: [6, 9], darkMax: [11, 16], novaBlades: 8 },
+      fx: ['Nova hurls 8 rusted blades outward, each dealing 35% of your hit'] }
   ],
 
   // wclass: which class can wield a weapon

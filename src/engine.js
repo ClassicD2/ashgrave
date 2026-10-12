@@ -365,7 +365,7 @@ var Engine = (function () {
   function genUnique(S, ilvl, id) {
     var r = S.rng, u = id ? uniqueDef(id) : pick(r, D.uniques.filter(function (x) { return !x.drop; }));
     var b = BASES[u.base], it = { uid: S.nextId++, base: b.id, slot: b.slot, ilvl: Math.max(ilvl, D.uniqueRules.minIlvl), rarity: 3, unique: u.id, mods: {}, affixes: [] };
-    if (b.dmg) it.dmg = [b.dmg[0], b.dmg[1]];
+    if (b.dmg) it.dmg = u.dmg ? [u.dmg[0], u.dmg[1]] : [b.dmg[0], b.dmg[1]];
     if (b.armor) it.armor = rint(r, b.armor[0], b.armor[1]);
     Object.keys(u.mods).forEach(function (k) { var v = u.mods[k]; it.mods[k] = Array.isArray(v) ? rint(r, v[0], v[1]) : v; });
     return it;
@@ -557,6 +557,7 @@ var Engine = (function () {
       dr: (m.dr || 0) / 100, pierce: m.pierce || 0, multiArrows: m.multiArrows || 0, rainDur: m.rainDur || 0,
       zealDur: m.zealDur || 0, ripPct: m.ripPct || 0, chainPct: m.chainPct || 0, cleaveArea: m.cleaveArea || 0, rendMax: m.rendMax || 0,
       darkDur: m.darkFast ? 2 : R.darkDuration, darkKillMana: m.darkKillMana || 0,
+      cleaveBlades: m.cleaveBlades || 0, mantleEvery: m.mantleEvery || 0, novaBlades: m.novaBlades || 0,
       boneWard: !!m.boneWard, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
       leechRaw: m.leech || 0,
       speed: 4.2 * (1 + (m.run || 0) / 100),
@@ -1292,6 +1293,7 @@ var Engine = (function () {
       hurtMonster(S, m, h.dmg, h.light, p, 'melee', h.dark);
       if (p.ascendancy === 'reaver' && !m.dead && m.rend && m.rend.length) ripOpen(S, m, p);
     });
+    if (p.st.cleaveBlades) playerBlades(S, p, p.x, p.y, [a - 0.3, a, a + 0.3], 0.4, 1);   // Kingsfall
   }
 
   function castMultishot(S, p, tx, ty, draw) {
@@ -1362,6 +1364,7 @@ var Engine = (function () {
       var SN = nodeDef('sanctuary');
       S.zones.push({ id: S.nextId++, kind: 'holy', x: p.x, y: p.y, r: SN.radius, end: S.time + SN.dur, dur: SN.dur, owner: p.id, pct: SN.pct });
     }
+    if (p.st.novaBlades) { var nb = p.st.novaBlades, na = []; for (var bi = 0; bi < nb; bi++) na.push(bi * 6.283 / nb + 0.2); playerBlades(S, p, p.x, p.y, na, 0.35, 0); }
     p.cd = atkCd(p); p.anim = 0.3; p.animK = 'cast';
     emit(S, { t: 'nova', pid: p.id, x: p.x, y: p.y, r: rad, pull: pull || undefined, crush: crush || undefined, side: ascOf(p) ? ascOf(p).side : null });
   }
@@ -1419,10 +1422,11 @@ var Engine = (function () {
   }
   function fireArrow(S, p, tx, ty, off, mult, extraPierce) {
     var st = p.st, a = Math.atan2(ty - p.y, tx - p.x) + (off || 0), r = S.rng;
-    var h = rollHit(S, p, mult);
-    S.projs.push({ id: S.nextId++, kind: 'arrow', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35,
+    var h = rollHit(S, p, mult), pr;
+    S.projs.push(pr = { id: S.nextId++, kind: 'arrow', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35,
       vx: Math.cos(a) * R.arrowSpeed, vy: Math.sin(a) * R.arrowSpeed, life: st.range / R.arrowSpeed + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
       pierce: (coreOf(p).pierce || 0) + (extraPierce || 0) + (st.pierce || 0), keep: (coreOf(p).pierceKeep || 0.5) + nodeVal(p, 'piercing_light') / 100, hitIds: [] });
+    return pr;
   }
   // Mage: a bolt of force that bends a little toward the nearest enemy in its path.
   function fireSpark(S, p, tx, ty) {
@@ -1433,7 +1437,12 @@ var Engine = (function () {
   }
   function shoot(S, p, tx, ty) {
     if (p.cd > 0) return false;
-    if (p.st.caster) fireSpark(S, p, tx, ty); else fireArrow(S, p, tx, ty, 0, 1);
+    if (p.st.caster) fireSpark(S, p, tx, ty);
+    else {
+      var ar = fireArrow(S, p, tx, ty, 0, 1);
+      // Mantlethorn: every few shots the arrow is a mantle blade that passes through everything
+      if (p.st.mantleEvery && (p.mtN = (p.mtN || 0) + 1) % p.st.mantleEvery === 0) { ar.mantle = true; ar.pierce = 99; ar.keep = 1; }
+    }
     p.cd = atkCd(p); p.anim = 0.25; p.animK = 'attack'; p.face = Math.atan2(ty - p.y, tx - p.x);
     emit(S, { t: 'shoot', pid: p.id, spark: p.st.caster || undefined });
     return true;
@@ -2005,6 +2014,14 @@ var Engine = (function () {
     }
   }
 
+  // The Hollowed King's weapons: rusted blades thrown by the player (Kingsfall, Scepter of the Hollow Court).
+  function playerBlades(S, p, x, y, angles, pct, pierce) {
+    angles.forEach(function (a) {
+      var h = rollHit(S, p, pct);
+      S.projs.push({ id: S.nextId++, kind: 'blade', from: 'p', owner: p.id, x: x + Math.cos(a) * 0.4, y: y + Math.sin(a) * 0.4, vx: Math.cos(a) * 11, vy: Math.sin(a) * 11,
+        life: 0.55, dmg: h.dmg, light: h.light, dark: h.dark, pierce: pierce, keep: 1, hitIds: [] });
+    });
+  }
   // Ossuary String: an arrow that kills bursts into bone shards that fly on in a fan.
   function boneShards(S, pr, m) {
     var p = S.players[pr.owner], n = p && p.st && p.st.boneShards; if (!n) return;
