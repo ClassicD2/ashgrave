@@ -737,6 +737,12 @@
   }
   var GROUND_SPR = { staff: 'ground-staff', weapon: 'ground-bow', melee: 'ground-melee_weapon', helm: 'ground-helm', chest: 'ground-armor', gloves: 'ground-gloves', boots: 'ground-boots', ring: 'ground-ring', amulet: 'ground-amulet' };
   var ICON_SPR = { staff: 'icon-staff', weapon: 'icon-short_bow', melee: 'icon-short_sword', helm: 'icon-helm', chest: 'icon-leather_coat', gloves: 'icon-gloves', boots: 'icon-boots', ring: 'icon-ring', amulet: 'icon-amulet' };
+  // Own art for some bases and uniques; everything else uses its slot's picture.
+  var ITEM_ART = { hand_axe: 'hand-axe', war_axe: 'war-axe', battle_axe: 'battle-axe', marrowcleaver: 'marrowcleaver' };
+  function itemArt(it, kind) {
+    var a = it && ((it.unique && ITEM_ART[it.unique]) || ITEM_ART[it.base]);
+    return a && sprOk(kind + '-' + a) ? kind + '-' + a : null;
+  }
   function itemKind(it) { return it.slot === 'weapon' && E.baseOf(it).wclass === 'melee' ? 'melee' : it.slot === 'weapon' && E.baseOf(it).wclass === 'staff' ? 'staff' : it.slot === 'ring2' ? 'ring' : it.slot; }
   function drawGroundSprite(name) {
     if (!sprOk(name)) return false;
@@ -1282,7 +1288,7 @@
   function drawGroundGlyph(g) {
     var x = sx(g.x, g.y), y = sy(g.x, g.y);
     ctx.save(); ctx.translate(x, y); ctx.scale(Z, Z);
-    var gname = g.kind === 'gold' ? 'ground-gold' : g.kind === 'potion' ? (g.pot === 'hp' ? 'ground-life_potion' : 'ground-mana_potion') : GROUND_SPR[itemKind(g.item)];
+    var gname = g.kind === 'gold' ? 'ground-gold' : g.kind === 'potion' ? (g.pot === 'hp' ? 'ground-life_potion' : 'ground-mana_potion') : (itemArt(g.item, 'ground') || GROUND_SPR[itemKind(g.item)]);
     if (g.kind === 'item' && g.item.rarity) { ellipse(0, -2, 13, 5, g.item.rarity === 3 ? 'rgba(192,112,255,0.4)' : g.item.rarity === 2 ? 'rgba(240,208,106,0.28)' : 'rgba(142,168,255,0.25)'); }
     if (gname && drawGroundSprite(gname)) { ctx.restore(); return; }
     if (g.kind === 'gold') { ellipse(0, 0, 6, 2.6, '#6d5530'); ellipse(-1, -1.5, 4.5, 2, '#d1a85a'); ellipse(2, -2.5, 3, 1.4, '#f0d06a'); }
@@ -1805,7 +1811,7 @@
     amulet: '<path d="M5 3 Q12 13 19 3" fill="none" stroke-width="1.3"/><path d="M12 11 L16 16 L12 21 L8 16 Z"/>'
   };
   function icon(it, empty) {
-    var sk = !empty && ICON_SPR[itemKind(it)];
+    var sk = !empty && (itemArt(it, 'icon') || ICON_SPR[itemKind(it)]);
     if (sk && SPR && SPR.img[sk]) return '<img src="' + SPR.img[sk] + '" alt="" width="64" height="64" style="width:84%;height:84%;object-fit:contain;image-rendering:auto">';
     var col = empty ? '#3a3029' : ['#cfc5b4', '#8ea8ff', '#f0d06a', '#c070ff'][it.rarity];
     var slot = empty || (it.slot === 'weapon' && E.baseOf(it).wclass === 'melee' ? 'melee' : it.slot);
