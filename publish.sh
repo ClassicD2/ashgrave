@@ -4,7 +4,7 @@ set -e
 cd /home/claude/askgraven && python3 build.py
 R=/home/claude/ashgrave
 rm -rf "$R/src" "$R/tools" && cp -r src tools "$R/" && rm -rf "$R"/src/__pycache__ "$R"/tools/__pycache__
-cp build.py tiles.py publish.sh "$R/" && cp dist/ashgrave.html "$R/index.html"
+cp build.py tiles.py publish.sh "$R/" && cp dist/index.html "$R/index.html" && rm -rf "$R/img" && cp -r dist/img "$R/img"
 cd "$R" && git add -A
 git -c user.name="Claude" -c user.email="noreply@anthropic.com" commit -q -m "$1
 

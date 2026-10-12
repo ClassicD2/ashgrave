@@ -542,6 +542,12 @@
   // one source pixel at 128 px per tile is 0.5 units.
   var SPR = typeof SPRITES !== 'undefined' ? SPRITES : null, sprImg = {};
   if (SPR) Object.keys(SPR.img).forEach(function (k) { var im = new Image(); im.src = SPR.img[k]; sprImg[k] = im; });
+  // Images are separate files now: show progress on the title screen until they have all arrived.
+  (function () {
+    var names = Object.keys(sprImg), done = 0, el = document.getElementById('loadNote');
+    function tick() { done++; if (el) { el.textContent = done < names.length ? 'Loading graphics… ' + Math.round(done / names.length * 100) + '%' : ''; el.hidden = done >= names.length; } }
+    names.forEach(function (k) { var im = sprImg[k]; if (im.complete) tick(); else { im.addEventListener('load', tick); im.addEventListener('error', tick); } });
+  })();
   function sprOk(name) { var im = sprImg[name]; return !!(im && im.complete && im.naturalWidth); }
   function dirIndex(face) {
     var i = Math.round((screenAngle(face) - Math.PI / 2) / (Math.PI / 4));
@@ -680,9 +686,11 @@
       var J = DATA.trial.judge;
       if (m.cast === 'judgement') return drawSprite('judge', 'judgement', dir, onceFrame('judge', 'judgement', 1 - m.atk / J.judgement.cast), extra);
       if (m.cast === 'step') return drawSprite('judge', 'step', dir, onceFrame('judge', 'step', 1 - m.atk / J.step.cast), extra);
-      // no attack sheet yet: stand and cut a silver arc in front of him
-      var ok = drawIdle('judge', dir, extra, off), k = 1 - m.atk / DATA.monsters.judge.atkTime, sa = screenAngle(m.face || 0);
-      ctx.save(); ctx.strokeStyle = 'rgba(230,225,255,' + (0.8 * Math.sin(Math.PI * k)) + ')'; ctx.lineWidth = 3; ctx.beginPath();
+      // The attack sheet's strike frames (3-4) face the viewer in every direction, so play wind-up (0-2) and
+      // recovery (5) only, and draw the cut itself as a silver arc.
+      var k = 1 - m.atk / DATA.monsters.judge.atkTime, sa = screenAngle(m.face || 0);
+      var ok = drawSprite('judge', 'attack', dir, k < 0.55 ? Math.min(2, Math.floor(k / 0.55 * 3)) : 5, extra);
+      ctx.save(); ctx.strokeStyle = 'rgba(230,225,255,' + (k > 0.45 ? 0.85 * Math.sin(Math.PI * (k - 0.45) / 0.55) : 0) + ')'; ctx.lineWidth = 3; ctx.beginPath();
       ctx.ellipse(0, -14, 26, 12, 0, sa - 1.2 + k * 1.6, sa - 0.2 + k * 1.6); ctx.stroke(); ctx.restore();
       return ok;
     }

@@ -388,6 +388,18 @@
      "frames": 6,
      "columns": 6,
      "rows": 8
+    },
+    "attack": {
+     "file": "judge-attack.png",
+     "frames": 6,
+     "columns": 6,
+     "rows": 8
+    },
+    "death": {
+     "file": "judge-death.png",
+     "frames": 8,
+     "columns": 8,
+     "rows": 8
     }
    }
   }
