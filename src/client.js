@@ -543,7 +543,8 @@
   var SPR_ALIAS = { gravewarden: 'bonewalker' };
   // Rows in the generated hero sheets that face the wrong way: draw the mirrored opposite row instead.
   // Archer SW is painted facing SE; warrior SE is painted facing SW. (rows: S SW W NW N NE E SE)
-  var SPR_MIRROR = { archer: { 1: 7 }, warrior: { 7: 1 } };
+  // Mage SE (idle and walk) is painted facing SW, so walking diagonally flipped her back and forth.
+  var SPR_MIRROR = { archer: { 1: 7 }, warrior: { 7: 1 }, mage: { 7: 1 } };
   function hasSprite(actor) { actor = SPR_ALIAS[actor] || actor; return hasSprite0(actor); }
   function hasSprite0(actor) { return !!(SPR && SPR.meta.actors[actor] && sprOk(actor + '-idle')); }
   // Draws one frame with the feet at (0,0) of the current transform. Returns false if the sheet is missing.
@@ -610,6 +611,7 @@
     w.x = e.x; w.y = e.y;
     return Math.floor(w.d / WALK_CYCLE * n) % n;
   }
+  function walkPhase(e, n) { walkFrame(e, n); var w = walkTrack.get(e.id); return (w.d / WALK_CYCLE * n) % n; }
   function drawShield(p, t) {
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     var g = ctx.createRadialGradient(0, -22, 4, 0, -22, 26); g.addColorStop(0, 'rgba(255,240,180,0)'); g.addColorStop(0.75, 'rgba(255,230,150,' + (0.12 + 0.05 * Math.sin(t * 5)) + ')'); g.addColorStop(1, 'rgba(255,220,120,0)');
@@ -642,7 +644,15 @@
     if (p.moving) {
       // The hero sheets have a real 8-frame step cycle. Advance it by distance walked, not by time,
       // so the feet keep pace with the ground at any move speed (one cycle = two steps = WALK_CYCLE tiles).
-      return drawSprite(actor, 'walk', dir, walkFrame(p, SPR.meta.actors[actor].animations.walk.frames));
+      var wn = SPR.meta.actors[actor].animations.walk.frames;
+      if (actor === 'mage') {
+        // The mage's robe changes a lot between frames; blend each frame into the next so the cloak flows.
+        var wf = walkPhase(p, wn), f0 = Math.floor(wf) % wn, fk = wf - Math.floor(wf);
+        var ok = drawSprite(actor, 'walk', dir, f0);
+        if (ok && fk > 0.05) { ctx.save(); ctx.globalAlpha *= fk; drawSprite(actor, 'walk', dir, (f0 + 1) % wn); ctx.restore(); }
+        return ok;
+      }
+      return drawSprite(actor, 'walk', dir, walkFrame(p, wn));
     }
     return drawIdle(actor, dir, 1, (p.id || '').length);
   }

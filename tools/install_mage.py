@@ -22,6 +22,7 @@ for name in ['idle', 'walk', 'attack', 'cast', 'hit', 'death']:
     for d in range(8):
         for f in range(cols):
             cell = clean(im[d*C:(d+1)*C, f*C:(f+1)*C].copy())
+            if name in ('walk', 'idle'): cell[118:] = 0   # glow specks below the feet
             if name == 'walk':
                 dx = int(round(upper_x(idle[d*C:(d+1)*C, 0:C]) - upper_x(cell)))
                 sh = np.zeros_like(cell)
