@@ -1216,6 +1216,9 @@ var Engine = (function () {
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
     emit(S, { t: 'shoot', pid: p.id, multi: true, draw: draw || 0 });
   }
+  // Bosses of every kind (mini bosses, the Gravewarden, the Judge, the Abbot) ignore crowd control:
+  // no knockback, pull, stun or loss of target. Champions (blue) are not bosses and are affected.
+  function ccImmune(m) { return !!m.boss; }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
     var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100);
@@ -1241,15 +1244,16 @@ var Engine = (function () {
       var h = rollHit(S, p, sk.mult);
       hurtMonster(S, m, h.dmg, h.light, p, 'nova', h.dark);
       if (m.dead) return;
-      var ux = md > 0.01 ? mdx / md : 1, uy = md > 0.01 ? mdy / md : 0, heavy = m.boss ? 0.3 : 1;
-      if (pull) {
+      var ux = md > 0.01 ? mdx / md : 1, uy = md > 0.01 ? mdy / md : 0, heavy = 1;
+      if (ccImmune(m)) { /* bosses are never pushed, pulled, stunned or blinded */ }
+      else if (pull) {
         var to = Math.max(0, md - (p.r + m.r + 0.15)) * heavy;
         for (var k = 0; k < 8; k++) moveEntity(S, m, -ux * to / 8, -uy * to / 8);
       } else {
         for (var k2 = 0; k2 < 8; k2++) moveEntity(S, m, ux * sk.push * heavy / 8, uy * sk.push * heavy / 8);
       }
-      if (hasNode(p, 'dazzle') && !m.boss) { m.state = 'idle'; m.path = null; m.atk = 0; m.wx = null; m.blindUntil = S.time + nodeVal(p, 'dazzle'); }
-      if (core.stun && pull && !m.boss) { m.stunUntil = S.time + core.stun; m.atk = 0; }
+      if (hasNode(p, 'dazzle') && !ccImmune(m)) { m.state = 'idle'; m.path = null; m.atk = 0; m.wx = null; m.blindUntil = S.time + nodeVal(p, 'dazzle'); }
+      if (core.stun && pull && !ccImmune(m)) { m.stunUntil = S.time + core.stun; m.atk = 0; }
       if (core.decay) applyDecay(S, m, p);
       struck.push(m);
     });
@@ -1700,6 +1704,7 @@ var Engine = (function () {
       var F = nodeDef('fade'), n = 0;
       S.monsters.forEach(function (o) {
         if (o.boss || Math.hypot(o.x - m.x, o.y - m.y) > F.range) return;
+        if (ccImmune(o)) return;
         o.state = 'idle'; o.path = null; o.atk = 0; o.wx = null; o.blindUntil = S.time + F.dur; n++;
       });
       if (n) emit(S, { t: 'fade', pid: p.id, x: p.x, y: p.y });
