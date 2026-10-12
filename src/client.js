@@ -1502,6 +1502,8 @@
       var sdesc = E.hasNode(p, 'radiant_volley') ? 'Seven arrows in a fan.' : sk.desc;
       $('bSkill').title = sk.name + ': ' + sdesc + ' ' + cost + '. ' + (drawsBow(p) ? 'Hold right-click or Q to draw, release to fire.' : 'Right-click or Q.');
     }
+    var rcd = p.rainCd > 0 ? p.rainCd / (DATA.skills.rain.cooldown || 1) : 0;
+    if (hudCache.rcd !== rcd) { hudCache.rcd = rcd; $('bSkill').classList.toggle('cooling', rcd > 0); $('bSkill').style.setProperty('--cd', rcd.toFixed(3)); }
     var buffs = [];
     if (p.blN && p.blT > (S.time || 0)) buffs.push('Bloodlust ×' + p.blN + ' · ' + Math.ceil(p.blT - S.time) + 's');
     if ((p.zeal || 0) > 0) buffs.push('Zeal · ' + Math.ceil(p.zeal) + 's');
@@ -1764,7 +1766,7 @@
   var LIB = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
   var ICE = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
   var LOCAL = /[?&]transport=local/.test(location.search);
-  var LITE = ['x', 'y', 'hp', 'mana', 'face', 'moving', 'anim', 'dead', 'respawn', 'cd', 'order', 'ver', 'level', 'xp', 'name', 'deadAt', 'chan', 'slowT', 'blN', 'blT', 'charge', 'zeal'];
+  var LITE = ['x', 'y', 'hp', 'mana', 'face', 'moving', 'anim', 'dead', 'respawn', 'cd', 'order', 'ver', 'level', 'xp', 'name', 'deadAt', 'chan', 'slowT', 'blN', 'blT', 'charge', 'zeal', 'rainCd'];
 
   function netStatus(t, bad) { var el = $('netStatus'); el.textContent = t; el.classList.toggle('warn', !!bad); }
   function webrtcOk() { try { return typeof RTCPeerConnection !== 'undefined' && !!new RTCPeerConnection(); } catch (e) { return false; } }

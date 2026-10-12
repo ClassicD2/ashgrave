@@ -1143,8 +1143,16 @@ var Engine = (function () {
   function castRain(S, p, tx, ty) {
     var sk = D.skills.rain;
     if (p.cd > 0 || p.mana < sk.mana) { if (p.mana < sk.mana) emit(S, { t: 'msg', pid: p.id, text: 'Not enough mana.', quiet: true }); return; }
+    if ((p.rainCd || 0) > 0) { emit(S, { t: 'msg', pid: p.id, text: 'Rain of Arrows is not ready.', quiet: true }); return; }
     var dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy) || 1;
-    if (d > p.st.range) { tx = p.x + dx / d * p.st.range; ty = p.y + dy / d * p.st.range; }
+    if (d > p.st.range) { tx = p.x + dx / d * p.st.range; ty = p.y + dy / d * p.st.range; d = p.st.range; }
+    // Only where you can see: behind a wall the rain lands at the last open spot along the line.
+    if (!clearLine(S.map, p.x, p.y, tx, ty, 0)) {
+      var n = Math.ceil(d / 0.25), lx = p.x, ly = p.y;
+      for (var i = 1; i <= n; i++) { var f = i / n, x = p.x + dx / Math.hypot(dx, dy) * d * f, y = p.y + dy / Math.hypot(dx, dy) * d * f; if (!walkable(S.map, x, y)) break; lx = x; ly = y; }
+      tx = lx; ty = ly;
+    }
+    p.rainCd = sk.cooldown || 0;
     p.mana -= sk.mana; skillOrder(p);
     var st = p.st, hit = (st.dmin + st.dmax + st.lmin + st.lmax) / 2 + (st.dkmin + st.dkmax) / 2;
     var dur = sk.dur + nodeVal(p, 'long_night') + (p.st.rainDur || 0);
@@ -1242,7 +1250,7 @@ var Engine = (function () {
     var st = p.st;
     p.hp = Math.min(st.maxHp, p.hp + st.regen * dt);
     p.mana = Math.min(st.maxMana, p.mana + st.manaRegen * dt);
-    p.cd = Math.max(0, p.cd - dt); p.anim = Math.max(0, p.anim - dt); p.slowT = Math.max(0, (p.slowT || 0) - dt);
+    p.cd = Math.max(0, p.cd - dt); if (p.rainCd) p.rainCd = Math.max(0, p.rainCd - dt); p.anim = Math.max(0, p.anim - dt); p.slowT = Math.max(0, (p.slowT || 0) - dt);
     if (p.ascendancy) ascTick(S, p, dt);
     p.zeal = Math.max(0, (p.zeal || 0) - dt);
     if (p.charge != null && S.time - p.charge > 6) { p.charge = null; p.ver++; }

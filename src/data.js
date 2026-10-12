@@ -57,7 +57,7 @@ var DATA = {
     multishot: { name: 'Multishot', mana: 5, arrows: 5, spread: 0.16, mult: 0.7, desc: 'Five arrows in a fan.' },
     cleave:    { name: 'Cleave',    mana: 4, arc: 2.1, reach: 1.9, mult: 1.15, desc: 'Strike every enemy in an arc in front of you.' },
     // Nightstalker only: a patch of falling arrows at the cursor. Damage per half second = pct x your average hit.
-    rain:      { name: 'Rain of Arrows', mana: 7, radius: 1.8, dur: 3, tick: 0.5, pct: 0.45, desc: 'Arrows rain on an area, dealing dark damage over 3 seconds.' }
+    rain:      { name: 'Rain of Arrows', mana: 7, radius: 1.8, dur: 3, tick: 0.5, pct: 0.45, cooldown: 1.5, desc: 'Arrows rain on an area you can see, dealing dark damage over 3 seconds. 1.5 second cooldown.' }
   },
 
   // Ascendancy: a path chosen at the altar after the Trial of Ash. The path changes your main

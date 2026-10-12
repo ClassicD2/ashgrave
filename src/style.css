@@ -350,3 +350,6 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 .testgrid select, .testgrid input[type=number] { background: #14100e; color: var(--bone, #e8dcc8); border: 1px solid var(--edge, #3a2e26); padding: 5px 6px; font: inherit; }
 #testBadge { position: fixed; left: 50%; top: 6px; transform: translateX(-50%); z-index: 30; padding: 3px 10px; font-size: 12px; color: #e6d8ff; background: rgba(60,30,100,.75); border: 1px solid #7a5ab0; pointer-events: none; }
 @media (max-width: 640px) { .testgrid { grid-template-columns: 1fr; } }
+
+#bSkill { position: relative; overflow: hidden; }
+#bSkill.cooling::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.6); transform-origin: bottom; transform: scaleY(var(--cd, 0)); pointer-events: none; }
