@@ -7,7 +7,7 @@ svg,cells=atlas()
 import base64
 spr=json.loads((src/'sprites/sprites.json').read_text())
 # Abbot sheets are stored at 3/4 size (192 px frames) to keep the file small; pxScale restores world size.
-for big in ('abbot', 'judge'):
+for big in ('abbot', 'judge', 'king'):
     ab=spr['actors'][big]; ab['frameSize']=192; ab['anchor']=[96,174]; ab['pxScale']=256/192
 for a in spr['actors'].values():
     a.setdefault('anchor',[64,112]); a.setdefault('pxScale',1)

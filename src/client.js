@@ -335,7 +335,7 @@
     }
   }
   function floatText(x, y, txt, color, big) { texts.push({ x: x, y: y, h: 30, txt: txt, c: color, life: big ? 1.6 : 0.9, max: big ? 1.6 : 0.9, big: !!big }); }
-  var MCOL = { grave_hound: ['#5b1010', '#3a332c', '#2a2420'], barrow_guard: ['#8a7a6a', '#5a4a3a', '#3a302a'], frost_wraith: ['#cfe8ff', '#7ab8ff', '#ffffff'], rime_burrower: ['#cfe0f4', '#5a7a9a', '#2a3a4a'], gravewarden: ['#efe6d2', '#c9bda4', '#8c816d'], judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
+  var MCOL = { grave_hound: ['#5b1010', '#3a332c', '#2a2420'], barrow_guard: ['#8a7a6a', '#5a4a3a', '#3a302a'], frost_wraith: ['#cfe8ff', '#7ab8ff', '#ffffff'], rime_burrower: ['#cfe0f4', '#5a7a9a', '#2a3a4a'], gravewarden: ['#efe6d2', '#c9bda4', '#8c816d'], king: ['#9a5a30', '#5a3418', '#c88a50'], judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
 
   function processEvents() {
     var evs = S.events; S.events = [];
@@ -435,11 +435,23 @@
           break;
         case 'cast': sfx('cast'); break;
         case 'ossuary':
-          addLog('A cold draft rises from the ossuary. Something old keeps watch.', 'rare'); sfx('stairs'); break;
+          if (e.kind === 'king') addLog('Rust and old iron hang in the air. A king still holds court on this level.', 'rare');
+          else addLog('A cold draft rises from the ossuary. Something old keeps watch.', 'rare');
+          sfx('stairs'); break;
         case 'raise':
           spray(e.x, e.y, 16, { colors: ['#efe6d2', '#9a8f7a', '#3a3530'], speed: 1.2, up: 140, life: 0.7, size: 2.4, grav: 120 }); break;
         case 'wardenDown':
-          addLog(e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
+          addLog(e.kind === 'king' ? e.name + ' falls. The throne stands empty.' : e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
+        case 'tempest':
+          swings.push({ x: e.x, y: e.y, face: 0, arc: 6.283, big: true, reach: e.r, t: 0 }); sfx('cleave');
+          spray(e.x, e.y, 22, { colors: ['#9a5a30', '#c88a50', '#5a3418'], speed: 2.6, up: 90, life: 0.5, size: 2.2 }); break;
+        case 'shed':
+          spray(e.x, e.y, 40, { colors: ['#9a5a30', '#6a3a1c', '#c88a50', '#3a2210'], speed: 3, up: 200, life: 0.9, grav: 260, size: 2.8 });
+          addLog('The Hollowed King sheds his mantle. He moves faster now.', 'warn'); sfx('boom'); break;
+        case 'kingCharge':
+          if (e.hit) { spray(e.x, e.y, 10, { colors: ['#7a1010', '#a3191f', '#c88a50'], speed: 1.8, up: 100, life: 0.5, size: 2.2 }); sfx('cleave'); }
+          else spray(e.x, e.y, 12, { colors: ['#5a5048', '#3a332c', '#7a6a58'], speed: 1.4, up: 60, life: 0.5, size: 2.4 });
+          break;
         case 'bossAppear':
           addLog((e.isTrue ? 'The air burns. ' : 'Something old stirs by the stairs: ') + e.name + '.', e.isTrue ? 'warn' : 'rare');
           if (e.isTrue) sfx('die'); break;
@@ -562,6 +574,9 @@
   // Archer SW is painted facing SE; warrior SE is painted facing SW. (rows: S SW W NW N NE E SE)
   // Mage SE (idle and walk) is painted facing SW, so walking diagonally flipped her back and forth.
   var SPR_MIRROR = { archer: { 1: 7 }, warrior: { 7: 1 }, mage: { 7: 1 } };
+  // Per animation: the King's walk E row is painted facing the viewer, and every row of his charge
+  // lunges to the left, so the right-hand directions use the mirrored left-hand rows.
+  var SPR_MIRROR_ANIM = { king: { walk: { 6: 2 }, charge: { 5: 3, 6: 2, 7: 1 } } };
   function hasSprite(actor) { actor = SPR_ALIAS[actor] || actor; return hasSprite0(actor); }
   function hasSprite0(actor) { return !!(SPR && SPR.meta.actors[actor] && sprOk(actor + '-idle')); }
   // Draws one frame with the feet at (0,0) of the current transform. Returns false if the sheet is missing.
@@ -571,7 +586,7 @@
     if (!sprOk(file)) { info = 'idle'; file = actor + '-idle'; if (!sprOk(file)) return false; }
     var a = meta.animations[info], fs = a.frameSize || meta.frameSize, an = a.anchor || meta.anchor, s = 0.5 * (meta.pxScale || 1) * (extra || 1);
     var f = Math.max(0, Math.min(a.frames - 1, frame | 0));
-    var mir = SPR_MIRROR[actor], flip = mir && (info === 'walk' || info === 'idle') && mir[dir] !== undefined;
+    var mir = SPR_MIRROR_ANIM[actor] ? SPR_MIRROR_ANIM[actor][info] : (info === 'walk' || info === 'idle') && SPR_MIRROR[actor], flip = !!mir && mir[dir] !== undefined;
     if (flip) { ctx.save(); ctx.scale(-1, 1); dir = mir[dir]; }
     ctx.drawImage(sprImg[file], f * fs, dir * fs, fs, fs, -an[0] * s, -an[1] * s, fs * s, fs * s);
     if (flip) ctx.restore();
@@ -681,7 +696,8 @@
     return drawMonsterSprite0(m, actor, dir, off, extra);
   }
   function drawMonsterSprite0(m, actor, dir, off, extra) {
-    if ((actor === 'abbot' || actor === 'judge') && m.scale) extra = 1 / m.scale; // big bosses have their own large sheets
+    if ((actor === 'abbot' || actor === 'judge' || actor === 'king') && m.scale) extra = 1 / m.scale; // big bosses have their own large sheets
+    if (actor === 'king') return drawKing(m, dir, extra, off);
     if (actor === 'judge' && m.atk > 0) {
       var J = DATA.trial.judge;
       if (m.cast === 'judgement') return drawSprite('judge', 'judgement', dir, onceFrame('judge', 'judgement', 1 - m.atk / J.judgement.cast), extra);
@@ -704,6 +720,19 @@
     if (m.hitT > 0) return drawSprite(actor, 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
     if (m.moving) return drawWalk(actor, dir, extra, actor === 'gnawer' ? 12 : 8, off);
     return drawIdle(actor, dir, extra, off);
+  }
+  // The Hollowed King: Blade Tempest spins, Kingsfall Charge winds up and runs, Shed the Mantle bursts.
+  function drawKing(m, dir, extra, off) {
+    var K = DATA.bosses.king, def = DATA.monsters.king;
+    if (m.cast === 'charging') return drawSprite('king', 'charge', dir, 2 + Math.floor(gameTime * 12) % 4, extra);
+    if (m.cast === 'recover' && m.atk > 0) return drawSprite('king', 'charge', dir, 5, extra);
+    if (m.atk > 0 && m.cast === 'chargeWind') return drawSprite('king', 'charge', dir, Math.min(1, Math.floor((1 - m.atk / K.charge.windup) * 2)), extra);
+    if (m.atk > 0 && m.cast === 'tempest') return drawSprite('king', 'tempest', dir, onceFrame('king', 'tempest', 1 - m.atk / K.tempest.cast), extra);
+    if (m.atk > 0 && m.cast === 'shed') return drawSprite('king', 'shed', dir, onceFrame('king', 'shed', 1 - m.atk / K.shed.cast), extra);
+    if (m.atk > 0) return drawSprite('king', 'attack', dir, onceFrame('king', 'attack', 1 - m.atk / def.atkTime), extra);
+    if (m.hitT > 0) return drawSprite('king', 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
+    if (m.moving) return drawWalk('king', dir, extra, m.shed ? 10 : 8, off);
+    return drawIdle('king', dir, extra, off);
   }
   var GROUND_SPR = { staff: 'ground-staff', weapon: 'ground-bow', melee: 'ground-melee_weapon', helm: 'ground-helm', chest: 'ground-armor', gloves: 'ground-gloves', boots: 'ground-boots', ring: 'ground-ring', amulet: 'ground-amulet' };
   var ICON_SPR = { staff: 'icon-staff', weapon: 'icon-short_bow', melee: 'icon-short_sword', helm: 'icon-helm', chest: 'icon-leather_coat', gloves: 'icon-gloves', boots: 'icon-boots', ring: 'icon-ring', amulet: 'icon-amulet' };
@@ -834,7 +863,8 @@
       }
       var os = S.ossuary, fl = envFloor(hash(tx, ty));
       if (os && tx >= os.x && tx < os.x + os.w && ty >= os.y && ty < os.y + os.h) {
-        fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
+        if (os.kind === 'king') fl = hash(tx, ty) % 6 < 4 ? 'floor-stone-b' : 'floor-cracked';
+        else fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
       }
       ctx.drawImage(sprImg[fl], fx, fy, 128 * se, 64 * se);
       if (tile === 2) {
@@ -1293,7 +1323,8 @@
     var os2 = S.ossuary;
     if (os2 && pm && explored[Math.floor(os2.cy) * W + Math.floor(os2.cx)]) {
       [[os2.x + 0.7, os2.y + 0.7], [os2.x + os2.w - 0.7, os2.y + 0.7], [os2.x + 0.7, os2.y + os2.h - 0.7], [os2.x + os2.w - 0.7, os2.y + os2.h - 0.7]].forEach(function (c) { props.push({ kind: 'brazier', scale: 0.62, x: c[0], y: c[1] }); });
-      props.push({ kind: 'skeleton-remains', scale: 0.6, x: os2.cx - 1.4, y: os2.cy + 0.8, flip: 1 });
+      if (os2.kind === 'king') props.push({ kind: 'throne', scale: 1.05, x: os2.cx - 0.5, y: os2.cy - 0.5 });
+      else props.push({ kind: 'skeleton-remains', scale: 0.6, x: os2.cx - 1.4, y: os2.cy + 0.8, flip: 1 });
     }
     lamps = [];
     for (var ty = 0; ty < H; ty++) for (var tx = 0; tx < W; tx++) {
@@ -1352,7 +1383,7 @@
       list.push({ d: n.x + n.y, k: 'n', e: n, x: n.x, y: n.y });
       npcHits.push({ id: n.id, sx: sx(n.x, n.y), sy: sy(n.x, n.y) - 18 * Z, r: 22 * Z });
     });
-    S.projs.forEach(function (pr) { if (pr.kind === 'arrow') { var lp = lerpE(pr); list.push({ d: lp.x + lp.y, k: 'a', e: pr, x: lp.x, y: lp.y }); } });
+    S.projs.forEach(function (pr) { if (pr.kind === 'arrow' || pr.kind === 'blade') { var lp = lerpE(pr); list.push({ d: lp.x + lp.y, k: 'a', e: pr, x: lp.x, y: lp.y }); } });
     list.sort(function (a, b) { return a.d - b.d; });
     var pd = pp.x + pp.y, psx = sx(pp.x, pp.y), psy = sy(pp.x, pp.y);
     for (var j = 0; j < list.length; j++) {
@@ -1365,6 +1396,11 @@
         }
         drawWall(it.tx, it.ty, fade);
       } else if (it.k === 'q') { drawProp(it.e);
+      } else if (it.k === 'a' && it.e.kind === 'blade') {
+        // a rusted blade from the King's mantle, spinning as it flies
+        var bl = it.e, bsx = sx(it.x, it.y), bsy = sy(it.x, it.y) - 20 * Z;
+        if (sprOk('king-blade')) { ctx.save(); ctx.translate(bsx, bsy); ctx.rotate(gameTime * 18 + bl.id); ctx.drawImage(sprImg['king-blade'], -16 * Z, -16 * Z, 32 * Z, 32 * Z); ctx.restore(); }
+        else { ctx.fillStyle = '#9a5a30'; ctx.beginPath(); ctx.arc(bsx, bsy, 4 * Z, 0, 6.283); ctx.fill(); }
       } else if (it.k === 'a') {
         var pr = it.e, ax = sx(it.x, it.y), ay = sy(it.x, it.y) - 18 * Z, sp = Math.hypot(pr.vx, pr.vy);
         var bx = sx(it.x - pr.vx / sp * 0.55, it.y - pr.vy / sp * 0.55), by = sy(it.x - pr.vx / sp * 0.55, it.y - pr.vy / sp * 0.55) - 18 * Z;
@@ -1530,7 +1566,7 @@
     items.forEach(function (g) {
       var txt, col;
       if (g.stairs) { txt = S.seal ? 'Stairs down · sealed' : 'Stairs down'; col = S.seal ? '#ff8a6a' : '#e8dfcf'; }
-      else if (g.ossuary) { txt = 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
+      else if (g.ossuary) { txt = S.ossuary && S.ossuary.kind === 'king' ? 'Throne Room · The Hollowed King' : 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
       else if (g.npc) { txt = g.npc.name; col = g.npc.kind === 'keeper' ? '#d8c2ff' : '#ffd98a'; }
       else if (g.fallen) {
         var left = Math.ceil(R.reviveDelay - ((S.time || 0) - (g.fallen.deadAt || 0)));
@@ -2033,6 +2069,7 @@
       if (m.sunT && S.time - m.sunT < 0.6) o.sun = 1;
       if (m.under) o.under = 1;
       if (m.leapFly > 0) o.leapFly = 1;
+      if (m.shed) o.shed = 1;
       return o;
     });
     var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner }; });
@@ -2398,7 +2435,8 @@
     for (var d = 1; d <= fd; d++) {
       var notes = [];
       if (d === fd) notes.push('final boss');
-      if (DATA.bosses.warden && DATA.bosses.warden.depth === d && diff === 'normal') notes.push('Gravewarden');
+      if (DATA.bosses.warden && DATA.bosses.warden.depth === d && d < fd) notes.push('Gravewarden');
+      var KB = DATA.bosses.king; if (KB && KB.difficulties.indexOf(diff) >= 0 && d >= KB.depths[0] && d <= KB.depths[1] && d < fd) notes.push('Hollowed King');
       var th = E.themeFor(d, fd); notes.push(THEMES[th] ? THEMES[th].name : th);
       h += '<option value="' + d + '">' + d + (notes.filter(Boolean).length ? ' · ' + notes.filter(Boolean).join(', ') : '') + '</option>';
     }
@@ -2434,7 +2472,11 @@
   function testStart(depth, diff, hero) {
     $('title').hidden = true; document.body.classList.remove('at-title');
     MODE = 'solo'; PID = 'p1'; activeSlot = -1;
-    S = E.createSim((Math.random() * 2147483647) | 0, depth, diff);
+    // The Hollowed King's level comes from the seed: pick a seed that puts him on this level.
+    var seed = (Math.random() * 2147483647) | 0, KB = DATA.bosses.king;
+    if (KB && KB.difficulties.indexOf(diff) >= 0 && depth >= KB.depths[0] && depth <= KB.depths[1])
+      for (var ks = 0; ks < 200 && E.kingDepthFor(seed, diff) !== depth; ks++) seed = (Math.random() * 2147483647) | 0;
+    S = E.createSim(seed, depth, diff);
     S.testGod = TEST.god;
     E.addPlayer(S, PID, hero);
     explored = new Uint8Array(S.map.W * S.map.H); corpses = [];

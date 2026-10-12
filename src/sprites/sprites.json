@@ -1,525 +1,583 @@
 {
- "cell": 128,
- "anchor": [
-  64,
-  112
- ],
- "directions": [
-  "S",
-  "SW",
-  "W",
-  "NW",
-  "N",
-  "NE",
-  "E",
-  "SE"
- ],
- "actors": {
-  "archer": {
-   "height": 88,
-   "frameSize": 128,
-   "anchor": [
+  "cell": 128,
+  "anchor": [
     64,
     112
-   ],
-   "animations": {
-    "idle": {
-     "file": "archer-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
+  ],
+  "directions": [
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE",
+    "E",
+    "SE"
+  ],
+  "actors": {
+    "archer": {
+      "height": 88,
+      "frameSize": 128,
+      "anchor": [
+        64,
+        112
+      ],
+      "animations": {
+        "idle": {
+          "file": "archer-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "attack": {
+          "file": "archer-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "hit": {
+          "file": "archer-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "death": {
+          "file": "archer-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "walk": {
+          "file": "archer-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8,
+          "fps": 9
+        }
+      }
     },
-    "attack": {
-     "file": "archer-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
+    "warrior": {
+      "height": 88,
+      "frameSize": 128,
+      "anchor": [
+        64,
+        112
+      ],
+      "animations": {
+        "idle": {
+          "file": "warrior-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "attack": {
+          "file": "warrior-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8,
+          "frameSize": 192,
+          "anchor": [
+            96,
+            150
+          ]
+        },
+        "hit": {
+          "file": "warrior-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "death": {
+          "file": "warrior-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "walk": {
+          "file": "warrior-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8,
+          "fps": 9
+        }
+      }
     },
-    "hit": {
-     "file": "archer-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
+    "gnawer": {
+      "height": 32,
+      "frameSize": 128,
+      "anchor": [
+        64,
+        112
+      ],
+      "animations": {
+        "idle": {
+          "file": "gnawer-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "walk": {
+          "file": "gnawer-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "attack": {
+          "file": "gnawer-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "hit": {
+          "file": "gnawer-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "death": {
+          "file": "gnawer-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        }
+      }
     },
-    "death": {
-     "file": "archer-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
+    "bonewalker": {
+      "height": 82,
+      "frameSize": 128,
+      "anchor": [
+        64,
+        112
+      ],
+      "animations": {
+        "idle": {
+          "file": "bonewalker-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "walk": {
+          "file": "bonewalker-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "attack": {
+          "file": "bonewalker-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "hit": {
+          "file": "bonewalker-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "death": {
+          "file": "bonewalker-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        }
+      }
     },
-    "walk": {
-     "file": "archer-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8,
-     "fps": 9
+    "ashpriest": {
+      "height": 88,
+      "frameSize": 128,
+      "anchor": [
+        64,
+        112
+      ],
+      "animations": {
+        "idle": {
+          "file": "ashpriest-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "walk": {
+          "file": "ashpriest-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "attack": {
+          "file": "ashpriest-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "hit": {
+          "file": "ashpriest-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "death": {
+          "file": "ashpriest-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "cast": {
+          "file": "ashpriest-cast.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        }
+      }
+    },
+    "abbot": {
+      "height": 170,
+      "frameSize": 256,
+      "anchor": [
+        128,
+        232
+      ],
+      "animations": {
+        "idle": {
+          "file": "abbot-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "walk": {
+          "file": "abbot-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "attack": {
+          "file": "abbot-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "hit": {
+          "file": "abbot-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "death": {
+          "file": "abbot-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "withering-curse": {
+          "file": "abbot-withering-curse.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "fireball-volley": {
+          "file": "abbot-fireball-volley.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        }
+      }
+    },
+    "corvin": {
+      "height": 88,
+      "frameSize": 128,
+      "animations": {
+        "idle": {
+          "file": "corvin-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        }
+      }
+    },
+    "keeper": {
+      "height": 90,
+      "frameSize": 128,
+      "animations": {
+        "idle": {
+          "file": "keeper-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        }
+      }
+    },
+    "mage": {
+      "height": 88,
+      "frameSize": 128,
+      "anchor": [
+        64,
+        112
+      ],
+      "animations": {
+        "idle": {
+          "file": "mage-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "walk": {
+          "file": "mage-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8,
+          "fps": 9
+        },
+        "attack": {
+          "file": "mage-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "cast": {
+          "file": "mage-cast.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "hit": {
+          "file": "mage-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "death": {
+          "file": "mage-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        }
+      }
+    },
+    "judge": {
+      "height": 170,
+      "frameSize": 256,
+      "anchor": [
+        128,
+        232
+      ],
+      "animations": {
+        "idle": {
+          "file": "judge-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "walk": {
+          "file": "judge-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "hit": {
+          "file": "judge-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "judgement": {
+          "file": "judge-judgement.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "step": {
+          "file": "judge-step.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "attack": {
+          "file": "judge-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "death": {
+          "file": "judge-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        }
+      }
+    },
+    "king": {
+      "height": 170,
+      "frameSize": 256,
+      "anchor": [
+        128,
+        232
+      ],
+      "animations": {
+        "idle": {
+          "file": "king-idle.png",
+          "frames": 4,
+          "columns": 4,
+          "rows": 8
+        },
+        "walk": {
+          "file": "king-walk.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        },
+        "hit": {
+          "file": "king-hit.png",
+          "frames": 2,
+          "columns": 2,
+          "rows": 8
+        },
+        "attack": {
+          "file": "king-attack.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "tempest": {
+          "file": "king-tempest.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "charge": {
+          "file": "king-charge.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "shed": {
+          "file": "king-shed.png",
+          "frames": 6,
+          "columns": 6,
+          "rows": 8
+        },
+        "death": {
+          "file": "king-death.png",
+          "frames": 8,
+          "columns": 8,
+          "rows": 8
+        }
+      }
     }
-   }
   },
-  "warrior": {
-   "height": 88,
-   "frameSize": 128,
-   "anchor": [
-    64,
-    112
-   ],
-   "animations": {
-    "idle": {
-     "file": "warrior-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    },
-    "attack": {
-     "file": "warrior-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8,
-     "frameSize": 192,
-     "anchor": [
+  "icons": {
+    "icon-short_bow": [
+      0,
+      0,
+      64,
+      64
+    ],
+    "icon-short_sword": [
+      64,
+      0,
+      64,
+      64
+    ],
+    "icon-helm": [
+      128,
+      0,
+      64,
+      64
+    ],
+    "icon-leather_coat": [
+      192,
+      0,
+      64,
+      64
+    ],
+    "icon-gloves": [
+      0,
+      64,
+      64,
+      64
+    ],
+    "icon-boots": [
+      64,
+      64,
+      64,
+      64
+    ],
+    "icon-ring": [
+      128,
+      64,
+      64,
+      64
+    ],
+    "icon-amulet": [
+      192,
+      64,
+      64,
+      64
+    ]
+  },
+  "ground": {
+    "ground-bow": [
+      0,
+      0,
+      48,
+      32
+    ],
+    "ground-melee_weapon": [
+      48,
+      0,
+      48,
+      32
+    ],
+    "ground-helm": [
       96,
-      150
-     ]
-    },
-    "hit": {
-     "file": "warrior-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
-    },
-    "death": {
-     "file": "warrior-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "walk": {
-     "file": "warrior-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8,
-     "fps": 9
-    }
-   }
-  },
-  "gnawer": {
-   "height": 32,
-   "frameSize": 128,
-   "anchor": [
-    64,
-    112
-   ],
-   "animations": {
-    "idle": {
-     "file": "gnawer-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    },
-    "walk": {
-     "file": "gnawer-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "attack": {
-     "file": "gnawer-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "hit": {
-     "file": "gnawer-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
-    },
-    "death": {
-     "file": "gnawer-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    }
-   }
-  },
-  "bonewalker": {
-   "height": 82,
-   "frameSize": 128,
-   "anchor": [
-    64,
-    112
-   ],
-   "animations": {
-    "idle": {
-     "file": "bonewalker-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    },
-    "walk": {
-     "file": "bonewalker-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "attack": {
-     "file": "bonewalker-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "hit": {
-     "file": "bonewalker-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
-    },
-    "death": {
-     "file": "bonewalker-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    }
-   }
-  },
-  "ashpriest": {
-   "height": 88,
-   "frameSize": 128,
-   "anchor": [
-    64,
-    112
-   ],
-   "animations": {
-    "idle": {
-     "file": "ashpriest-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    },
-    "walk": {
-     "file": "ashpriest-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "attack": {
-     "file": "ashpriest-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "hit": {
-     "file": "ashpriest-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
-    },
-    "death": {
-     "file": "ashpriest-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "cast": {
-     "file": "ashpriest-cast.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    }
-   }
-  },
-  "abbot": {
-   "height": 170,
-   "frameSize": 256,
-   "anchor": [
-    128,
-    232
-   ],
-   "animations": {
-    "idle": {
-     "file": "abbot-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    },
-    "walk": {
-     "file": "abbot-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "attack": {
-     "file": "abbot-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "hit": {
-     "file": "abbot-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
-    },
-    "death": {
-     "file": "abbot-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "withering-curse": {
-     "file": "abbot-withering-curse.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "fireball-volley": {
-     "file": "abbot-fireball-volley.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    }
-   }
-  },
-  "corvin": {
-   "height": 88,
-   "frameSize": 128,
-   "animations": {
-    "idle": {
-     "file": "corvin-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    }
-   }
-  },
-  "keeper": {
-   "height": 90,
-   "frameSize": 128,
-   "animations": {
-    "idle": {
-     "file": "keeper-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    }
-   }
-  },
-  "mage": {
-   "height": 88,
-   "frameSize": 128,
-   "anchor": [
-    64,
-    112
-   ],
-   "animations": {
-    "idle": {
-     "file": "mage-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    },
-    "walk": {
-     "file": "mage-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8,
-     "fps": 9
-    },
-    "attack": {
-     "file": "mage-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "cast": {
-     "file": "mage-cast.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "hit": {
-     "file": "mage-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
-    },
-    "death": {
-     "file": "mage-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    }
-   }
-  },
-  "judge": {
-   "height": 170,
-   "frameSize": 256,
-   "anchor": [
-    128,
-    232
-   ],
-   "animations": {
-    "idle": {
-     "file": "judge-idle.png",
-     "frames": 4,
-     "columns": 4,
-     "rows": 8
-    },
-    "walk": {
-     "file": "judge-walk.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    },
-    "hit": {
-     "file": "judge-hit.png",
-     "frames": 2,
-     "columns": 2,
-     "rows": 8
-    },
-    "judgement": {
-     "file": "judge-judgement.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "step": {
-     "file": "judge-step.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "attack": {
-     "file": "judge-attack.png",
-     "frames": 6,
-     "columns": 6,
-     "rows": 8
-    },
-    "death": {
-     "file": "judge-death.png",
-     "frames": 8,
-     "columns": 8,
-     "rows": 8
-    }
-   }
+      0,
+      48,
+      32
+    ],
+    "ground-armor": [
+      144,
+      0,
+      48,
+      32
+    ],
+    "ground-gloves": [
+      0,
+      32,
+      48,
+      32
+    ],
+    "ground-boots": [
+      48,
+      32,
+      48,
+      32
+    ],
+    "ground-ring": [
+      96,
+      32,
+      48,
+      32
+    ],
+    "ground-amulet": [
+      144,
+      32,
+      48,
+      32
+    ],
+    "ground-gold": [
+      0,
+      64,
+      48,
+      32
+    ],
+    "ground-life_potion": [
+      48,
+      64,
+      48,
+      32
+    ],
+    "ground-mana_potion": [
+      96,
+      64,
+      48,
+      32
+    ]
   }
- },
- "icons": {
-  "icon-short_bow": [
-   0,
-   0,
-   64,
-   64
-  ],
-  "icon-short_sword": [
-   64,
-   0,
-   64,
-   64
-  ],
-  "icon-helm": [
-   128,
-   0,
-   64,
-   64
-  ],
-  "icon-leather_coat": [
-   192,
-   0,
-   64,
-   64
-  ],
-  "icon-gloves": [
-   0,
-   64,
-   64,
-   64
-  ],
-  "icon-boots": [
-   64,
-   64,
-   64,
-   64
-  ],
-  "icon-ring": [
-   128,
-   64,
-   64,
-   64
-  ],
-  "icon-amulet": [
-   192,
-   64,
-   64,
-   64
-  ]
- },
- "ground": {
-  "ground-bow": [
-   0,
-   0,
-   48,
-   32
-  ],
-  "ground-melee_weapon": [
-   48,
-   0,
-   48,
-   32
-  ],
-  "ground-helm": [
-   96,
-   0,
-   48,
-   32
-  ],
-  "ground-armor": [
-   144,
-   0,
-   48,
-   32
-  ],
-  "ground-gloves": [
-   0,
-   32,
-   48,
-   32
-  ],
-  "ground-boots": [
-   48,
-   32,
-   48,
-   32
-  ],
-  "ground-ring": [
-   96,
-   32,
-   48,
-   32
-  ],
-  "ground-amulet": [
-   144,
-   32,
-   48,
-   32
-  ],
-  "ground-gold": [
-   0,
-   64,
-   48,
-   32
-  ],
-  "ground-life_potion": [
-   48,
-   64,
-   48,
-   32
-  ],
-  "ground-mana_potion": [
-   96,
-   64,
-   48,
-   32
-  ]
- }
 }

@@ -732,6 +732,7 @@ var Engine = (function () {
     if (S.merchantNext === null || depth >= S.merchantNext) placeMerchant(S);
     S.ossuary = null;
     if (depth === D.bosses.warden.depth && depth < DF.finalDepth) placeWarden(S);
+    else if (depth === kingDepth(S) && depth < DF.finalDepth) placeWarden(S, 'king');
     var i = 0;
     Object.keys(S.players).forEach(function (id) {
       var q = S.players[id];
@@ -759,9 +760,16 @@ var Engine = (function () {
     S.seal = boss.id;
     emit(S, { t: 'bossAppear', name: boss.name, isTrue: isTrue, traits: boss.traits });
   }
-  // The Gravewarden takes the largest room that is neither start nor stairs, as far from the start as possible.
-  function placeWarden(S) {
-    var map = S.map, W = D.bosses.warden, best = -1, bs = -1;
+  // The Hollowed King's level: 10-12 on Nightmare and Hell, picked from the game seed so it stays put.
+  function kingDepth(S) { return kingDepthFor(S.seed, S.difficulty); }
+  function kingDepthFor(seed, diff) {
+    var K = D.bosses.king; if (K.difficulties.indexOf(diff) < 0) return -1;
+    var h = Math.imul((seed >>> 0) ^ (diff === 'hell' ? 0x2c1b3c6d : 0x297a2d39), 0x9e3779b1) >>> 0;
+    return K.depths[0] + (h >>> 7) % (K.depths[1] - K.depths[0] + 1);
+  }
+  // The Gravewarden (and the Hollowed King) takes the largest room that is neither start nor stairs, as far from the start as possible.
+  function placeWarden(S, kind) {
+    var map = S.map, W = D.bosses[kind || 'warden'], best = -1, bs = -1;
     map.rooms.forEach(function (rm, i) {
       if (i === map.startRoom || i === map.stairsRoom) return;
       var cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2, sc = rm.w * rm.h + Math.hypot(cx - map.start.x, cy - map.start.y) * 2;
@@ -771,11 +779,19 @@ var Engine = (function () {
     var rm = map.rooms[best], cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2;
     S.monsters = S.monsters.filter(function (m) { return !(m.x > rm.x - 1 && m.x < rm.x + rm.w + 1 && m.y > rm.y - 1 && m.y < rm.y + rm.h + 1); });
     S.npcs = S.npcs.filter(function (n) { return !(n.x > rm.x - 1 && n.x < rm.x + rm.w + 1 && n.y > rm.y - 1 && n.y < rm.y + rm.h + 1); });
+    if (kind === 'king') {
+      var k = addMonster(S, 'king', cx, cy + 0.6, false);
+      k.boss = 'king'; k.name = D.monsters.king.name; k.traits = D.monsters.king.abilities.slice();
+      k.scale = W.scale; k.tempest = 3; k.charge = 1.2; k.shed = false; k.cast = null; k.noLeech = true; k.face = Math.PI / 2;
+      S.ossuary = { kind: 'king', x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: k.id };
+      emit(S, { t: 'ossuary', kind: 'king', name: k.name });
+      return;
+    }
     var b = addMonster(S, 'gravewarden', cx, cy, false);
     b.boss = 'warden'; b.name = D.monsters.gravewarden.name; b.traits = D.monsters.gravewarden.abilities.slice();
     b.scale = W.scale; b.spikes = 3; b.raised = 0; b.cast = null; b.home = { x: cx, y: cy };
-    S.ossuary = { x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: b.id };
-    emit(S, { t: 'ossuary', name: b.name });
+    S.ossuary = { kind: 'warden', x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: b.id };
+    emit(S, { t: 'ossuary', kind: 'warden', name: b.name });
   }
   function wardenAI(S, m, p, d, dt) {
     var W = D.bosses.warden, def = D.monsters.gravewarden, seen = los(S.map, m, p);
@@ -807,6 +823,76 @@ var Engine = (function () {
     }
     if (m.spikes <= 0 && seen && d < 6) { m.cast = 'spikes'; m.atk = W.spikes.cast; m.spikes = W.spikes.every; emit(S, { t: 'bossCast', id: m.id, name: 'Bone Spikes', x: m.x, y: m.y }); return; }
     if (d <= def.range + m.r + p.r && m.cd <= 0) { m.cast = 'melee'; m.atk = def.atkTime; m.cd = def.atkCd; return; }
+    if (d > def.range + m.r + p.r - 0.05) chase(S, m, p, dt, seen);
+  }
+  // ---------- The Hollowed King ----------
+  function kingBlades(S, m, n, a0) {
+    var T = D.bosses.king.tempest;
+    for (var i = 0; i < n; i++) {
+      var a = a0 + i * 6.283 / n;
+      S.projs.push({ id: S.nextId++, kind: 'blade', from: 'm', owner: m.id, x: m.x + Math.cos(a) * 0.5, y: m.y + Math.sin(a) * 0.5,
+        vx: Math.cos(a) * T.bladeSpeed, vy: Math.sin(a) * T.bladeSpeed, life: T.bladeLife, dmg: rint(S.rng, T.bladeDmg[0], T.bladeDmg[1]) * m.dmgMul, lvl: m.lvl });
+    }
+  }
+  function kingAI(S, m, p, d, dt) {
+    var K = D.bosses.king, def = D.monsters.king, seen = los(S.map, m, p), cdm = m.cdMul || 1;
+    m.tempest -= dt; m.charge -= dt;
+    // Shed the Mantle: at half life, whatever he is doing.
+    if (!m.shed && m.hp < m.max * K.shed.at && m.cast !== 'shed') {
+      m.shed = true; m.cast = 'shed'; m.atk = K.shed.cast; m.dr = K.shed.dr; m.moving = false; m.path = null;
+      emit(S, { t: 'bossCast', id: m.id, name: 'Shed the Mantle', x: m.x, y: m.y });
+      return;
+    }
+    if (m.cast === 'charging') {
+      // Run the line; anyone in the way is struck once.
+      var step = K.charge.speed * dt, moved = moveEntity(S, m, m.cdx * step, m.cdy * step);
+      m.cleft -= moved; m.moving = true;
+      for (var id in S.players) {
+        var q = S.players[id];
+        if (q.dead || m.chHit.indexOf(id) >= 0 || Math.hypot(q.x - m.x, q.y - m.y) > m.r + q.r + 0.25) continue;
+        m.chHit.push(id); hurtPlayer(S, q, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul * K.charge.mult, m.lvl, m);
+        emit(S, { t: 'kingCharge', hit: true, x: q.x, y: q.y });
+      }
+      if (m.cleft <= 0 || moved < step * 0.4) {
+        m.cast = 'recover'; m.atk = K.charge.recover; m.moving = false;
+        emit(S, { t: 'kingCharge', end: true, x: m.x, y: m.y });
+      }
+      return;
+    }
+    if (m.atk > 0) {
+      m.atk -= dt; m.moving = false;
+      if (m.cast !== 'recover') m.face = Math.atan2(p.y - m.y, p.x - m.x);
+      if (m.atk > 0) return;
+      if (m.cast === 'tempest') {
+        var T = K.tempest;
+        for (var id2 in S.players) {
+          var q2 = S.players[id2];
+          if (!q2.dead && Math.hypot(q2.x - m.x, q2.y - m.y) < T.radius + q2.r) hurtPlayer(S, q2, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul * T.mult, m.lvl, m);
+        }
+        kingBlades(S, m, T.blades, m.face + Math.PI / T.blades);
+        emit(S, { t: 'tempest', x: m.x, y: m.y, r: T.radius });
+      } else if (m.cast === 'chargeWind') {
+        var dx = p.x - m.x, dy = p.y - m.y, dl = Math.hypot(dx, dy) || 1;
+        m.cdx = dx / dl; m.cdy = dy / dl; m.face = Math.atan2(dy, dx);
+        m.cleft = Math.min(K.charge.max, dl + 1.5); m.chHit = []; m.cast = 'charging';
+        return;
+      } else if (m.cast === 'shed') {
+        m.dr = 0; m.speed *= K.shed.speed; m.cdMul = (m.cdMul || 1) * K.shed.cd;
+        kingBlades(S, m, K.shed.blades, 0);
+        emit(S, { t: 'shed', id: m.id, x: m.x, y: m.y });
+      } else if (m.cast === 'melee' && d <= def.range + m.r + p.r + 0.3) hurtPlayer(S, p, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul, m.lvl, m);
+      m.cast = null;
+      return;
+    }
+    if (m.tempest <= 0 && seen && d < K.tempest.near) {
+      m.cast = 'tempest'; m.atk = K.tempest.cast; m.tempest = K.tempest.every * cdm;
+      emit(S, { t: 'bossCast', id: m.id, name: 'Blade Tempest', x: m.x, y: m.y }); return;
+    }
+    if (m.charge <= 0 && seen && d >= K.charge.min && d <= K.charge.max && clearLine(S.map, m.x, m.y, p.x, p.y, m.r * 0.9)) {
+      m.cast = 'chargeWind'; m.atk = K.charge.windup; m.charge = (m.shed ? K.shed.chargeEvery : K.charge.every);
+      emit(S, { t: 'bossCast', id: m.id, name: 'Kingsfall Charge', x: m.x, y: m.y }); return;
+    }
+    if (d <= def.range + m.r + p.r && m.cd <= 0) { m.cast = 'melee'; m.atk = def.atkTime; m.cd = def.atkCd * cdm; return; }
     if (d > def.range + m.r + p.r - 0.05) chase(S, m, p, dt, seen);
   }
   function makeMini(S, cx, cy, nTraits, nMinions, forceType) {
@@ -1589,6 +1675,7 @@ var Engine = (function () {
     if (def.ai === 'abbot') { abbotAI(S, m, p, d, dt); return; }
     if (def.ai === 'judge') { judgeAI(S, m, p, d, dt); return; }
     if (def.ai === 'warden') { wardenAI(S, m, p, d, dt); return; }
+    if (def.ai === 'king') { kingAI(S, m, p, d, dt); return; }
     if (def.ai === 'hound' && houndAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'wraith' && wraithAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'burrower' && burrowAI(S, m, p, d, dt, def)) return;
@@ -1824,10 +1911,10 @@ var Engine = (function () {
     var n = rnd(r) < (m.champ ? 0.9 : 0.15) ? 1 : 0, minR = 0, ib = m.champ ? 2 : 0;
     if (m.champ && rnd(r) < 0.45) n++;
     if (m.boss === 'mini') { n = 2; minR = 1; ib = 3; }
-    if (m.boss === 'warden') {
-      var WR = D.bosses.warden.reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
+    if (m.boss === 'warden' || m.boss === 'king') {
+      var WR = D.bosses[m.boss].reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
       if (S.ossuary) S.ossuary.done = true;
-      emit(S, { t: 'wardenDown', name: m.name });
+      emit(S, { t: 'wardenDown', kind: m.boss, name: m.name });
       var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib;
       if (rnd(r) < WR.unique) { n--; s = spot(); var uw = genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
       for (var gw = 0; gw < 3; gw++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, WR.gold[0], WR.gold[1]) * S.depth }); }
@@ -1836,7 +1923,7 @@ var Engine = (function () {
     if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
     for (var i = 0; i < n; i++) {
       var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
-      var it = maybeUnique(S, il, m.boss === 'warden' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
+      var it = maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
       s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: it });
       emit(S, { t: 'itemdrop', rarity: it.rarity, x: s[0], y: s[1] });
     }
@@ -1987,7 +2074,7 @@ var Engine = (function () {
     classOf: classOf, canWield: canWield, targetSlot: targetSlot,
     genUnique: genUnique, uniqueDef: uniqueDef, ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
     SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, refresh: refresh, applyFinal: applyFinal, themeFor: themeFor,
-    createSim: createSim, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
+    createSim: createSim, kingDepthFor: kingDepthFor, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,
     itemName: itemName, baseOf: baseOf, genItem: genItem, findPath: findPath,
     walkable: walkable, sightable: sightable, tileAt: tileAt, damageReduction: damageReduction

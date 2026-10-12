@@ -477,7 +477,7 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
     </div>
     </details>
     <label class="fs-pref"><input type="checkbox" id="fsPref"> Start games in fullscreen</label>
-    <p class="hint ver">Build 2026-10-12 21:07</p>
+    <p class="hint ver">Build 2026-10-12 21:34</p>
     <div class="tools"><button class="tb" id="bImport">Import character</button><button class="tb" id="tKeys">Key bindings</button></div>
   </div>
 </div>
@@ -520,9 +520,9 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
   <p class="hint" id="imStatus" role="status"></p>
 </div></div>
 
-<script>var BUILD = "2026-10-12 21:07";</script>
+<script>var BUILD = "2026-10-12 21:34";</script>
 <script>var TILE_ATLAS = {"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"512\" height=\"224\" viewBox=\"0 0 512 224\"><defs>\n    <linearGradient id=\"stone\" x1=\"0\" y1=\"0\" x2=\"0.8\" y2=\"1\"><stop stop-color=\"#514238\"/><stop offset=\"1\" stop-color=\"#302720\"/></linearGradient>\n    <linearGradient id=\"stone2\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"><stop stop-color=\"#625044\"/><stop offset=\"1\" stop-color=\"#40342b\"/></linearGradient>\n    <pattern id=\"grain\" width=\"17\" height=\"13\" patternUnits=\"userSpaceOnUse\"><circle cx=\"3\" cy=\"4\" r=\".7\" fill=\"#c5a477\" opacity=\".12\"/><circle cx=\"13\" cy=\"9\" r=\".55\" fill=\"#0b0908\" opacity=\".42\"/></pattern>\n    <g id=\"floor-base\"><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#stone)\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#grain)\"/><path d=\"M64 2 124 32\" fill=\"none\" stroke=\"#89735a\" stroke-opacity=\".22\"/></g>\n    <g id=\"block-top\"><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#stone2)\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#grain)\"/><path d=\"M64 2 124 32\" fill=\"none\" stroke=\"#b08d64\" stroke-opacity=\".32\"/></g>\n    <g id=\"wall-face\">\n      <path d=\"M1 32 64 63 64 95 1 64Z\" fill=\"#2e251f\" stroke=\"#17120f\" stroke-width=\"1.5\"/>\n      <path d=\"M64 63 127 32 127 64 64 95Z\" fill=\"#241d18\" stroke=\"#17120f\" stroke-width=\"1.5\"/>\n      <path d=\"M5 43 64 72 64 79 5 50M64 80 123 51 123 58 64 87\" fill=\"none\" stroke=\"#4b3b2e\" stroke-width=\"1\" opacity=\".9\"/>\n      <path d=\"M5 55 64 84 64 91 5 62M64 88 123 59 123 66 64 95\" fill=\"none\" stroke=\"#433529\" stroke-width=\"1\" opacity=\".75\"/>\n      <path d=\"M1 32 64 63 127 32\" fill=\"none\" stroke=\"#92775b\" stroke-opacity=\".4\" stroke-width=\"1\"/>\n    </g>\n    <symbol id=\"floor-stone\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/></symbol>\n    <symbol id=\"floor-cracked\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"m44 23 7 5-4 5 10 3-3 7 8 5m-11-15-8 1m11 9 7-3\" fill=\"none\" stroke=\"#17120f\" stroke-width=\"1.6\"/><path d=\"m45 24 6 4m-4 5 9 3\" fill=\"none\" stroke=\"#8a7157\" stroke-opacity=\".45\"/></symbol>\n    <symbol id=\"floor-moss\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"M13 32q9-10 20-3t12 12q-12 8-24-1Z\" fill=\"#596044\" opacity=\".7\"/><path d=\"M89 24q12-6 23 3l-9 7-14-3Z\" fill=\"#64704a\" opacity=\".58\"/><path d=\"M20 34q9-5 17 2m57-9q8-3 14 2\" fill=\"none\" stroke=\"#879064\" opacity=\".55\"/></symbol>\n    <symbol id=\"floor-rune\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"m64 16 15 8v16l-15 8-15-8V24Zm0 5v22m-10-17 20 11m0-11L54 37\" fill=\"none\" stroke=\"#bd8b48\" stroke-width=\"1.5\" opacity=\".82\"/><circle cx=\"64\" cy=\"32\" r=\"2\" fill=\"#e6b363\"/></symbol>\n    <symbol id=\"floor-blood\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"M78 33q10-9 18 0t15 4q-1 9-14 9t-19-5Z\" fill=\"#6e2922\" opacity=\".86\"/><path d=\"M94 40q3 5 1 9\" stroke=\"#742a22\" stroke-width=\"2\"/></symbol>\n    <symbol id=\"floor-rubble\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"m40 37 8-6 7 4-4 7-8 1Zm18 6 6-7 7 4-3 7-8 1Zm-7-15 5-5 5 3-2 5-6 1Zm21 12 4-5 5 2-1 5-6 1Z\" fill=\"#796553\" stroke=\"#211a15\" stroke-width=\"1\"/></symbol>\n    <symbol id=\"floor-edge\" viewBox=\"0 0 128 64\"><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#stone)\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#grain)\"/><path d=\"M64 1 127 32 64 63\" fill=\"none\" stroke=\"#947858\" stroke-opacity=\".32\" stroke-width=\"1.2\"/><path d=\"M1 32 64 63\" fill=\"none\" stroke=\"#0c0908\" stroke-opacity=\".65\" stroke-width=\"2\"/></symbol>\n    <symbol id=\"wall-straight\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/></symbol>\n    <symbol id=\"wall-moss\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/><path d=\"M5 40q10-8 18 1t18 5l5 8-18-4-19-4Zm75-1q12-8 19-3t22-2v8l-22 5-19 4Z\" fill=\"#596044\" opacity=\".75\"/><path d=\"m18 49 2 8m8-5 1 7m73-13 2 7\" stroke=\"#82905c\" opacity=\".55\"/></symbol>\n    <symbol id=\"wall-arch\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/><path d=\"M42 61V47a22 22 0 0 1 44 0v14l-9-4V47a13 13 0 0 0-26 0v14Z\" fill=\"#17120f\" stroke=\"#725b42\" stroke-width=\"2\"/><path d=\"M45 60V47a19 19 0 0 1 38 0\" fill=\"none\" stroke=\"#9a7a54\" stroke-opacity=\".55\"/></symbol>\n    <symbol id=\"wall-corner\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><path d=\"M64 63 127 32V55L84 77 64 87Z\" fill=\"#302720\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 73 84 83 127 61M64 85 84 95 127 73\" fill=\"none\" stroke=\"#4b3b2e\" stroke-width=\"1\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/></symbol>\n  </defs><use href=\"#floor-stone\" xlink:href=\"#floor-stone\" x=\"0\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-cracked\" xlink:href=\"#floor-cracked\" x=\"128\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-moss\" xlink:href=\"#floor-moss\" x=\"256\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-rune\" xlink:href=\"#floor-rune\" x=\"384\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-blood\" xlink:href=\"#floor-blood\" x=\"0\" y=\"64\" width=\"128\" height=\"64\"/><use href=\"#floor-rubble\" xlink:href=\"#floor-rubble\" x=\"128\" y=\"64\" width=\"128\" height=\"64\"/><use href=\"#floor-edge\" xlink:href=\"#floor-edge\" x=\"256\" y=\"64\" width=\"128\" height=\"64\"/><use href=\"#wall-straight\" xlink:href=\"#wall-straight\" x=\"0\" y=\"128\" width=\"128\" height=\"96\"/><use href=\"#wall-moss\" xlink:href=\"#wall-moss\" x=\"128\" y=\"128\" width=\"128\" height=\"96\"/><use href=\"#wall-arch\" xlink:href=\"#wall-arch\" x=\"256\" y=\"128\" width=\"128\" height=\"96\"/><use href=\"#wall-corner\" xlink:href=\"#wall-corner\" x=\"384\" y=\"128\" width=\"128\" height=\"96\"/></svg>", "cells": {"floor-stone": [0, 0, 128, 64], "floor-cracked": [128, 0, 128, 64], "floor-moss": [256, 0, 128, 64], "floor-rune": [384, 0, 128, 64], "floor-blood": [0, 64, 128, 64], "floor-rubble": [128, 64, 128, 64], "floor-edge": [256, 64, 128, 64], "wall-straight": [0, 128, 128, 96], "wall-moss": [128, 128, 128, 96], "wall-arch": [256, 128, 128, 96], "wall-corner": [384, 128, 128, 96]}};</script>
-<script>var SPRITES = {"meta": {"cell": 128, "anchor": [64, 112], "directions": ["S", "SW", "W", "NW", "N", "NE", "E", "SE"], "actors": {"archer": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "archer-idle.png", "frames": 4, "columns": 4, "rows": 8}, "attack": {"file": "archer-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "archer-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "archer-death.png", "frames": 8, "columns": 8, "rows": 8}, "walk": {"file": "archer-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}}, "pxScale": 1}, "warrior": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "warrior-idle.png", "frames": 4, "columns": 4, "rows": 8}, "attack": {"file": "warrior-attack.png", "frames": 6, "columns": 6, "rows": 8, "frameSize": 192, "anchor": [96, 150]}, "hit": {"file": "warrior-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "warrior-death.png", "frames": 8, "columns": 8, "rows": 8}, "walk": {"file": "warrior-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}}, "pxScale": 1}, "gnawer": {"height": 32, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "gnawer-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "gnawer-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "gnawer-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "gnawer-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "gnawer-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "bonewalker": {"height": 82, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "bonewalker-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "bonewalker-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "bonewalker-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "bonewalker-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "bonewalker-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "ashpriest": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "ashpriest-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "ashpriest-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "ashpriest-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "ashpriest-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "ashpriest-death.png", "frames": 8, "columns": 8, "rows": 8}, "cast": {"file": "ashpriest-cast.png", "frames": 6, "columns": 6, "rows": 8}}, "pxScale": 1}, "abbot": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "abbot-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "abbot-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "abbot-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "abbot-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "abbot-death.png", "frames": 8, "columns": 8, "rows": 8}, "withering-curse": {"file": "abbot-withering-curse.png", "frames": 6, "columns": 6, "rows": 8}, "fireball-volley": {"file": "abbot-fireball-volley.png", "frames": 6, "columns": 6, "rows": 8}}, "pxScale": 1.3333333333333333}, "corvin": {"height": 88, "frameSize": 128, "animations": {"idle": {"file": "corvin-idle.png", "frames": 4, "columns": 4, "rows": 8}}, "anchor": [64, 112], "pxScale": 1}, "keeper": {"height": 90, "frameSize": 128, "animations": {"idle": {"file": "keeper-idle.png", "frames": 4, "columns": 4, "rows": 8}}, "anchor": [64, 112], "pxScale": 1}, "mage": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "mage-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "mage-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}, "attack": {"file": "mage-attack.png", "frames": 6, "columns": 6, "rows": 8}, "cast": {"file": "mage-cast.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "mage-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "mage-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "judge": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "judge-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "judge-walk.png", "frames": 8, "columns": 8, "rows": 8}, "hit": {"file": "judge-hit.png", "frames": 2, "columns": 2, "rows": 8}, "judgement": {"file": "judge-judgement.png", "frames": 6, "columns": 6, "rows": 8}, "step": {"file": "judge-step.png", "frames": 6, "columns": 6, "rows": 8}, "attack": {"file": "judge-attack.png", "frames": 6, "columns": 6, "rows": 8}, "death": {"file": "judge-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1.3333333333333333}}, "icons": {"icon-short_bow": [0, 0, 64, 64], "icon-short_sword": [64, 0, 64, 64], "icon-helm": [128, 0, 64, 64], "icon-leather_coat": [192, 0, 64, 64], "icon-gloves": [0, 64, 64, 64], "icon-boots": [64, 64, 64, 64], "icon-ring": [128, 64, 64, 64], "icon-amulet": [192, 64, 64, 64]}, "ground": {"ground-bow": [0, 0, 48, 32], "ground-melee_weapon": [48, 0, 48, 32], "ground-helm": [96, 0, 48, 32], "ground-armor": [144, 0, 48, 32], "ground-gloves": [0, 32, 48, 32], "ground-boots": [48, 32, 48, 32], "ground-ring": [96, 32, 48, 32], "ground-amulet": [144, 32, 48, 32], "ground-gold": [0, 64, 48, 32], "ground-life_potion": [48, 64, 48, 32], "ground-mana_potion": [96, 64, 48, 32]}}, "img": {"abbot-attack": "img/abbot-attack.65e64e69.webp", "abbot-death": "img/abbot-death.002b15a6.webp", "abbot-fireball-volley": "img/abbot-fireball-volley.8f2c279a.webp", "abbot-hit": "img/abbot-hit.d05b2f59.webp", "abbot-idle": "img/abbot-idle.ed9b66a4.webp", "abbot-walk": "img/abbot-walk.f6edbf0c.webp", "abbot-withering-curse": "img/abbot-withering-curse.582b736d.webp", "archer-attack": "img/archer-attack.ab3dce0a.webp", "archer-death": "img/archer-death.e27fa07e.webp", "archer-hit": "img/archer-hit.d8295eac.webp", "archer-idle": "img/archer-idle.ea799daa.webp", "archer-walk": "img/archer-walk.7b6d0c9e.webp", "ashpriest-attack": "img/ashpriest-attack.09d73301.webp", "ashpriest-cast": "img/ashpriest-cast.09d73301.webp", "ashpriest-death": "img/ashpriest-death.9a364a41.webp", "ashpriest-hit": "img/ashpriest-hit.3129444a.webp", "ashpriest-idle": "img/ashpriest-idle.aad6abd1.webp", "ashpriest-walk": "img/ashpriest-walk.279b81c3.webp", "bonewalker-attack": "img/bonewalker-attack.271d1493.webp", "bonewalker-death": "img/bonewalker-death.77367e5c.webp", "bonewalker-hit": "img/bonewalker-hit.66f393b5.webp", "bonewalker-idle": "img/bonewalker-idle.a4871bcf.webp", "bonewalker-walk": "img/bonewalker-walk.6e5564c8.webp", "corvin-idle": "img/corvin-idle.5df605f4.webp", "floor-ash": "img/floor-ash.ecc6bd6a.webp", "floor-blood": "img/floor-blood.9c80fe1b.webp", "floor-cracked": "img/floor-cracked.07f30265.webp", "floor-moss": "img/floor-moss.c75eeaea.webp", "floor-rubble": "img/floor-rubble.d619676b.webp", "floor-rune": "img/floor-rune.3bae6715.webp", "floor-stone-b": "img/floor-stone-b.e42fd834.webp", "floor-stone": "img/floor-stone.95b88900.webp", "fo-grass-a": "img/fo-grass-a.2656714d.webp", "fo-grass-b": "img/fo-grass-b.61d71636.webp", "fo-grass-bones": "img/fo-grass-bones.f0a7bb96.webp", "fo-grass-dirt": "img/fo-grass-dirt.d29a1d85.webp", "fo-grass-flowers": "img/fo-grass-flowers.47c7c0d4.webp", "fo-grass-mud": "img/fo-grass-mud.03640e71.webp", "fo-grass-rune": "img/fo-grass-rune.5f89b225.webp", "fo-grass-stones": "img/fo-grass-stones.619a1c63.webp", "fo-grass-tall": "img/fo-grass-tall.c50ef450.webp", "fo-hedge-straight": "img/fo-hedge-straight.365f8b19.webp", "fo-hedge-thorn-l": "img/fo-hedge-thorn-l.97fabb29.webp", "fo-hedge-thorn-r": "img/fo-hedge-thorn-r.c067f2d1.webp", "fo-path-dirt": "img/fo-path-dirt.b0bcd5c9.webp", "fo-ruinwall-ivy-l": "img/fo-ruinwall-ivy-l.217186a1.webp", "fo-ruinwall-ivy-r": "img/fo-ruinwall-ivy-r.d098f30b.webp", "fo-ruinwall-lantern-l": "img/fo-ruinwall-lantern-l.710a860c.webp", "fo-ruinwall-lantern-r": "img/fo-ruinwall-lantern-r.a0e96808.webp", "fo-ruinwall-straight": "img/fo-ruinwall-straight.fcab829c.webp", "gate-sealed": "img/gate-sealed.ce7fa27b.webp", "gnawer-attack": "img/gnawer-attack.f6b8801a.webp", "gnawer-death": "img/gnawer-death.32856918.webp", "gnawer-hit": "img/gnawer-hit.a386f126.webp", "gnawer-idle": "img/gnawer-idle.1753e424.webp", "gnawer-walk": "img/gnawer-walk.d0d55dec.webp", "ground-amulet": "img/ground-amulet.142ec957.webp", "ground-armor": "img/ground-armor.ca59c3d6.webp", "ground-boots": "img/ground-boots.4a7a4f57.webp", "ground-bow": "img/ground-bow.d19589dd.webp", "ground-gloves": "img/ground-gloves.d6505e47.webp", "ground-gold": "img/ground-gold.a2db1938.webp", "ground-helm": "img/ground-helm.9e850fbf.webp", "ground-life_potion": "img/ground-life_potion.ba13f067.webp", "ground-mana_potion": "img/ground-mana_potion.95cbe604.webp", "ground-melee_weapon": "img/ground-melee_weapon.dc677a40.webp", "ground-ring": "img/ground-ring.e46327c3.webp", "ground-staff": "img/ground-staff.dab4d437.webp", "hl-hell-ash": "img/hl-hell-ash.a73ed6d5.webp", "hl-hell-basalt-a": "img/hl-hell-basalt-a.5e0bb147.webp", "hl-hell-basalt-b": "img/hl-hell-basalt-b.0e2082ec.webp", "hl-hell-blood": "img/hl-hell-blood.6954a8e3.webp", "hl-hell-bones": "img/hl-hell-bones.004b697a.webp", "hl-hell-cracks": "img/hl-hell-cracks.73df4ed8.webp", "hl-hell-pillar": "img/hl-hell-pillar.43a2bc0f.webp", "hl-hell-rune": "img/hl-hell-rune.4967bdb0.webp", "hl-hell-scorched": "img/hl-hell-scorched.2463b302.webp", "hl-hell-tiles": "img/hl-hell-tiles.53593703.webp", "hl-hell-wall-brazier-l": "img/hl-hell-wall-brazier-l.ed14d3b0.webp", "hl-hell-wall-brazier-r": "img/hl-hell-wall-brazier-r.d0819ae0.webp", "hl-hell-wall-gate": "img/hl-hell-wall-gate.328ce3d9.webp", "hl-hell-wall-spikes-l": "img/hl-hell-wall-spikes-l.16f6c77c.webp", "hl-hell-wall-spikes-r": "img/hl-hell-wall-spikes-r.bd02b256.webp", "hl-hell-wall-straight": "img/hl-hell-wall-straight.43e9ed74.webp", "hl-hell-wall-veins-l": "img/hl-hell-wall-veins-l.d7a5a762.webp", "hl-hell-wall-veins-r": "img/hl-hell-wall-veins-r.065898e0.webp", "hl-lava-a": "img/hl-lava-a.02f2c8fc.webp", "hl-lava-anim-0": "img/hl-lava-anim-0.755a8d68.webp", "hl-lava-anim-1": "img/hl-lava-anim-1.eebefe62.webp", "hl-lava-anim-2": "img/hl-lava-anim-2.45151e3b.webp", "hl-lava-anim-3": "img/hl-lava-anim-3.7067d000.webp", "hl-lava-b": "img/hl-lava-b.0f438984.webp", "icon-amulet": "img/icon-amulet.75ccabe1.webp", "icon-boots": "img/icon-boots.60c38afc.webp", "icon-gloves": "img/icon-gloves.9c1b47fb.webp", "icon-helm": "img/icon-helm.d14f1acd.webp", "icon-leather_coat": "img/icon-leather_coat.de9dbc0b.webp", "icon-ring": "img/icon-ring.cfb7ec66.webp", "icon-short_bow": "img/icon-short_bow.8e8b0b15.webp", "icon-short_sword": "img/icon-short_sword.0c8e1084.webp", "icon-staff": "img/icon-staff.43e6eae1.webp", "judge-attack": "img/judge-attack.11de536d.webp", "judge-death": "img/judge-death.0e2e0e5a.webp", "judge-hit": "img/judge-hit.d2b4c18f.webp", "judge-idle": "img/judge-idle.425be111.webp", "judge-judgement": "img/judge-judgement.9c9098c4.webp", "judge-step": "img/judge-step.778a114b.webp", "judge-walk": "img/judge-walk.875798d7.webp", "judgement-pillar": "img/judgement-pillar.114e0bef.webp", "keeper-idle": "img/keeper-idle.ad66c5b4.webp", "mage-attack": "img/mage-attack.61c27d4c.webp", "mage-cast": "img/mage-cast.c7a0f164.webp", "mage-death": "img/mage-death.08964b78.webp", "mage-hit": "img/mage-hit.3e7cc224.webp", "mage-idle": "img/mage-idle.2a7a5180.webp", "mage-walk": "img/mage-walk.f18d8785.webp", "portal-hell": "img/portal-hell.3795001b.webp", "portal": "img/portal.57b754d2.webp", "prop-barrow-mound": "img/prop-barrow-mound.e13d7a8e.webp", "prop-brazier": "img/prop-brazier.9b1d1a60.webp", "prop-broken-pillar": "img/prop-broken-pillar.7d4ddb2a.webp", "prop-bush": "img/prop-bush.e0971c57.webp", "prop-cart": "img/prop-cart.c4924f08.webp", "prop-chest": "img/prop-chest.32de77b8.webp", "prop-crows": "img/prop-crows.df784b6b.webp", "prop-dead-tree": "img/prop-dead-tree.aa561611.webp", "prop-floor-grate": "img/prop-floor-grate.a68677c7.webp", "prop-gravestone-b": "img/prop-gravestone-b.691e8306.webp", "prop-gravestone": "img/prop-gravestone.a8b770fb.webp", "prop-hell-altar": "img/prop-hell-altar.d99ced31.webp", "prop-hell-bones": "img/prop-hell-bones.449283ac.webp", "prop-hell-brazier": "img/prop-hell-brazier.cf78ff7d.webp", "prop-hell-cage": "img/prop-hell-cage.6382a9f8.webp", "prop-hell-chains": "img/prop-hell-chains.d6930d29.webp", "prop-hell-obelisk": "img/prop-hell-obelisk.c003a6d8.webp", "prop-hell-rocks": "img/prop-hell-rocks.e41a6217.webp", "prop-hell-skulls": "img/prop-hell-skulls.c947c566.webp", "prop-hell-spikes": "img/prop-hell-spikes.639c47ed.webp", "prop-hell-vent": "img/prop-hell-vent.5ea6e6d3.webp", "prop-mushrooms": "img/prop-mushrooms.9d5c14bb.webp", "prop-ritual-altar": "img/prop-ritual-altar.d1e619d9.webp", "prop-rubble-pile": "img/prop-rubble-pile.c19103fe.webp", "prop-skeleton-remains": "img/prop-skeleton-remains.a6b0ae90.webp", "prop-stone-circle": "img/prop-stone-circle.7c560b2a.webp", "prop-urn": "img/prop-urn.2c5f4e3a.webp", "prop-well": "img/prop-well.b0499a70.webp", "stairs-down-grass": "img/stairs-down-grass.97e5898f.webp", "stairs-down-hell": "img/stairs-down-hell.a6b3577b.webp", "stairs-down": "img/stairs-down.9f1f91aa.webp", "stairs-sealed": "img/stairs-sealed.209967f8.webp", "wall-banner-l": "img/wall-banner-l.0a80fbde.webp", "wall-banner-r": "img/wall-banner-r.f106b7e8.webp", "wall-cracked-l": "img/wall-cracked-l.87469f9c.webp", "wall-cracked-r": "img/wall-cracked-r.c145916d.webp", "wall-moss-l": "img/wall-moss-l.234a15aa.webp", "wall-moss-r": "img/wall-moss-r.e752ce90.webp", "wall-straight": "img/wall-straight.b4ea2313.webp", "wall-torch-l": "img/wall-torch-l.b02611a6.webp", "wall-torch-r": "img/wall-torch-r.1e045911.webp", "warrior-attack": "img/warrior-attack.4452b167.webp", "warrior-death": "img/warrior-death.144f40d5.webp", "warrior-hit": "img/warrior-hit.17aed8c6.webp", "warrior-idle": "img/warrior-idle.9bc8af49.webp", "warrior-walk": "img/warrior-walk.3a268ab0.webp"}};</script>
+<script>var SPRITES = {"meta": {"cell": 128, "anchor": [64, 112], "directions": ["S", "SW", "W", "NW", "N", "NE", "E", "SE"], "actors": {"archer": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "archer-idle.png", "frames": 4, "columns": 4, "rows": 8}, "attack": {"file": "archer-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "archer-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "archer-death.png", "frames": 8, "columns": 8, "rows": 8}, "walk": {"file": "archer-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}}, "pxScale": 1}, "warrior": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "warrior-idle.png", "frames": 4, "columns": 4, "rows": 8}, "attack": {"file": "warrior-attack.png", "frames": 6, "columns": 6, "rows": 8, "frameSize": 192, "anchor": [96, 150]}, "hit": {"file": "warrior-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "warrior-death.png", "frames": 8, "columns": 8, "rows": 8}, "walk": {"file": "warrior-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}}, "pxScale": 1}, "gnawer": {"height": 32, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "gnawer-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "gnawer-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "gnawer-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "gnawer-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "gnawer-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "bonewalker": {"height": 82, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "bonewalker-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "bonewalker-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "bonewalker-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "bonewalker-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "bonewalker-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "ashpriest": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "ashpriest-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "ashpriest-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "ashpriest-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "ashpriest-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "ashpriest-death.png", "frames": 8, "columns": 8, "rows": 8}, "cast": {"file": "ashpriest-cast.png", "frames": 6, "columns": 6, "rows": 8}}, "pxScale": 1}, "abbot": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "abbot-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "abbot-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "abbot-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "abbot-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "abbot-death.png", "frames": 8, "columns": 8, "rows": 8}, "withering-curse": {"file": "abbot-withering-curse.png", "frames": 6, "columns": 6, "rows": 8}, "fireball-volley": {"file": "abbot-fireball-volley.png", "frames": 6, "columns": 6, "rows": 8}}, "pxScale": 1.3333333333333333}, "corvin": {"height": 88, "frameSize": 128, "animations": {"idle": {"file": "corvin-idle.png", "frames": 4, "columns": 4, "rows": 8}}, "anchor": [64, 112], "pxScale": 1}, "keeper": {"height": 90, "frameSize": 128, "animations": {"idle": {"file": "keeper-idle.png", "frames": 4, "columns": 4, "rows": 8}}, "anchor": [64, 112], "pxScale": 1}, "mage": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "mage-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "mage-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}, "attack": {"file": "mage-attack.png", "frames": 6, "columns": 6, "rows": 8}, "cast": {"file": "mage-cast.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "mage-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "mage-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "judge": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "judge-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "judge-walk.png", "frames": 8, "columns": 8, "rows": 8}, "hit": {"file": "judge-hit.png", "frames": 2, "columns": 2, "rows": 8}, "judgement": {"file": "judge-judgement.png", "frames": 6, "columns": 6, "rows": 8}, "step": {"file": "judge-step.png", "frames": 6, "columns": 6, "rows": 8}, "attack": {"file": "judge-attack.png", "frames": 6, "columns": 6, "rows": 8}, "death": {"file": "judge-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1.3333333333333333}, "king": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "king-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "king-walk.png", "frames": 8, "columns": 8, "rows": 8}, "hit": {"file": "king-hit.png", "frames": 2, "columns": 2, "rows": 8}, "attack": {"file": "king-attack.png", "frames": 6, "columns": 6, "rows": 8}, "tempest": {"file": "king-tempest.png", "frames": 6, "columns": 6, "rows": 8}, "charge": {"file": "king-charge.png", "frames": 6, "columns": 6, "rows": 8}, "shed": {"file": "king-shed.png", "frames": 6, "columns": 6, "rows": 8}, "death": {"file": "king-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1.3333333333333333}}, "icons": {"icon-short_bow": [0, 0, 64, 64], "icon-short_sword": [64, 0, 64, 64], "icon-helm": [128, 0, 64, 64], "icon-leather_coat": [192, 0, 64, 64], "icon-gloves": [0, 64, 64, 64], "icon-boots": [64, 64, 64, 64], "icon-ring": [128, 64, 64, 64], "icon-amulet": [192, 64, 64, 64]}, "ground": {"ground-bow": [0, 0, 48, 32], "ground-melee_weapon": [48, 0, 48, 32], "ground-helm": [96, 0, 48, 32], "ground-armor": [144, 0, 48, 32], "ground-gloves": [0, 32, 48, 32], "ground-boots": [48, 32, 48, 32], "ground-ring": [96, 32, 48, 32], "ground-amulet": [144, 32, 48, 32], "ground-gold": [0, 64, 48, 32], "ground-life_potion": [48, 64, 48, 32], "ground-mana_potion": [96, 64, 48, 32]}}, "img": {"abbot-attack": "img/abbot-attack.65e64e69.webp", "abbot-death": "img/abbot-death.002b15a6.webp", "abbot-fireball-volley": "img/abbot-fireball-volley.8f2c279a.webp", "abbot-hit": "img/abbot-hit.d05b2f59.webp", "abbot-idle": "img/abbot-idle.ed9b66a4.webp", "abbot-walk": "img/abbot-walk.f6edbf0c.webp", "abbot-withering-curse": "img/abbot-withering-curse.582b736d.webp", "archer-attack": "img/archer-attack.ab3dce0a.webp", "archer-death": "img/archer-death.e27fa07e.webp", "archer-hit": "img/archer-hit.d8295eac.webp", "archer-idle": "img/archer-idle.ea799daa.webp", "archer-walk": "img/archer-walk.7b6d0c9e.webp", "ashpriest-attack": "img/ashpriest-attack.09d73301.webp", "ashpriest-cast": "img/ashpriest-cast.09d73301.webp", "ashpriest-death": "img/ashpriest-death.9a364a41.webp", "ashpriest-hit": "img/ashpriest-hit.3129444a.webp", "ashpriest-idle": "img/ashpriest-idle.aad6abd1.webp", "ashpriest-walk": "img/ashpriest-walk.279b81c3.webp", "bonewalker-attack": "img/bonewalker-attack.271d1493.webp", "bonewalker-death": "img/bonewalker-death.77367e5c.webp", "bonewalker-hit": "img/bonewalker-hit.66f393b5.webp", "bonewalker-idle": "img/bonewalker-idle.a4871bcf.webp", "bonewalker-walk": "img/bonewalker-walk.6e5564c8.webp", "corvin-idle": "img/corvin-idle.5df605f4.webp", "floor-ash": "img/floor-ash.ecc6bd6a.webp", "floor-blood": "img/floor-blood.9c80fe1b.webp", "floor-cracked": "img/floor-cracked.07f30265.webp", "floor-moss": "img/floor-moss.c75eeaea.webp", "floor-rubble": "img/floor-rubble.d619676b.webp", "floor-rune": "img/floor-rune.3bae6715.webp", "floor-stone-b": "img/floor-stone-b.e42fd834.webp", "floor-stone": "img/floor-stone.95b88900.webp", "fo-grass-a": "img/fo-grass-a.2656714d.webp", "fo-grass-b": "img/fo-grass-b.61d71636.webp", "fo-grass-bones": "img/fo-grass-bones.f0a7bb96.webp", "fo-grass-dirt": "img/fo-grass-dirt.d29a1d85.webp", "fo-grass-flowers": "img/fo-grass-flowers.47c7c0d4.webp", "fo-grass-mud": "img/fo-grass-mud.03640e71.webp", "fo-grass-rune": "img/fo-grass-rune.5f89b225.webp", "fo-grass-stones": "img/fo-grass-stones.619a1c63.webp", "fo-grass-tall": "img/fo-grass-tall.c50ef450.webp", "fo-hedge-straight": "img/fo-hedge-straight.365f8b19.webp", "fo-hedge-thorn-l": "img/fo-hedge-thorn-l.97fabb29.webp", "fo-hedge-thorn-r": "img/fo-hedge-thorn-r.c067f2d1.webp", "fo-path-dirt": "img/fo-path-dirt.b0bcd5c9.webp", "fo-ruinwall-ivy-l": "img/fo-ruinwall-ivy-l.217186a1.webp", "fo-ruinwall-ivy-r": "img/fo-ruinwall-ivy-r.d098f30b.webp", "fo-ruinwall-lantern-l": "img/fo-ruinwall-lantern-l.710a860c.webp", "fo-ruinwall-lantern-r": "img/fo-ruinwall-lantern-r.a0e96808.webp", "fo-ruinwall-straight": "img/fo-ruinwall-straight.fcab829c.webp", "gate-sealed": "img/gate-sealed.ce7fa27b.webp", "gnawer-attack": "img/gnawer-attack.f6b8801a.webp", "gnawer-death": "img/gnawer-death.32856918.webp", "gnawer-hit": "img/gnawer-hit.a386f126.webp", "gnawer-idle": "img/gnawer-idle.1753e424.webp", "gnawer-walk": "img/gnawer-walk.d0d55dec.webp", "ground-amulet": "img/ground-amulet.142ec957.webp", "ground-armor": "img/ground-armor.ca59c3d6.webp", "ground-boots": "img/ground-boots.4a7a4f57.webp", "ground-bow": "img/ground-bow.d19589dd.webp", "ground-gloves": "img/ground-gloves.d6505e47.webp", "ground-gold": "img/ground-gold.a2db1938.webp", "ground-helm": "img/ground-helm.9e850fbf.webp", "ground-life_potion": "img/ground-life_potion.ba13f067.webp", "ground-mana_potion": "img/ground-mana_potion.95cbe604.webp", "ground-melee_weapon": "img/ground-melee_weapon.dc677a40.webp", "ground-ring": "img/ground-ring.e46327c3.webp", "ground-staff": "img/ground-staff.dab4d437.webp", "hl-hell-ash": "img/hl-hell-ash.a73ed6d5.webp", "hl-hell-basalt-a": "img/hl-hell-basalt-a.5e0bb147.webp", "hl-hell-basalt-b": "img/hl-hell-basalt-b.0e2082ec.webp", "hl-hell-blood": "img/hl-hell-blood.6954a8e3.webp", "hl-hell-bones": "img/hl-hell-bones.004b697a.webp", "hl-hell-cracks": "img/hl-hell-cracks.73df4ed8.webp", "hl-hell-pillar": "img/hl-hell-pillar.43a2bc0f.webp", "hl-hell-rune": "img/hl-hell-rune.4967bdb0.webp", "hl-hell-scorched": "img/hl-hell-scorched.2463b302.webp", "hl-hell-tiles": "img/hl-hell-tiles.53593703.webp", "hl-hell-wall-brazier-l": "img/hl-hell-wall-brazier-l.ed14d3b0.webp", "hl-hell-wall-brazier-r": "img/hl-hell-wall-brazier-r.d0819ae0.webp", "hl-hell-wall-gate": "img/hl-hell-wall-gate.328ce3d9.webp", "hl-hell-wall-spikes-l": "img/hl-hell-wall-spikes-l.16f6c77c.webp", "hl-hell-wall-spikes-r": "img/hl-hell-wall-spikes-r.bd02b256.webp", "hl-hell-wall-straight": "img/hl-hell-wall-straight.43e9ed74.webp", "hl-hell-wall-veins-l": "img/hl-hell-wall-veins-l.d7a5a762.webp", "hl-hell-wall-veins-r": "img/hl-hell-wall-veins-r.065898e0.webp", "hl-lava-a": "img/hl-lava-a.02f2c8fc.webp", "hl-lava-anim-0": "img/hl-lava-anim-0.755a8d68.webp", "hl-lava-anim-1": "img/hl-lava-anim-1.eebefe62.webp", "hl-lava-anim-2": "img/hl-lava-anim-2.45151e3b.webp", "hl-lava-anim-3": "img/hl-lava-anim-3.7067d000.webp", "hl-lava-b": "img/hl-lava-b.0f438984.webp", "icon-amulet": "img/icon-amulet.75ccabe1.webp", "icon-boots": "img/icon-boots.60c38afc.webp", "icon-gloves": "img/icon-gloves.9c1b47fb.webp", "icon-helm": "img/icon-helm.d14f1acd.webp", "icon-leather_coat": "img/icon-leather_coat.de9dbc0b.webp", "icon-ring": "img/icon-ring.cfb7ec66.webp", "icon-short_bow": "img/icon-short_bow.8e8b0b15.webp", "icon-short_sword": "img/icon-short_sword.0c8e1084.webp", "icon-staff": "img/icon-staff.43e6eae1.webp", "judge-attack": "img/judge-attack.11de536d.webp", "judge-death": "img/judge-death.0e2e0e5a.webp", "judge-hit": "img/judge-hit.d2b4c18f.webp", "judge-idle": "img/judge-idle.425be111.webp", "judge-judgement": "img/judge-judgement.9c9098c4.webp", "judge-step": "img/judge-step.778a114b.webp", "judge-walk": "img/judge-walk.875798d7.webp", "judgement-pillar": "img/judgement-pillar.114e0bef.webp", "keeper-idle": "img/keeper-idle.ad66c5b4.webp", "king-attack": "img/king-attack.a9c3f73e.webp", "king-blade": "img/king-blade.5c744c41.webp", "king-charge": "img/king-charge.cd8625ea.webp", "king-death": "img/king-death.843a8b75.webp", "king-hit": "img/king-hit.1016cbb9.webp", "king-idle": "img/king-idle.66500da8.webp", "king-shed": "img/king-shed.3f76c6f9.webp", "king-tempest": "img/king-tempest.ad3f9bd5.webp", "king-walk": "img/king-walk.ca39652f.webp", "mage-attack": "img/mage-attack.61c27d4c.webp", "mage-cast": "img/mage-cast.c7a0f164.webp", "mage-death": "img/mage-death.08964b78.webp", "mage-hit": "img/mage-hit.3e7cc224.webp", "mage-idle": "img/mage-idle.2a7a5180.webp", "mage-walk": "img/mage-walk.f18d8785.webp", "portal-hell": "img/portal-hell.3795001b.webp", "portal": "img/portal.57b754d2.webp", "prop-barrow-mound": "img/prop-barrow-mound.e13d7a8e.webp", "prop-brazier": "img/prop-brazier.9b1d1a60.webp", "prop-broken-pillar": "img/prop-broken-pillar.7d4ddb2a.webp", "prop-bush": "img/prop-bush.e0971c57.webp", "prop-cart": "img/prop-cart.c4924f08.webp", "prop-chest": "img/prop-chest.32de77b8.webp", "prop-crows": "img/prop-crows.df784b6b.webp", "prop-dead-tree": "img/prop-dead-tree.aa561611.webp", "prop-floor-grate": "img/prop-floor-grate.a68677c7.webp", "prop-gravestone-b": "img/prop-gravestone-b.691e8306.webp", "prop-gravestone": "img/prop-gravestone.a8b770fb.webp", "prop-hell-altar": "img/prop-hell-altar.d99ced31.webp", "prop-hell-bones": "img/prop-hell-bones.449283ac.webp", "prop-hell-brazier": "img/prop-hell-brazier.cf78ff7d.webp", "prop-hell-cage": "img/prop-hell-cage.6382a9f8.webp", "prop-hell-chains": "img/prop-hell-chains.d6930d29.webp", "prop-hell-obelisk": "img/prop-hell-obelisk.c003a6d8.webp", "prop-hell-rocks": "img/prop-hell-rocks.e41a6217.webp", "prop-hell-skulls": "img/prop-hell-skulls.c947c566.webp", "prop-hell-spikes": "img/prop-hell-spikes.639c47ed.webp", "prop-hell-vent": "img/prop-hell-vent.5ea6e6d3.webp", "prop-mushrooms": "img/prop-mushrooms.9d5c14bb.webp", "prop-ritual-altar": "img/prop-ritual-altar.d1e619d9.webp", "prop-rubble-pile": "img/prop-rubble-pile.c19103fe.webp", "prop-skeleton-remains": "img/prop-skeleton-remains.a6b0ae90.webp", "prop-stone-circle": "img/prop-stone-circle.7c560b2a.webp", "prop-throne": "img/prop-throne.093b4440.webp", "prop-urn": "img/prop-urn.2c5f4e3a.webp", "prop-well": "img/prop-well.b0499a70.webp", "stairs-down-grass": "img/stairs-down-grass.97e5898f.webp", "stairs-down-hell": "img/stairs-down-hell.a6b3577b.webp", "stairs-down": "img/stairs-down.9f1f91aa.webp", "stairs-sealed": "img/stairs-sealed.209967f8.webp", "wall-banner-l": "img/wall-banner-l.0a80fbde.webp", "wall-banner-r": "img/wall-banner-r.f106b7e8.webp", "wall-cracked-l": "img/wall-cracked-l.87469f9c.webp", "wall-cracked-r": "img/wall-cracked-r.c145916d.webp", "wall-moss-l": "img/wall-moss-l.234a15aa.webp", "wall-moss-r": "img/wall-moss-r.e752ce90.webp", "wall-straight": "img/wall-straight.b4ea2313.webp", "wall-torch-l": "img/wall-torch-l.b02611a6.webp", "wall-torch-r": "img/wall-torch-r.1e045911.webp", "warrior-attack": "img/warrior-attack.4452b167.webp", "warrior-death": "img/warrior-death.144f40d5.webp", "warrior-hit": "img/warrior-hit.17aed8c6.webp", "warrior-idle": "img/warrior-idle.9bc8af49.webp", "warrior-walk": "img/warrior-walk.3a268ab0.webp"}};</script>
 <script>// ============================================================
 // ASHGRAVE — game data
 // Pure data. Nothing here depends on rendering.
@@ -538,6 +538,8 @@ var DATA = {
                   abilities: ['Fireball Volley', 'Withering Curse'] },
     gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
                   abilities: ['Bone Spikes', 'Raise the Dead'] },
+    king: { name: 'The Hollowed King', hp: 300, dmg: [6, 10], speed: 2.0, range: 1.0, atkTime: 0.55, atkCd: 1.4, xp: 600, r: 0.45, ai: 'king', aggro: 8,
+                  abilities: ['Blade Tempest', 'Kingsfall Charge', 'Shed the Mantle'] },
     ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 },
     // Monsters that punish keeping your distance. Forest: hounds that leap at you, guards whose shields stop missiles.
     grave_hound: { name: 'Grave Hound', hp: 9, dmg: [2, 4], speed: 3.4, range: 0.55, atkTime: 0.3, atkCd: 1.0, xp: 8, r: 0.28, ai: 'hound', aggro: 9,
@@ -990,6 +992,17 @@ var DATA = {
       spikes: { every: 6, cast: 0.6, count: 5, step: 0.9, radius: 0.6, fuse: 0.9, stagger: 0.12, dmg: [4, 7] },
       raise: { at: [0.6, 0.3], count: 3 },
       reward: { items: 3, minRarity: 2, ilvlBonus: 4, unique: 0.25, gold: [15, 30] }
+    },
+    // Optional boss on Nightmare and Hell, in a throne room on a random level from 10 to 12 (fixed per game).
+    // Blade Tempest: spins, cuts everything close and throws a ring of rusted blades.
+    // Kingsfall Charge: winds up, then runs a straight line through the player.
+    // Shed the Mantle: at half life throws off his cloak in a storm of blades and fights faster from then on.
+    king: {
+      depths: [10, 12], difficulties: ['nightmare', 'hell'], scale: 1.9,
+      tempest: { every: 8, cast: 0.9, near: 4.5, radius: 2.3, mult: 1.3, blades: 8, bladeSpeed: 7.5, bladeLife: 0.9, bladeDmg: [3, 6] },
+      charge: { every: 7, windup: 0.6, min: 3, max: 9, speed: 12, mult: 1.6, recover: 0.7 },
+      shed: { at: 0.5, cast: 1.2, dr: 0.8, blades: 16, speed: 1.3, cd: 0.75, chargeEvery: 5 },
+      reward: { items: 4, minRarity: 2, ilvlBonus: 5, unique: 0.3, gold: [20, 40] }
     },
     abbot: {
       scale: 2.0, escorts: [['bonewalker', 2]],
@@ -1761,6 +1774,7 @@ var Engine = (function () {
     if (S.merchantNext === null || depth >= S.merchantNext) placeMerchant(S);
     S.ossuary = null;
     if (depth === D.bosses.warden.depth && depth < DF.finalDepth) placeWarden(S);
+    else if (depth === kingDepth(S) && depth < DF.finalDepth) placeWarden(S, 'king');
     var i = 0;
     Object.keys(S.players).forEach(function (id) {
       var q = S.players[id];
@@ -1788,9 +1802,16 @@ var Engine = (function () {
     S.seal = boss.id;
     emit(S, { t: 'bossAppear', name: boss.name, isTrue: isTrue, traits: boss.traits });
   }
-  // The Gravewarden takes the largest room that is neither start nor stairs, as far from the start as possible.
-  function placeWarden(S) {
-    var map = S.map, W = D.bosses.warden, best = -1, bs = -1;
+  // The Hollowed King's level: 10-12 on Nightmare and Hell, picked from the game seed so it stays put.
+  function kingDepth(S) { return kingDepthFor(S.seed, S.difficulty); }
+  function kingDepthFor(seed, diff) {
+    var K = D.bosses.king; if (K.difficulties.indexOf(diff) < 0) return -1;
+    var h = Math.imul((seed >>> 0) ^ (diff === 'hell' ? 0x2c1b3c6d : 0x297a2d39), 0x9e3779b1) >>> 0;
+    return K.depths[0] + (h >>> 7) % (K.depths[1] - K.depths[0] + 1);
+  }
+  // The Gravewarden (and the Hollowed King) takes the largest room that is neither start nor stairs, as far from the start as possible.
+  function placeWarden(S, kind) {
+    var map = S.map, W = D.bosses[kind || 'warden'], best = -1, bs = -1;
     map.rooms.forEach(function (rm, i) {
       if (i === map.startRoom || i === map.stairsRoom) return;
       var cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2, sc = rm.w * rm.h + Math.hypot(cx - map.start.x, cy - map.start.y) * 2;
@@ -1800,11 +1821,19 @@ var Engine = (function () {
     var rm = map.rooms[best], cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2;
     S.monsters = S.monsters.filter(function (m) { return !(m.x > rm.x - 1 && m.x < rm.x + rm.w + 1 && m.y > rm.y - 1 && m.y < rm.y + rm.h + 1); });
     S.npcs = S.npcs.filter(function (n) { return !(n.x > rm.x - 1 && n.x < rm.x + rm.w + 1 && n.y > rm.y - 1 && n.y < rm.y + rm.h + 1); });
+    if (kind === 'king') {
+      var k = addMonster(S, 'king', cx, cy + 0.6, false);
+      k.boss = 'king'; k.name = D.monsters.king.name; k.traits = D.monsters.king.abilities.slice();
+      k.scale = W.scale; k.tempest = 3; k.charge = 1.2; k.shed = false; k.cast = null; k.noLeech = true; k.face = Math.PI / 2;
+      S.ossuary = { kind: 'king', x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: k.id };
+      emit(S, { t: 'ossuary', kind: 'king', name: k.name });
+      return;
+    }
     var b = addMonster(S, 'gravewarden', cx, cy, false);
     b.boss = 'warden'; b.name = D.monsters.gravewarden.name; b.traits = D.monsters.gravewarden.abilities.slice();
     b.scale = W.scale; b.spikes = 3; b.raised = 0; b.cast = null; b.home = { x: cx, y: cy };
-    S.ossuary = { x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: b.id };
-    emit(S, { t: 'ossuary', name: b.name });
+    S.ossuary = { kind: 'warden', x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: b.id };
+    emit(S, { t: 'ossuary', kind: 'warden', name: b.name });
   }
   function wardenAI(S, m, p, d, dt) {
     var W = D.bosses.warden, def = D.monsters.gravewarden, seen = los(S.map, m, p);
@@ -1836,6 +1865,76 @@ var Engine = (function () {
     }
     if (m.spikes <= 0 && seen && d < 6) { m.cast = 'spikes'; m.atk = W.spikes.cast; m.spikes = W.spikes.every; emit(S, { t: 'bossCast', id: m.id, name: 'Bone Spikes', x: m.x, y: m.y }); return; }
     if (d <= def.range + m.r + p.r && m.cd <= 0) { m.cast = 'melee'; m.atk = def.atkTime; m.cd = def.atkCd; return; }
+    if (d > def.range + m.r + p.r - 0.05) chase(S, m, p, dt, seen);
+  }
+  // ---------- The Hollowed King ----------
+  function kingBlades(S, m, n, a0) {
+    var T = D.bosses.king.tempest;
+    for (var i = 0; i < n; i++) {
+      var a = a0 + i * 6.283 / n;
+      S.projs.push({ id: S.nextId++, kind: 'blade', from: 'm', owner: m.id, x: m.x + Math.cos(a) * 0.5, y: m.y + Math.sin(a) * 0.5,
+        vx: Math.cos(a) * T.bladeSpeed, vy: Math.sin(a) * T.bladeSpeed, life: T.bladeLife, dmg: rint(S.rng, T.bladeDmg[0], T.bladeDmg[1]) * m.dmgMul, lvl: m.lvl });
+    }
+  }
+  function kingAI(S, m, p, d, dt) {
+    var K = D.bosses.king, def = D.monsters.king, seen = los(S.map, m, p), cdm = m.cdMul || 1;
+    m.tempest -= dt; m.charge -= dt;
+    // Shed the Mantle: at half life, whatever he is doing.
+    if (!m.shed && m.hp < m.max * K.shed.at && m.cast !== 'shed') {
+      m.shed = true; m.cast = 'shed'; m.atk = K.shed.cast; m.dr = K.shed.dr; m.moving = false; m.path = null;
+      emit(S, { t: 'bossCast', id: m.id, name: 'Shed the Mantle', x: m.x, y: m.y });
+      return;
+    }
+    if (m.cast === 'charging') {
+      // Run the line; anyone in the way is struck once.
+      var step = K.charge.speed * dt, moved = moveEntity(S, m, m.cdx * step, m.cdy * step);
+      m.cleft -= moved; m.moving = true;
+      for (var id in S.players) {
+        var q = S.players[id];
+        if (q.dead || m.chHit.indexOf(id) >= 0 || Math.hypot(q.x - m.x, q.y - m.y) > m.r + q.r + 0.25) continue;
+        m.chHit.push(id); hurtPlayer(S, q, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul * K.charge.mult, m.lvl, m);
+        emit(S, { t: 'kingCharge', hit: true, x: q.x, y: q.y });
+      }
+      if (m.cleft <= 0 || moved < step * 0.4) {
+        m.cast = 'recover'; m.atk = K.charge.recover; m.moving = false;
+        emit(S, { t: 'kingCharge', end: true, x: m.x, y: m.y });
+      }
+      return;
+    }
+    if (m.atk > 0) {
+      m.atk -= dt; m.moving = false;
+      if (m.cast !== 'recover') m.face = Math.atan2(p.y - m.y, p.x - m.x);
+      if (m.atk > 0) return;
+      if (m.cast === 'tempest') {
+        var T = K.tempest;
+        for (var id2 in S.players) {
+          var q2 = S.players[id2];
+          if (!q2.dead && Math.hypot(q2.x - m.x, q2.y - m.y) < T.radius + q2.r) hurtPlayer(S, q2, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul * T.mult, m.lvl, m);
+        }
+        kingBlades(S, m, T.blades, m.face + Math.PI / T.blades);
+        emit(S, { t: 'tempest', x: m.x, y: m.y, r: T.radius });
+      } else if (m.cast === 'chargeWind') {
+        var dx = p.x - m.x, dy = p.y - m.y, dl = Math.hypot(dx, dy) || 1;
+        m.cdx = dx / dl; m.cdy = dy / dl; m.face = Math.atan2(dy, dx);
+        m.cleft = Math.min(K.charge.max, dl + 1.5); m.chHit = []; m.cast = 'charging';
+        return;
+      } else if (m.cast === 'shed') {
+        m.dr = 0; m.speed *= K.shed.speed; m.cdMul = (m.cdMul || 1) * K.shed.cd;
+        kingBlades(S, m, K.shed.blades, 0);
+        emit(S, { t: 'shed', id: m.id, x: m.x, y: m.y });
+      } else if (m.cast === 'melee' && d <= def.range + m.r + p.r + 0.3) hurtPlayer(S, p, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul, m.lvl, m);
+      m.cast = null;
+      return;
+    }
+    if (m.tempest <= 0 && seen && d < K.tempest.near) {
+      m.cast = 'tempest'; m.atk = K.tempest.cast; m.tempest = K.tempest.every * cdm;
+      emit(S, { t: 'bossCast', id: m.id, name: 'Blade Tempest', x: m.x, y: m.y }); return;
+    }
+    if (m.charge <= 0 && seen && d >= K.charge.min && d <= K.charge.max && clearLine(S.map, m.x, m.y, p.x, p.y, m.r * 0.9)) {
+      m.cast = 'chargeWind'; m.atk = K.charge.windup; m.charge = (m.shed ? K.shed.chargeEvery : K.charge.every);
+      emit(S, { t: 'bossCast', id: m.id, name: 'Kingsfall Charge', x: m.x, y: m.y }); return;
+    }
+    if (d <= def.range + m.r + p.r && m.cd <= 0) { m.cast = 'melee'; m.atk = def.atkTime; m.cd = def.atkCd * cdm; return; }
     if (d > def.range + m.r + p.r - 0.05) chase(S, m, p, dt, seen);
   }
   function makeMini(S, cx, cy, nTraits, nMinions, forceType) {
@@ -2618,6 +2717,7 @@ var Engine = (function () {
     if (def.ai === 'abbot') { abbotAI(S, m, p, d, dt); return; }
     if (def.ai === 'judge') { judgeAI(S, m, p, d, dt); return; }
     if (def.ai === 'warden') { wardenAI(S, m, p, d, dt); return; }
+    if (def.ai === 'king') { kingAI(S, m, p, d, dt); return; }
     if (def.ai === 'hound' && houndAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'wraith' && wraithAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'burrower' && burrowAI(S, m, p, d, dt, def)) return;
@@ -2853,10 +2953,10 @@ var Engine = (function () {
     var n = rnd(r) < (m.champ ? 0.9 : 0.15) ? 1 : 0, minR = 0, ib = m.champ ? 2 : 0;
     if (m.champ && rnd(r) < 0.45) n++;
     if (m.boss === 'mini') { n = 2; minR = 1; ib = 3; }
-    if (m.boss === 'warden') {
-      var WR = D.bosses.warden.reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
+    if (m.boss === 'warden' || m.boss === 'king') {
+      var WR = D.bosses[m.boss].reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
       if (S.ossuary) S.ossuary.done = true;
-      emit(S, { t: 'wardenDown', name: m.name });
+      emit(S, { t: 'wardenDown', kind: m.boss, name: m.name });
       var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib;
       if (rnd(r) < WR.unique) { n--; s = spot(); var uw = genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
       for (var gw = 0; gw < 3; gw++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, WR.gold[0], WR.gold[1]) * S.depth }); }
@@ -2865,7 +2965,7 @@ var Engine = (function () {
     if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
     for (var i = 0; i < n; i++) {
       var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
-      var it = maybeUnique(S, il, m.boss === 'warden' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
+      var it = maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
       s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: it });
       emit(S, { t: 'itemdrop', rarity: it.rarity, x: s[0], y: s[1] });
     }
@@ -3016,7 +3116,7 @@ var Engine = (function () {
     classOf: classOf, canWield: canWield, targetSlot: targetSlot,
     genUnique: genUnique, uniqueDef: uniqueDef, ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
     SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, refresh: refresh, applyFinal: applyFinal, themeFor: themeFor,
-    createSim: createSim, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
+    createSim: createSim, kingDepthFor: kingDepthFor, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,
     itemName: itemName, baseOf: baseOf, genItem: genItem, findPath: findPath,
     walkable: walkable, sightable: sightable, tileAt: tileAt, damageReduction: damageReduction
@@ -3362,7 +3462,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
     }
   }
   function floatText(x, y, txt, color, big) { texts.push({ x: x, y: y, h: 30, txt: txt, c: color, life: big ? 1.6 : 0.9, max: big ? 1.6 : 0.9, big: !!big }); }
-  var MCOL = { grave_hound: ['#5b1010', '#3a332c', '#2a2420'], barrow_guard: ['#8a7a6a', '#5a4a3a', '#3a302a'], frost_wraith: ['#cfe8ff', '#7ab8ff', '#ffffff'], rime_burrower: ['#cfe0f4', '#5a7a9a', '#2a3a4a'], gravewarden: ['#efe6d2', '#c9bda4', '#8c816d'], judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
+  var MCOL = { grave_hound: ['#5b1010', '#3a332c', '#2a2420'], barrow_guard: ['#8a7a6a', '#5a4a3a', '#3a302a'], frost_wraith: ['#cfe8ff', '#7ab8ff', '#ffffff'], rime_burrower: ['#cfe0f4', '#5a7a9a', '#2a3a4a'], gravewarden: ['#efe6d2', '#c9bda4', '#8c816d'], king: ['#9a5a30', '#5a3418', '#c88a50'], judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
 
   function processEvents() {
     var evs = S.events; S.events = [];
@@ -3462,11 +3562,23 @@ if (typeof module !== 'undefined') module.exports = Engine;
           break;
         case 'cast': sfx('cast'); break;
         case 'ossuary':
-          addLog('A cold draft rises from the ossuary. Something old keeps watch.', 'rare'); sfx('stairs'); break;
+          if (e.kind === 'king') addLog('Rust and old iron hang in the air. A king still holds court on this level.', 'rare');
+          else addLog('A cold draft rises from the ossuary. Something old keeps watch.', 'rare');
+          sfx('stairs'); break;
         case 'raise':
           spray(e.x, e.y, 16, { colors: ['#efe6d2', '#9a8f7a', '#3a3530'], speed: 1.2, up: 140, life: 0.7, size: 2.4, grav: 120 }); break;
         case 'wardenDown':
-          addLog(e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
+          addLog(e.kind === 'king' ? e.name + ' falls. The throne stands empty.' : e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
+        case 'tempest':
+          swings.push({ x: e.x, y: e.y, face: 0, arc: 6.283, big: true, reach: e.r, t: 0 }); sfx('cleave');
+          spray(e.x, e.y, 22, { colors: ['#9a5a30', '#c88a50', '#5a3418'], speed: 2.6, up: 90, life: 0.5, size: 2.2 }); break;
+        case 'shed':
+          spray(e.x, e.y, 40, { colors: ['#9a5a30', '#6a3a1c', '#c88a50', '#3a2210'], speed: 3, up: 200, life: 0.9, grav: 260, size: 2.8 });
+          addLog('The Hollowed King sheds his mantle. He moves faster now.', 'warn'); sfx('boom'); break;
+        case 'kingCharge':
+          if (e.hit) { spray(e.x, e.y, 10, { colors: ['#7a1010', '#a3191f', '#c88a50'], speed: 1.8, up: 100, life: 0.5, size: 2.2 }); sfx('cleave'); }
+          else spray(e.x, e.y, 12, { colors: ['#5a5048', '#3a332c', '#7a6a58'], speed: 1.4, up: 60, life: 0.5, size: 2.4 });
+          break;
         case 'bossAppear':
           addLog((e.isTrue ? 'The air burns. ' : 'Something old stirs by the stairs: ') + e.name + '.', e.isTrue ? 'warn' : 'rare');
           if (e.isTrue) sfx('die'); break;
@@ -3589,6 +3701,9 @@ if (typeof module !== 'undefined') module.exports = Engine;
   // Archer SW is painted facing SE; warrior SE is painted facing SW. (rows: S SW W NW N NE E SE)
   // Mage SE (idle and walk) is painted facing SW, so walking diagonally flipped her back and forth.
   var SPR_MIRROR = { archer: { 1: 7 }, warrior: { 7: 1 }, mage: { 7: 1 } };
+  // Per animation: the King's walk E row is painted facing the viewer, and every row of his charge
+  // lunges to the left, so the right-hand directions use the mirrored left-hand rows.
+  var SPR_MIRROR_ANIM = { king: { walk: { 6: 2 }, charge: { 5: 3, 6: 2, 7: 1 } } };
   function hasSprite(actor) { actor = SPR_ALIAS[actor] || actor; return hasSprite0(actor); }
   function hasSprite0(actor) { return !!(SPR && SPR.meta.actors[actor] && sprOk(actor + '-idle')); }
   // Draws one frame with the feet at (0,0) of the current transform. Returns false if the sheet is missing.
@@ -3598,7 +3713,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
     if (!sprOk(file)) { info = 'idle'; file = actor + '-idle'; if (!sprOk(file)) return false; }
     var a = meta.animations[info], fs = a.frameSize || meta.frameSize, an = a.anchor || meta.anchor, s = 0.5 * (meta.pxScale || 1) * (extra || 1);
     var f = Math.max(0, Math.min(a.frames - 1, frame | 0));
-    var mir = SPR_MIRROR[actor], flip = mir && (info === 'walk' || info === 'idle') && mir[dir] !== undefined;
+    var mir = SPR_MIRROR_ANIM[actor] ? SPR_MIRROR_ANIM[actor][info] : (info === 'walk' || info === 'idle') && SPR_MIRROR[actor], flip = !!mir && mir[dir] !== undefined;
     if (flip) { ctx.save(); ctx.scale(-1, 1); dir = mir[dir]; }
     ctx.drawImage(sprImg[file], f * fs, dir * fs, fs, fs, -an[0] * s, -an[1] * s, fs * s, fs * s);
     if (flip) ctx.restore();
@@ -3708,7 +3823,8 @@ if (typeof module !== 'undefined') module.exports = Engine;
     return drawMonsterSprite0(m, actor, dir, off, extra);
   }
   function drawMonsterSprite0(m, actor, dir, off, extra) {
-    if ((actor === 'abbot' || actor === 'judge') && m.scale) extra = 1 / m.scale; // big bosses have their own large sheets
+    if ((actor === 'abbot' || actor === 'judge' || actor === 'king') && m.scale) extra = 1 / m.scale; // big bosses have their own large sheets
+    if (actor === 'king') return drawKing(m, dir, extra, off);
     if (actor === 'judge' && m.atk > 0) {
       var J = DATA.trial.judge;
       if (m.cast === 'judgement') return drawSprite('judge', 'judgement', dir, onceFrame('judge', 'judgement', 1 - m.atk / J.judgement.cast), extra);
@@ -3731,6 +3847,19 @@ if (typeof module !== 'undefined') module.exports = Engine;
     if (m.hitT > 0) return drawSprite(actor, 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
     if (m.moving) return drawWalk(actor, dir, extra, actor === 'gnawer' ? 12 : 8, off);
     return drawIdle(actor, dir, extra, off);
+  }
+  // The Hollowed King: Blade Tempest spins, Kingsfall Charge winds up and runs, Shed the Mantle bursts.
+  function drawKing(m, dir, extra, off) {
+    var K = DATA.bosses.king, def = DATA.monsters.king;
+    if (m.cast === 'charging') return drawSprite('king', 'charge', dir, 2 + Math.floor(gameTime * 12) % 4, extra);
+    if (m.cast === 'recover' && m.atk > 0) return drawSprite('king', 'charge', dir, 5, extra);
+    if (m.atk > 0 && m.cast === 'chargeWind') return drawSprite('king', 'charge', dir, Math.min(1, Math.floor((1 - m.atk / K.charge.windup) * 2)), extra);
+    if (m.atk > 0 && m.cast === 'tempest') return drawSprite('king', 'tempest', dir, onceFrame('king', 'tempest', 1 - m.atk / K.tempest.cast), extra);
+    if (m.atk > 0 && m.cast === 'shed') return drawSprite('king', 'shed', dir, onceFrame('king', 'shed', 1 - m.atk / K.shed.cast), extra);
+    if (m.atk > 0) return drawSprite('king', 'attack', dir, onceFrame('king', 'attack', 1 - m.atk / def.atkTime), extra);
+    if (m.hitT > 0) return drawSprite('king', 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
+    if (m.moving) return drawWalk('king', dir, extra, m.shed ? 10 : 8, off);
+    return drawIdle('king', dir, extra, off);
   }
   var GROUND_SPR = { staff: 'ground-staff', weapon: 'ground-bow', melee: 'ground-melee_weapon', helm: 'ground-helm', chest: 'ground-armor', gloves: 'ground-gloves', boots: 'ground-boots', ring: 'ground-ring', amulet: 'ground-amulet' };
   var ICON_SPR = { staff: 'icon-staff', weapon: 'icon-short_bow', melee: 'icon-short_sword', helm: 'icon-helm', chest: 'icon-leather_coat', gloves: 'icon-gloves', boots: 'icon-boots', ring: 'icon-ring', amulet: 'icon-amulet' };
@@ -3861,7 +3990,8 @@ if (typeof module !== 'undefined') module.exports = Engine;
       }
       var os = S.ossuary, fl = envFloor(hash(tx, ty));
       if (os && tx >= os.x && tx < os.x + os.w && ty >= os.y && ty < os.y + os.h) {
-        fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
+        if (os.kind === 'king') fl = hash(tx, ty) % 6 < 4 ? 'floor-stone-b' : 'floor-cracked';
+        else fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
       }
       ctx.drawImage(sprImg[fl], fx, fy, 128 * se, 64 * se);
       if (tile === 2) {
@@ -4320,7 +4450,8 @@ if (typeof module !== 'undefined') module.exports = Engine;
     var os2 = S.ossuary;
     if (os2 && pm && explored[Math.floor(os2.cy) * W + Math.floor(os2.cx)]) {
       [[os2.x + 0.7, os2.y + 0.7], [os2.x + os2.w - 0.7, os2.y + 0.7], [os2.x + 0.7, os2.y + os2.h - 0.7], [os2.x + os2.w - 0.7, os2.y + os2.h - 0.7]].forEach(function (c) { props.push({ kind: 'brazier', scale: 0.62, x: c[0], y: c[1] }); });
-      props.push({ kind: 'skeleton-remains', scale: 0.6, x: os2.cx - 1.4, y: os2.cy + 0.8, flip: 1 });
+      if (os2.kind === 'king') props.push({ kind: 'throne', scale: 1.05, x: os2.cx - 0.5, y: os2.cy - 0.5 });
+      else props.push({ kind: 'skeleton-remains', scale: 0.6, x: os2.cx - 1.4, y: os2.cy + 0.8, flip: 1 });
     }
     lamps = [];
     for (var ty = 0; ty < H; ty++) for (var tx = 0; tx < W; tx++) {
@@ -4379,7 +4510,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
       list.push({ d: n.x + n.y, k: 'n', e: n, x: n.x, y: n.y });
       npcHits.push({ id: n.id, sx: sx(n.x, n.y), sy: sy(n.x, n.y) - 18 * Z, r: 22 * Z });
     });
-    S.projs.forEach(function (pr) { if (pr.kind === 'arrow') { var lp = lerpE(pr); list.push({ d: lp.x + lp.y, k: 'a', e: pr, x: lp.x, y: lp.y }); } });
+    S.projs.forEach(function (pr) { if (pr.kind === 'arrow' || pr.kind === 'blade') { var lp = lerpE(pr); list.push({ d: lp.x + lp.y, k: 'a', e: pr, x: lp.x, y: lp.y }); } });
     list.sort(function (a, b) { return a.d - b.d; });
     var pd = pp.x + pp.y, psx = sx(pp.x, pp.y), psy = sy(pp.x, pp.y);
     for (var j = 0; j < list.length; j++) {
@@ -4392,6 +4523,11 @@ if (typeof module !== 'undefined') module.exports = Engine;
         }
         drawWall(it.tx, it.ty, fade);
       } else if (it.k === 'q') { drawProp(it.e);
+      } else if (it.k === 'a' && it.e.kind === 'blade') {
+        // a rusted blade from the King's mantle, spinning as it flies
+        var bl = it.e, bsx = sx(it.x, it.y), bsy = sy(it.x, it.y) - 20 * Z;
+        if (sprOk('king-blade')) { ctx.save(); ctx.translate(bsx, bsy); ctx.rotate(gameTime * 18 + bl.id); ctx.drawImage(sprImg['king-blade'], -16 * Z, -16 * Z, 32 * Z, 32 * Z); ctx.restore(); }
+        else { ctx.fillStyle = '#9a5a30'; ctx.beginPath(); ctx.arc(bsx, bsy, 4 * Z, 0, 6.283); ctx.fill(); }
       } else if (it.k === 'a') {
         var pr = it.e, ax = sx(it.x, it.y), ay = sy(it.x, it.y) - 18 * Z, sp = Math.hypot(pr.vx, pr.vy);
         var bx = sx(it.x - pr.vx / sp * 0.55, it.y - pr.vy / sp * 0.55), by = sy(it.x - pr.vx / sp * 0.55, it.y - pr.vy / sp * 0.55) - 18 * Z;
@@ -4557,7 +4693,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
     items.forEach(function (g) {
       var txt, col;
       if (g.stairs) { txt = S.seal ? 'Stairs down · sealed' : 'Stairs down'; col = S.seal ? '#ff8a6a' : '#e8dfcf'; }
-      else if (g.ossuary) { txt = 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
+      else if (g.ossuary) { txt = S.ossuary && S.ossuary.kind === 'king' ? 'Throne Room · The Hollowed King' : 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
       else if (g.npc) { txt = g.npc.name; col = g.npc.kind === 'keeper' ? '#d8c2ff' : '#ffd98a'; }
       else if (g.fallen) {
         var left = Math.ceil(R.reviveDelay - ((S.time || 0) - (g.fallen.deadAt || 0)));
@@ -5060,6 +5196,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
       if (m.sunT && S.time - m.sunT < 0.6) o.sun = 1;
       if (m.under) o.under = 1;
       if (m.leapFly > 0) o.leapFly = 1;
+      if (m.shed) o.shed = 1;
       return o;
     });
     var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner }; });
@@ -5425,7 +5562,8 @@ if (typeof module !== 'undefined') module.exports = Engine;
     for (var d = 1; d <= fd; d++) {
       var notes = [];
       if (d === fd) notes.push('final boss');
-      if (DATA.bosses.warden && DATA.bosses.warden.depth === d && diff === 'normal') notes.push('Gravewarden');
+      if (DATA.bosses.warden && DATA.bosses.warden.depth === d && d < fd) notes.push('Gravewarden');
+      var KB = DATA.bosses.king; if (KB && KB.difficulties.indexOf(diff) >= 0 && d >= KB.depths[0] && d <= KB.depths[1] && d < fd) notes.push('Hollowed King');
       var th = E.themeFor(d, fd); notes.push(THEMES[th] ? THEMES[th].name : th);
       h += '<option value="' + d + '">' + d + (notes.filter(Boolean).length ? ' · ' + notes.filter(Boolean).join(', ') : '') + '</option>';
     }
@@ -5461,7 +5599,11 @@ if (typeof module !== 'undefined') module.exports = Engine;
   function testStart(depth, diff, hero) {
     $('title').hidden = true; document.body.classList.remove('at-title');
     MODE = 'solo'; PID = 'p1'; activeSlot = -1;
-    S = E.createSim((Math.random() * 2147483647) | 0, depth, diff);
+    // The Hollowed King's level comes from the seed: pick a seed that puts him on this level.
+    var seed = (Math.random() * 2147483647) | 0, KB = DATA.bosses.king;
+    if (KB && KB.difficulties.indexOf(diff) >= 0 && depth >= KB.depths[0] && depth <= KB.depths[1])
+      for (var ks = 0; ks < 200 && E.kingDepthFor(seed, diff) !== depth; ks++) seed = (Math.random() * 2147483647) | 0;
+    S = E.createSim(seed, depth, diff);
     S.testGod = TEST.god;
     E.addPlayer(S, PID, hero);
     explored = new Uint8Array(S.map.W * S.map.H); corpses = [];

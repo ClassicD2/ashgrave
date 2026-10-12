@@ -13,6 +13,8 @@ var DATA = {
                   abilities: ['Fireball Volley', 'Withering Curse'] },
     gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
                   abilities: ['Bone Spikes', 'Raise the Dead'] },
+    king: { name: 'The Hollowed King', hp: 300, dmg: [6, 10], speed: 2.0, range: 1.0, atkTime: 0.55, atkCd: 1.4, xp: 600, r: 0.45, ai: 'king', aggro: 8,
+                  abilities: ['Blade Tempest', 'Kingsfall Charge', 'Shed the Mantle'] },
     ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 },
     // Monsters that punish keeping your distance. Forest: hounds that leap at you, guards whose shields stop missiles.
     grave_hound: { name: 'Grave Hound', hp: 9, dmg: [2, 4], speed: 3.4, range: 0.55, atkTime: 0.3, atkCd: 1.0, xp: 8, r: 0.28, ai: 'hound', aggro: 9,
@@ -465,6 +467,17 @@ var DATA = {
       spikes: { every: 6, cast: 0.6, count: 5, step: 0.9, radius: 0.6, fuse: 0.9, stagger: 0.12, dmg: [4, 7] },
       raise: { at: [0.6, 0.3], count: 3 },
       reward: { items: 3, minRarity: 2, ilvlBonus: 4, unique: 0.25, gold: [15, 30] }
+    },
+    // Optional boss on Nightmare and Hell, in a throne room on a random level from 10 to 12 (fixed per game).
+    // Blade Tempest: spins, cuts everything close and throws a ring of rusted blades.
+    // Kingsfall Charge: winds up, then runs a straight line through the player.
+    // Shed the Mantle: at half life throws off his cloak in a storm of blades and fights faster from then on.
+    king: {
+      depths: [10, 12], difficulties: ['nightmare', 'hell'], scale: 1.9,
+      tempest: { every: 8, cast: 0.9, near: 4.5, radius: 2.3, mult: 1.3, blades: 8, bladeSpeed: 7.5, bladeLife: 0.9, bladeDmg: [3, 6] },
+      charge: { every: 7, windup: 0.6, min: 3, max: 9, speed: 12, mult: 1.6, recover: 0.7 },
+      shed: { at: 0.5, cast: 1.2, dr: 0.8, blades: 16, speed: 1.3, cd: 0.75, chargeEvery: 5 },
+      reward: { items: 4, minRarity: 2, ilvlBonus: 5, unique: 0.3, gold: [20, 40] }
     },
     abbot: {
       scale: 2.0, escorts: [['bonewalker', 2]],
