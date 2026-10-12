@@ -563,7 +563,7 @@ var Engine = (function () {
       aggro: (core.aggro || 1) * (1 - (m.stealth || 0) / 100),
       goldFind: m.gold || 0,
       regen: m.regen || 0,
-      manaRegen: 0.8 + ene * 0.06,
+      manaRegen: cd.manaRegen ? Math.round(cd.mana.base + ene * cd.mana.perEne + p.level * cd.mana.perLevel + (m.mana || 0)) * (cd.manaRegen.pct + ene * cd.manaRegen.perEne) : 0.8 + ene * 0.06,
       range: cd.weapon === 'melee' ? (cd.reach || 0.75) : cd.weapon === 'staff' ? R.staffRange : R.bowRange
     };
   }
@@ -1218,7 +1218,7 @@ var Engine = (function () {
   }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
-    var sk = D.skills.nova, cost = Math.max(1, sk.mana - nodeVal(p, 'clear_mind'));
+    var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100);
     if (p.cd > 0 || p.mana < cost) { if (p.mana < cost) emit(S, { t: 'msg', pid: p.id, text: 'Not enough mana.', quiet: true }); return; }
     p.mana -= cost; skillOrder(p);
     var core = coreOf(p);
@@ -1249,6 +1249,7 @@ var Engine = (function () {
         for (var k2 = 0; k2 < 8; k2++) moveEntity(S, m, ux * sk.push * heavy / 8, uy * sk.push * heavy / 8);
       }
       if (hasNode(p, 'dazzle') && !m.boss) { m.state = 'idle'; m.path = null; m.atk = 0; m.wx = null; m.blindUntil = S.time + nodeVal(p, 'dazzle'); }
+      if (core.stun && pull && !m.boss) { m.stunUntil = S.time + core.stun; m.atk = 0; }
       if (core.decay) applyDecay(S, m, p);
       struck.push(m);
     });
@@ -1260,8 +1261,8 @@ var Engine = (function () {
       var amt = Math.round(p.st.maxHp * core.shield.pct * (1 + nodeVal(p, 'radiant_shield') / 100));
       for (var id in S.players) {
         var q = S.players[id];
-        if (q.dead || Math.hypot(q.x - p.x, q.y - p.y) > rad) continue;
-        q.shield = Math.max(q.shield || 0, amt); q.shieldEnd = S.time + core.shield.dur; q.ver++;
+        if (q.dead || Math.hypot(q.x - p.x, q.y - p.y) > rad || S.time < (q.shieldNext || 0)) continue;
+        q.shield = amt; q.shieldEnd = S.time + core.shield.dur; q.shieldNext = S.time + core.shield.cooldown; q.ver++;
       }
     }
     if (hasNode(p, 'sanctuary')) {
@@ -1554,6 +1555,7 @@ var Engine = (function () {
     m.cd -= dt; m.hitT = Math.max(0, m.hitT - dt); m.moving = false;
     if (m.darkPool) { darkTick(S, m, dt); if (m.hp <= 0) return; }
     if (m.rend && m.rend.length) { rendTick(S, m, dt); if (m.hp <= 0) return; }
+    if (m.stunUntil > S.time) { m.atk = 0; return; }   // Voidcaller's pull
     var np = nearestPlayer(S, m);
     if (m.state === 'idle') {
       if (notices(S, m, def)) { wake(S, m); }
@@ -1647,6 +1649,7 @@ var Engine = (function () {
     if (p.dead || S.testGod) return; // TEST MODE: invulnerable
     if (p.st.block && rnd(S.rng) < p.st.block) { emit(S, { t: 'block', pid: p.id, x: p.x, y: p.y }); return; }
     if (p.st.dodge && rnd(S.rng) < p.st.dodge) { emit(S, { t: 'dodge', pid: p.id, x: p.x, y: p.y }); return; }
+    if (src && src.decay && src.decay.end > S.time) { var wk = S.players[src.decay.by]; if (wk && coreOf(wk).decay) raw *= 1 - (coreOf(wk).decay.weaken || 0); }
     var armor = p.st.armor;
     var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0)) * (1 - (p.st.dr || 0))));
     if (p.shield > 0) { var ab = Math.min(p.shield, dmg); p.shield -= ab; dmg -= ab; if (p.shield <= 0) p.shield = 0; p.ver++; if (dmg <= 0) { emit(S, { t: 'absorb', pid: p.id, x: p.x, y: p.y }); return; } }

@@ -56,14 +56,14 @@ var DATA = {
       name: 'Mage', weapon: 'staff', primary: 'ene', attrs: ['ene', 'vit'],
       base: { ene: 20, vit: 12, dex: 8 },
       life: { base: 26, perLevel: 3, perVit: 3 }, mana: { base: 20, perLevel: 2, perEne: 2 },
-      skill: 'nova', ward: 0.25, start: { weapon: 'gnarled_staff', chest: 'leather_coat' }
+      skill: 'nova', ward: 0.25, manaRegen: { pct: 0.015, perEne: 0.0002 }, start: { weapon: 'gnarled_staff', chest: 'leather_coat' }
     }
   },
   attrNames: { str: 'Strength', dex: 'Dexterity', vit: 'Vitality', ene: 'Energy' },
   skills: {
     multishot: { name: 'Multishot', mana: 5, arrows: 5, spread: 0.16, mult: 0.7, desc: 'Five arrows in a fan.' },
     cleave:    { name: 'Cleave',    mana: 4, arc: 2.1, reach: 1.9, mult: 1.15, desc: 'Strike every enemy in an arc in front of you.' },
-    nova:      { name: 'Nova', mana: 6, radius: 3, mult: 0.9, push: 1.3, desc: 'A ring of force around you that strikes every enemy within 3 tiles and throws them back.' },
+    nova:      { name: 'Nova', manaPct: 0.10, radius: 3, mult: 0.9, push: 1.3, desc: 'A ring of force around you that strikes every enemy within 3 tiles and throws them back. Costs 10% of your mana.' },
     // Nightstalker only: a patch of falling arrows at the cursor. Damage per half second = pct x your average hit.
     rain:      { name: 'Rain of Arrows', mana: 7, radius: 1.8, dur: 3, tick: 0.5, pct: 0.45, cooldown: 1.5, desc: 'Arrows rain on an area you can see, dealing dark damage over 3 seconds. 1.5 second cooldown.' }
   },
@@ -148,12 +148,12 @@ var DATA = {
       name: 'Lightbinder', cls: 'mage', side: 'light', skill: 'nova',
       lore: 'Keeps the light around the ones who stand with her. Nova becomes a shield as much as a blow.',
       core: { name: 'Radiant Ward',
-        desc: 'Nova shields you and every ally within its ring for 15% of your life for 4 seconds.',
-        shield: { pct: 0.15, dur: 4 } },
+        desc: 'Nova shields you and every ally within its ring for 12% of your life for 4 seconds. A shield can only be renewed every 6 seconds.',
+        shield: { pct: 0.12, dur: 4, cooldown: 6 } },
       nodes: [
         { id: 'radiant_shield', name: 'Radiant Shield', max: 7, per: 10, desc: 'Nova shields absorb +{v}% more.' },
         { id: 'wide_nova', name: 'Wide Nova', max: 7, per: 5, desc: 'Nova reaches +{v}% further.' },
-        { id: 'clear_mind', name: 'Clear Mind', max: 5, per: 0.6, desc: 'Nova costs {v} less mana.' },
+        { id: 'clear_mind', name: 'Clear Mind', max: 5, per: 1, desc: 'Nova costs {v}% less of your mana.' },
         { id: 'dazzle', name: 'Dazzle', max: 6, per: 0.3, desc: 'Enemies struck by Nova lose track of you for {v}s. Bosses are not fooled.' },
         { id: 'blink', name: 'Blink', max: 1, per: 1, req: 4, desc: 'Nova first carries you to the cursor (up to 6 tiles, where you can see), then bursts there.', range: 6 },
         { id: 'sanctuary', name: 'Sanctuary', max: 1, per: 1, req: 8, desc: 'Nova leaves holy ground for 3 seconds. Allies on it heal 3% of their life each second.', dur: 3, radius: 2, pct: 0.03 },
@@ -164,8 +164,8 @@ var DATA = {
       name: 'Voidcaller', cls: 'mage', side: 'dark', skill: 'nova',
       lore: 'Pulls the world in and lets it rot. What dies in the Decay passes it on.',
       core: { name: 'Decay',
-        desc: 'Nova pulls enemies toward you instead of throwing them back, and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. When an enemy dies in Decay, it passes to the nearest enemy.',
-        pull: true, decay: { pct: 0.6, dur: 4, spread: 3 } },
+        desc: 'Nova pulls enemies toward you instead of throwing them back, stuns them for 0.6 seconds and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 15% less damage. When an enemy dies in Decay, it passes to the nearest enemy.',
+        pull: true, stun: 0.6, decay: { pct: 0.6, dur: 4, spread: 3, weaken: 0.15 } },
       nodes: [
         { id: 'virulence', name: 'Virulence', max: 7, per: 8, desc: 'Decay deals +{v}% damage.' },
         { id: 'lingering', name: 'Lingering Rot', max: 6, per: 0.5, desc: 'Decay lasts {v}s longer.' },

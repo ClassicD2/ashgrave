@@ -1589,7 +1589,7 @@
     var skKey = sk.name + JSON.stringify(p.ascNodes || {});
     if (hudCache.skill !== skKey) {
       hudCache.skill = skKey; $('skName').textContent = sk.name;
-      var cost = E.hasNode(p, 'blood_price') ? '6% of your life' : sk.mana + ' mana';
+      var cost = E.hasNode(p, 'blood_price') ? '6% of your life' : sk.manaPct ? Math.round((sk.manaPct - E.nodeVal(p, 'clear_mind') / 100) * 100) + '% of your mana' : sk.mana + ' mana';
       var sdesc = E.hasNode(p, 'radiant_volley') ? 'Seven arrows in a fan.' : sk.desc;
       $('bSkill').title = sk.name + ': ' + sdesc + ' ' + cost + '. ' + (drawsBow(p) ? 'Hold right-click or Q to draw, release to fire.' : 'Right-click or Q.');
     }
