@@ -323,7 +323,7 @@ var Engine = (function () {
     cls = D.classes[cls] ? cls : 'archer';
     var cd = D.classes[cls];
     var c = {
-      version: SAVE_VERSION, progress: freshProgress(), trial: 'locked', ascendancy: null, ascNodes: {},
+      version: SAVE_VERSION, progress: freshProgress(), trial: 'locked', ascendancy: null, ascNodes: {}, ascTree: D.ascendancy.treeVersion,
       name: name || cd.name, cls: cls, level: 1, xp: 0, pts: 0,
       base: JSON.parse(JSON.stringify(cd.base)), gold: 0, potions: { hp: 3, mp: 1 },
       inv: new Array(R.invSize).fill(null),
@@ -345,7 +345,7 @@ var Engine = (function () {
   // Bump SAVE_VERSION when the character format changes, and teach migrateCharacter the step.
   var SAVE_VERSION = 2;
   var PERSIST = ['id', 'created', 'version', 'name', 'cls', 'level', 'xp', 'pts', 'base', 'gold', 'potions', 'inv', 'eq',
-    'depth', 'maxDepth', 'progress', 'trial', 'ascendancy', 'ascNodes'];
+    'depth', 'maxDepth', 'progress', 'trial', 'ascendancy', 'ascNodes', 'ascTree'];
   function characterOf(p) {
     var c = {}; PERSIST.forEach(function (k) { if (p[k] !== undefined) c[k] = JSON.parse(JSON.stringify(p[k])); }); return c;
   }
@@ -382,6 +382,8 @@ var Engine = (function () {
     if (c.ascendancy === undefined || (c.ascendancy && !D.ascendancies[c.ascendancy])) c.ascendancy = null;
     // The tree changed from one-time gifts (a list) to ranked nodes (id -> rank); old gifts are refunded.
     if (!c.ascNodes || Array.isArray(c.ascNodes)) c.ascNodes = {};
+    // Ranks were reworked (tree version 2): spent points are refunded so the tree can be rebuilt for free.
+    if ((c.ascTree || 1) < D.ascendancy.treeVersion) { c.ascNodes = {}; c.ascTree = D.ascendancy.treeVersion; }
     c.version = SAVE_VERSION;
     return c;
   }
@@ -413,7 +415,8 @@ var Engine = (function () {
   function coreOf(p) { var a = ascOf(p); return a ? a.core : {}; }
   function skillOf(p) { var a = ascOf(p); return a && a.skill ? a.skill : classOf(p).skill; }
   function spentPoints(c) { var n = 0, t = c.ascNodes || {}; for (var k in t) n += t[k]; return n; }
-  function ascPoints(c) { return c.trial === 'done' ? Math.floor((c.level || 1) / D.ascendancy.levelsPerPoint) : 0; }
+  // One point per level from firstLevel on (level 10 = 1 point), but only once the Trial is passed.
+  function ascPoints(c) { return c.trial === 'done' ? Math.max(0, (c.level || 1) - D.ascendancy.firstLevel + 1) : 0; }
   function ascUnspent(c) { return c.ascendancy ? ascPoints(c) - spentPoints(c) : 0; }
   // These work on a saved character at the altar, and on a player in a game (the 'node' command).
   function chooseAscendancy(c, id) {
@@ -433,7 +436,8 @@ var Engine = (function () {
     if (!c.ascNodes || Array.isArray(c.ascNodes)) c.ascNodes = {};
     var r = c.ascNodes[nid] || 0;
     if (r >= n.max) return n.name + ' is already at its highest rank.';
-    if (ascUnspent(c) <= 0) return 'No points left. You get one every ' + D.ascendancy.levelsPerPoint + ' levels.';
+    if (n.req && spentPoints(c) < n.req) return n.name + ' needs ' + n.req + ' points spent in ' + a.name + ' first (you have ' + spentPoints(c) + ').';
+    if (ascUnspent(c) <= 0) return 'No points left. You get one each level.';
     c.ascNodes[nid] = r + 1;
     return null;
   }
@@ -1046,12 +1050,16 @@ var Engine = (function () {
     var sum = 0; (m.rend || []).forEach(function (r) { sum += r.pool; }); m.rend = [];
     if (sum <= 0) return;
     emit(S, { t: 'rip', id: m.id, x: m.x, y: m.y });
-    dealRaw(S, m, sum * coreOf(p).rip * (1 + (p.st.ripPct || 0) / 100), p, 'rip');
+    var ex = hasNode(p, 'exsanguinate') ? nodeDef('exsanguinate') : null;
+    var ripped = sum * (ex ? ex.rip : coreOf(p).rip) * (1 + (p.st.ripPct || 0) / 100);
+    dealRaw(S, m, ripped, p, 'rip');
+    if (ex && !p.dead) { var hl = ripped * ex.heal; p.hp = Math.min(p.st.maxHp, p.hp + hl); p.ver++; }
   }
   // Templar's Chain of Light: the blow leaps on to the nearest enemies it has not touched yet.
   function chainLight(S, p, x, y, firstId, h) {
     var C = coreOf(p).chain, pct = C.pct + (nodeVal(p, 'bright_leap') + (p.st.chainPct || 0)) / 100, hit = [firstId];
-    for (var i = 0; i < C.bounces; i++) {
+    var nb = C.bounces + (hasNode(p, 'radiant_chain') ? nodeDef('radiant_chain').bounces : 0);
+    for (var i = 0; i < nb; i++) {
       var best = null, bd = C.range;
       S.monsters.forEach(function (o) {
         if (hit.indexOf(o.id) >= 0 || o.hp <= 0) return;

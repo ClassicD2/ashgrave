@@ -353,3 +353,7 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 
 #bSkill { position: relative; overflow: hidden; }
 #bSkill.cooling::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.6); transform-origin: bottom; transform: scaleY(var(--cd, 0)); pointer-events: none; }
+
+.gift.keystone b { color: #e7c98a; }
+.gift.locked { opacity: .55; }
+.gift.locked em { color: #a08c7a; }

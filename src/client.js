@@ -2163,18 +2163,19 @@
   function openAltar(slot) { altarSlot = slot; altarArmed = false; altarPick = null; $('altarStatus').textContent = ''; renderAltar(); $('altar').hidden = false; }
   function closeAltar() { $('altar').hidden = true; altarSlot = -1; renderTitle(); }
   function altarChar() { return altarSlot >= 0 ? loadStore().slots[altarSlot] : null; }
-  function nextPointLevel(c) { var L = DATA.ascendancy.levelsPerPoint; return (Math.floor(c.level / L) + 1) * L; }
-  function nextPointHint(c) { return 'You get a point every ' + DATA.ascendancy.levelsPerPoint + ' levels. Next at level ' + nextPointLevel(c) + '.'; }
+  function nextPointLevel(c) { return Math.max(c.level + 1, DATA.ascendancy.firstLevel); }
+  function nextPointHint(c) { return 'You get a point each level from level ' + DATA.ascendancy.firstLevel + '. Next at level ' + nextPointLevel(c) + '.'; }
   function nodeName(id) { var out = id; Object.keys(DATA.ascendancies).forEach(function (k) { DATA.ascendancies[k].nodes.forEach(function (n) { if (n.id === id) out = n.name; }); }); return out; }
   function fmtV(v) { return Math.round(v * 10) / 10; }
   // One node: its name, rank pips, what it does now and at the next rank.
   function nodeHtml(c, n, un, attr) {
-    var r = E.rank(c, n.id), maxed = r >= n.max, can = !maxed && un > 0;
+    var r = E.rank(c, n.id), maxed = r >= n.max, spent = 0, t = c.ascNodes || {}; for (var k in t) spent += t[k];
+    var locked = n.req && spent < n.req && !r, can = !maxed && un > 0 && !locked;
     var txt = n.max > 1 ? n.desc.replace('{v}', fmtV(Math.max(1, r) * n.per)) : n.desc;
     var pips = ''; for (var i = 0; i < n.max; i++) pips += '<i class="' + (i < r ? 'on' : '') + '"></i>';
     var um = /\{v\}(%|s)/.exec(n.desc), unit = um ? um[1] : '';
-    var foot = maxed ? (n.max > 1 ? 'Max rank' : 'Yours') : can ? (r ? 'Rank up to ' + fmtV((r + 1) * n.per) + unit : 'Take it') : 'Needs a point';
-    return '<button class="gift' + (r ? ' have' : '') + '" ' + attr + '="' + n.id + '"' + (can ? '' : ' disabled') + '><b>' + n.name + '</b><span class="pips">' + pips + '</span><span>' + txt + '</span><em>' + foot + '</em></button>';
+    var foot = maxed ? (n.max > 1 ? 'Max rank' : 'Yours') : locked ? 'Needs ' + n.req + ' points spent (' + spent + '/' + n.req + ')' : can ? (r ? 'Rank up to ' + fmtV((r + 1) * n.per) + unit : 'Take it') : 'Needs a point';
+    return '<button class="gift' + (r ? ' have' : '') + (locked ? ' locked' : '') + (n.req ? ' keystone' : '') + '" ' + attr + '="' + n.id + '"' + (can ? '' : ' disabled') + '><b>' + n.name + '</b><span class="pips">' + pips + '</span><span>' + txt + '</span><em>' + foot + '</em></button>';
   }
   function renderAltar() {
     var c = altarChar(); if (!c) { $('altar').hidden = true; return; }
@@ -2183,12 +2184,12 @@
     $('altarWho').textContent = c.name + ' · Level ' + c.level + ' ' + DATA.classes[c.cls].name;
     if (!c.ascendancy) {
       var paths = Object.keys(A).filter(function (k) { return A[k].cls === c.cls; });
-      $('altarIntro').textContent = 'Two paths are open to you. Your path changes your attack and your skill. Points for its tree come every ' + DATA.ascendancy.levelsPerPoint + ' levels; you have ' + total + '.';
+      $('altarIntro').textContent = 'Two paths are open to you. Your path changes your attack and your skill. You get one point for its tree each level from level ' + DATA.ascendancy.firstLevel + '; you have ' + total + '. The single-rank gifts open once you have spent 4, 8 and 16 points in the path.';
       $('altarBody').innerHTML = '<div class="paths">' + paths.map(function (k) {
         var a = A[k];
         return '<div class="path ' + a.side + (altarPick === k ? ' pick' : '') + '"><div class="side">' + (a.side === 'light' ? 'Light' : 'Dark') + '</div><h3>' + a.name + '</h3><p class="lore">' + a.lore + '</p>' +
           '<div class="core"><b>' + a.core.name + '</b><span>' + a.core.desc + ' +' + Math.round(DATA.ascendancy.sideBonus * 100) + '% ' + a.side + ' damage.</span></div>' +
-          '<ul class="nodes">' + a.nodes.map(function (n) { return '<li><b>' + n.name + (n.max > 1 ? ' <small>(' + n.max + ' ranks)</small>' : '') + '</b><span>' + n.desc.replace('{v}', fmtV(n.per)) + (n.max > 1 ? ' per rank' : '') + '</span></li>'; }).join('') + '</ul>' +
+          '<ul class="nodes">' + a.nodes.map(function (n) { return '<li><b>' + n.name + (n.max > 1 ? ' <small>(' + n.max + ' ranks)</small>' : ' <small>(needs ' + n.req + ' spent)</small>') + '</b><span>' + n.desc.replace('{v}', fmtV(n.per)) + (n.max > 1 ? ' per rank' : '') + '</span></li>'; }).join('') + '</ul>' +
           '<button class="big' + (a.side === 'dark' ? ' dark' : '') + '" data-path="' + k + '">' + (altarPick === k ? 'Kneel. This is my path' : 'Walk the ' + a.name + ' path') + '</button></div>';
       }).join('') + '</div>';
       return;

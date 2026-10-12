@@ -64,7 +64,8 @@ var DATA = {
   // attack and your skill (its core); tree points (one per two levels) buy ranks in its nodes.
   // Node text: {v} is replaced by rank x per (the node's current total).
   ascendancy: {
-    levelsPerPoint: 2,
+    firstLevel: 10,   // one point per level from level 10 (level 14 = 5 points), once the Trial is passed
+    treeVersion: 2,   // bump when ranks change: saved trees are refunded
     sideBonus: 0.2, // light paths deal +20% light damage, dark paths +20% dark damage
     renounceCost: 5000
   },
@@ -76,13 +77,14 @@ var DATA = {
         desc: 'Your attacks leap to two more enemies, each leap dealing 50% of the blow. Cleave grants Zeal: +25% attack speed for 3 seconds.',
         chain: { bounces: 2, pct: 0.5, range: 4 }, zeal: { ias: 0.25, dur: 3 } },
       nodes: [
-        { id: 'bright_leap', name: 'Bright Leap', max: 3, per: 10, desc: 'Leaps deal +{v}% more of the blow.' },
-        { id: 'fervor', name: 'Fervor', max: 3, per: 10, desc: 'Zeal grants +{v}% more attack speed.' },
-        { id: 'long_vigil', name: 'Long Vigil', max: 2, per: 1, desc: 'Zeal lasts {v}s longer.' },
-        { id: 'bulwark', name: 'Bulwark', max: 3, per: 6, desc: '{v}% chance to block a blow entirely.' },
-        { id: 'hallowed_plate', name: 'Hallowed Plate', max: 3, per: 5, desc: '+{v}% armor.' },
-        { id: 'consecrate', name: 'Consecrate', max: 1, per: 1, desc: 'Cleave leaves holy ground for 3 seconds. Allies on it heal 3% of their life each second.', dur: 3, radius: 1.6, pct: 0.03 },
-        { id: 'aegis', name: 'Aegis', max: 1, per: 1, desc: 'You resurrect allies in 1 second, and they rise with 75% life.', channel: 1, life: 0.75 }
+        { id: 'bright_leap', name: 'Bright Leap', max: 6, per: 5, desc: 'Leaps deal +{v}% more of the blow.' },
+        { id: 'fervor', name: 'Fervor', max: 6, per: 5, desc: 'Zeal grants +{v}% more attack speed.' },
+        { id: 'long_vigil', name: 'Long Vigil', max: 5, per: 0.4, desc: 'Zeal lasts {v}s longer.' },
+        { id: 'bulwark', name: 'Bulwark', max: 6, per: 3, desc: '{v}% chance to block a blow entirely.' },
+        { id: 'hallowed_plate', name: 'Hallowed Plate', max: 6, per: 2.5, desc: '+{v}% armor.' },
+        { id: 'consecrate', name: 'Consecrate', max: 1, per: 1, req: 8, desc: 'Cleave leaves holy ground for 3 seconds. Allies on it heal 3% of their life each second.', dur: 3, radius: 1.6, pct: 0.03 },
+        { id: 'aegis', name: 'Aegis', max: 1, per: 1, req: 4, desc: 'You resurrect allies in 1 second, and they rise with 75% life.', channel: 1, life: 0.75 },
+        { id: 'radiant_chain', name: 'Radiant Chain', max: 1, per: 1, req: 16, desc: 'Chain of Light leaps to two more enemies.', bounces: 2 }
       ]
     },
     reaver: {
@@ -92,13 +94,14 @@ var DATA = {
         desc: 'Each attack adds a Rend stack that deals 40% of the hit as dark damage over 4 seconds, up to 5 stacks. Cleave rips Rends open: their remaining damage lands at once, plus 50%.',
         rend: { pct: 0.4, dur: 4, max: 5 }, rip: 1.5 },
       nodes: [
-        { id: 'reaping_arc', name: 'Reaping Arc', max: 2, per: 25, desc: 'Cleave covers +{v}% more area.' },
-        { id: 'executioner', name: 'Executioner', max: 3, per: 10, desc: 'Your attacks deal +{v}% damage.' },
-        { id: 'deep_wounds', name: 'Deep Wounds', max: 2, per: 1, desc: 'Rend stacks up to {v} more times.' },
-        { id: 'bloodied', name: 'Bloodied Hands', max: 3, per: 0.5, desc: 'Each attack that lands heals {v}% of your life.' },
-        { id: 'rage', name: 'Rage', max: 2, per: 15, desc: '+{v}% attack speed while below half life.' },
-        { id: 'blood_price', name: 'Blood Price', max: 1, per: 1, desc: 'Cleave costs 6% of your life instead of mana and deals 25% more damage.', pct: 0.06, mult: 1.25 },
-        { id: 'bloodlust', name: 'Bloodlust', max: 1, per: 1, desc: 'Each kill gives +5% damage for 5 seconds, stacking up to five times.', pct: 0.05, dur: 5, stacks: 5 }
+        { id: 'reaping_arc', name: 'Reaping Arc', max: 5, per: 10, desc: 'Cleave covers +{v}% more area.' },
+        { id: 'executioner', name: 'Executioner', max: 6, per: 5, desc: 'Your attacks deal +{v}% damage.' },
+        { id: 'deep_wounds', name: 'Deep Wounds', max: 3, per: 1, desc: 'Rend stacks up to {v} more times.' },
+        { id: 'bloodied', name: 'Bloodied Hands', max: 5, per: 0.3, desc: 'Each attack that lands heals {v}% of your life.' },
+        { id: 'rage', name: 'Rage', max: 5, per: 6, desc: '+{v}% attack speed while below half life.' },
+        { id: 'blood_price', name: 'Blood Price', max: 1, per: 1, req: 8, desc: 'Cleave costs 6% of your life instead of mana and deals 25% more damage.', pct: 0.06, mult: 1.25 },
+        { id: 'exsanguinate', name: 'Exsanguinate', max: 1, per: 1, req: 16, desc: 'Ripped Rends deal 250% of their remaining damage instead of 150%, and heal you for 10% of it.', rip: 2.5, heal: 0.1 },
+        { id: 'bloodlust', name: 'Bloodlust', max: 1, per: 1, req: 4, desc: 'Each kill gives +5% damage for 5 seconds, stacking up to five times.', pct: 0.05, dur: 5, stacks: 5 }
       ]
     },
     sunwarden: {
@@ -108,13 +111,13 @@ var DATA = {
         desc: '+2 light radius. Your arrows pierce one enemy, losing 50% damage per pierce. Hold Multishot to draw it: at full draw (2 seconds) it deals +50% damage and pierces 2 more enemies.',
         light: 2, pierce: 1, pierceKeep: 0.5, charge: { min: 0, full: 2, dmg: 0.5, pierce: 2 } },
       nodes: [
-        { id: 'focused_draw', name: 'Focused Draw', max: 3, per: 15, desc: 'A full draw deals +{v}% more damage.' },
-        { id: 'quick_draw', name: 'Quick Draw', max: 2, per: 0.3, desc: 'A full draw takes {v}s less.' },
-        { id: 'piercing_light', name: 'Piercing Light', max: 3, per: 10, desc: 'Arrows keep +{v}% more damage after each pierce.' },
-        { id: 'sun_evasion', name: 'Sidestep', max: 3, per: 5, desc: '{v}% chance to dodge an attack.' },
-        { id: 'radiant_volley', name: 'Radiant Volley', max: 1, per: 1, desc: 'Multishot fires seven arrows instead of five.', arrows: 7 },
-        { id: 'dawn_aura', name: 'Dawn Aura', max: 1, per: 1, desc: 'Enemies inside your light are scorched every half second for 8% of your average hit.', tick: 0.5, pct: 0.08 },
-        { id: 'beacon', name: 'Beacon', max: 1, per: 1, desc: 'Allies inside your light, you included, regenerate 2% of their life each second.', pct: 0.02 }
+        { id: 'focused_draw', name: 'Focused Draw', max: 7, per: 6, desc: 'A full draw deals +{v}% more damage.' },
+        { id: 'quick_draw', name: 'Quick Draw', max: 6, per: 0.1, desc: 'A full draw takes {v}s less.' },
+        { id: 'piercing_light', name: 'Piercing Light', max: 7, per: 4, desc: 'Arrows keep +{v}% more damage after each pierce.' },
+        { id: 'sun_evasion', name: 'Sidestep', max: 7, per: 2, desc: '{v}% chance to dodge an attack.' },
+        { id: 'radiant_volley', name: 'Radiant Volley', max: 1, per: 1, req: 16, desc: 'Multishot fires seven arrows instead of five.', arrows: 7 },
+        { id: 'dawn_aura', name: 'Dawn Aura', max: 1, per: 1, req: 8, desc: 'Enemies inside your light are scorched every half second for 8% of your average hit.', tick: 0.5, pct: 0.08 },
+        { id: 'beacon', name: 'Beacon', max: 1, per: 1, req: 4, desc: 'Allies inside your light, you included, regenerate 2% of their life each second.', pct: 0.02 }
       ]
     },
     nightstalker: {
@@ -124,13 +127,13 @@ var DATA = {
         desc: 'Sleeping enemies notice you at 60% of the usual distance. Your arrows deal 30% of the hit as extra dark damage over 3 seconds. Multishot becomes Rain of Arrows.',
         aggro: 0.6, blackPct: 0.3 },
       nodes: [
-        { id: 'wide_rain', name: 'Wide Rain', max: 3, per: 15, desc: 'Rain of Arrows covers a +{v}% larger radius.' },
-        { id: 'grasping_dark', name: 'Grasping Dark', max: 2, per: 15, desc: 'Enemies in the rain are slowed by {v}%.' },
-        { id: 'long_night', name: 'Long Night', max: 2, per: 1, desc: 'Rain of Arrows lasts {v}s longer.' },
-        { id: 'night_evasion', name: 'Shadowstep', max: 3, per: 5, desc: '{v}% chance to dodge an attack.' },
-        { id: 'from_the_dark', name: 'From the Dark', max: 1, per: 1, desc: 'Your first hit on an enemy that has not noticed you deals 250% damage.', mult: 2.5 },
-        { id: 'fade', name: 'Fade', max: 1, per: 1, desc: 'When you kill an enemy, others within 8 tiles lose track of you for 2 seconds. Bosses are not fooled.', range: 8, dur: 2 },
-        { id: 'mark_for_death', name: 'Mark for Death', max: 1, per: 1, desc: 'Enemies you hit take 15% more damage from your allies for 4 seconds.', pct: 0.15, dur: 4 }
+        { id: 'wide_rain', name: 'Wide Rain', max: 7, per: 6, desc: 'Rain of Arrows covers a +{v}% larger radius.' },
+        { id: 'grasping_dark', name: 'Grasping Dark', max: 6, per: 5, desc: 'Enemies in the rain are slowed by {v}%.' },
+        { id: 'long_night', name: 'Long Night', max: 6, per: 0.3, desc: 'Rain of Arrows lasts {v}s longer.' },
+        { id: 'night_evasion', name: 'Shadowstep', max: 7, per: 2, desc: '{v}% chance to dodge an attack.' },
+        { id: 'from_the_dark', name: 'From the Dark', max: 1, per: 1, req: 16, desc: 'Your first hit on an enemy that has not noticed you deals 250% damage.', mult: 2.5 },
+        { id: 'fade', name: 'Fade', max: 1, per: 1, req: 4, desc: 'When you kill an enemy, others within 8 tiles lose track of you for 2 seconds. Bosses are not fooled.', range: 8, dur: 2 },
+        { id: 'mark_for_death', name: 'Mark for Death', max: 1, per: 1, req: 8, desc: 'Enemies you hit take 15% more damage from your allies for 4 seconds.', pct: 0.15, dur: 4 }
       ]
     }
   },
