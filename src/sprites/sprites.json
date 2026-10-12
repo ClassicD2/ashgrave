@@ -350,6 +350,46 @@
      "rows": 8
     }
    }
+  },
+  "judge": {
+   "height": 170,
+   "frameSize": 256,
+   "anchor": [
+    128,
+    232
+   ],
+   "animations": {
+    "idle": {
+     "file": "judge-idle.png",
+     "frames": 4,
+     "columns": 4,
+     "rows": 8
+    },
+    "walk": {
+     "file": "judge-walk.png",
+     "frames": 8,
+     "columns": 8,
+     "rows": 8
+    },
+    "hit": {
+     "file": "judge-hit.png",
+     "frames": 2,
+     "columns": 2,
+     "rows": 8
+    },
+    "judgement": {
+     "file": "judge-judgement.png",
+     "frames": 6,
+     "columns": 6,
+     "rows": 8
+    },
+    "step": {
+     "file": "judge-step.png",
+     "frames": 6,
+     "columns": 6,
+     "rows": 8
+    }
+   }
   }
  },
  "icons": {

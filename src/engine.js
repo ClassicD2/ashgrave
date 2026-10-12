@@ -1786,7 +1786,7 @@ var Engine = (function () {
     if (m.dead) return;
     m.dead = true;
     var idx = S.monsters.indexOf(m); if (idx >= 0) S.monsters.splice(idx, 1);
-    emit(S, { t: 'death', x: m.x, y: m.y, mtype: m.type, champ: m.champ, face: m.face, boss: m.boss || null });
+    emit(S, { t: 'death', x: m.x, y: m.y, mtype: m.type, champ: m.champ, face: m.face, boss: m.boss || null, scale: m.scale || undefined });
     if (m.decay) spreadDecay(S, m);
     onKill(S, m, by);
     if (m.boss) {

@@ -11,7 +11,7 @@
   var dpr = 1, vw = 0, vh = 0, Z = 1, HW = 32, HH = 16;
 
   var S = null, running = false, explored = null, prev = new Map(), alpha = 0;
-  var trialFailing = false, deadHits = [], deadLost = 0, deadWaiting = false, npcHits = [], shopId = null, swings = [], novas = [], chains = [], corpses = [], parts = [], texts = [], hoverList = [], labels = [], hoverId = null, hoverLabel = null;
+  var trialFailing = false, deadHits = [], deadLost = 0, deadWaiting = false, npcHits = [], shopId = null, swings = [], novas = [], pillars = [], chains = [], corpses = [], parts = [], texts = [], hoverList = [], labels = [], hoverId = null, hoverLabel = null;
   var mapOpen = false, hurtFlash = 0, gameTime = 0, lastSave = 0;
   var mouse = { x: 0, y: 0, down: false, held: 'none', last: 0, touch: false };
   var oxC = 0, oyC = 0;
@@ -383,7 +383,7 @@
           spray(e.x, e.y, 22, { colors: ['#0c0810', '#2a1838', '#4a3060'], speed: 1.6, up: 60, life: 0.9, size: 3.5, grav: -20 });
           if (e.pid === PID) floatText(e.x, e.y, 'Fade', '#a890c8'); break;
         case 'death':
-          corpses.push({ x: e.x, y: e.y, type: e.mtype, champ: e.champ, boss: e.boss, t: gameTime, seed: Math.random() * 1000 | 0, face: e.face });
+          corpses.push({ x: e.x, y: e.y, type: e.mtype, champ: e.champ, boss: e.boss, scale: e.scale, t: gameTime, seed: Math.random() * 1000 | 0, face: e.face });
           spray(e.x, e.y, e.champ ? 26 : 14, { colors: MCOL[e.mtype], speed: 2.2, up: 140, life: 0.8, size: 2.5 });
           if (e.mtype === 'ashpriest') spray(e.x, e.y, 10, { colors: ['#ff7a2a', '#ffcf80'], speed: 1, up: 160, life: 0.9, glow: true, grav: -60, size: 2 });
           sfx('death'); break;
@@ -460,7 +460,7 @@
           addLog('A seal breaks. The ash gives back some of your strength.', 'gold'); sfx('stairs'); setDepthLabel(); break;
         case 'hazardBoom':
           if (e.kind === 'bone') spray(e.x, e.y, 18, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 1.6, up: 220, life: 0.5, grav: 320, size: 2.6 });
-          else spray(e.x, e.y, 22, { colors: ['#ffffff', '#d8c8ff', '#9a7aff'], speed: 2.2, up: 160, life: 0.6, glow: true, grav: 200, size: 2.5 });
+          else { spray(e.x, e.y, 22, { colors: ['#ffffff', '#d8c8ff', '#9a7aff'], speed: 2.2, up: 160, life: 0.6, glow: true, grav: 200, size: 2.5 }); pillars.push({ x: e.x, y: e.y, t: 0 }); }
           sfx('boom'); break;
         case 'frenzy': floatText(e.x, e.y, 'Frenzied!', '#ff6a4a', true); spray(e.x, e.y, 20, { colors: ['#ff3a2a', '#ff9a6a'], speed: 1.4, up: 160, life: 0.7, glow: true, size: 2.5 }); break;
         case 'blink':
@@ -675,7 +675,17 @@
     return drawMonsterSprite0(m, actor, dir, off, extra);
   }
   function drawMonsterSprite0(m, actor, dir, off, extra) {
-    if (actor === 'abbot' && m.scale) extra = 1 / m.scale; // the Abbot has his own large sheet
+    if ((actor === 'abbot' || actor === 'judge') && m.scale) extra = 1 / m.scale; // big bosses have their own large sheets
+    if (actor === 'judge' && m.atk > 0) {
+      var J = DATA.trial.judge;
+      if (m.cast === 'judgement') return drawSprite('judge', 'judgement', dir, onceFrame('judge', 'judgement', 1 - m.atk / J.judgement.cast), extra);
+      if (m.cast === 'step') return drawSprite('judge', 'step', dir, onceFrame('judge', 'step', 1 - m.atk / J.step.cast), extra);
+      // no attack sheet yet: stand and cut a silver arc in front of him
+      var ok = drawIdle('judge', dir, extra, off), k = 1 - m.atk / DATA.monsters.judge.atkTime, sa = screenAngle(m.face || 0);
+      ctx.save(); ctx.strokeStyle = 'rgba(230,225,255,' + (0.8 * Math.sin(Math.PI * k)) + ')'; ctx.lineWidth = 3; ctx.beginPath();
+      ctx.ellipse(0, -14, 26, 12, 0, sa - 1.2 + k * 1.6, sa - 0.2 + k * 1.6); ctx.stroke(); ctx.restore();
+      return ok;
+    }
     if (m.atk > 0) {
       var anim = 'attack', total = ATK_TIME[actor] || 0.5;
       if (actor === 'ashpriest') anim = 'cast';
@@ -1206,6 +1216,13 @@
     var age = gameTime - cp.t, a = Math.max(0, Math.min(1, (90 - age) / 10)); if (a <= 0) return;
     var x = sx(cp.x, cp.y), y = sy(cp.x, cp.y);
     ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.scale(Z, Z);
+    if (hasSprite(cp.type) && !SPR.meta.actors[SPR_ALIAS[cp.type] || cp.type].animations.death) {
+      // no death sheet (yet): the body sinks and fades
+      var fk = Math.min(1, age / 1.6); ctx.globalAlpha = a * (1 - fk); ctx.translate(0, fk * 10);
+      if (cp.scale) ctx.scale(cp.scale, cp.scale);
+      drawIdle(SPR_ALIAS[cp.type] || cp.type, dirIndex(cp.face || 0), cp.type === 'judge' && cp.scale ? 1 / cp.scale : 1, 0);
+      ctx.restore(); return;
+    }
     if (hasSprite(cp.type)) {
       var sc = cp.boss === 'mini' ? DATA.bosses.mini.scale : 1;
       drawSprite(cp.type, 'death', dirIndex(cp.face || 0), Math.floor(age * 10), sc);
@@ -1384,6 +1401,13 @@
       });
       ctx.restore();
     }
+    if (sprOk('judgement-pillar')) pillars.forEach(function (w) {
+      // the Judge's verdict: a column of light strikes where a mark explodes
+      var f = Math.min(5, Math.floor(w.t / 0.5 * 6)), ps = 2 * HW / 128, px = sx(w.x, w.y), py = sy(w.x, w.y);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.drawImage(sprImg['judgement-pillar'], f * 128, 0, 128, 256, px - 64 * ps, py - 232 * ps, 128 * ps, 256 * ps);
+      ctx.restore();
+    });
     novas.forEach(function (w) {
       // an expanding (or, for the Voidcaller, collapsing) ring on the ground
       var k = w.t / 0.35, rr = w.pull ? w.r * (1 - k * 0.85) : w.r * (0.25 + 0.75 * k), cx = sx(w.x, w.y), cy = sy(w.x, w.y);
@@ -1563,6 +1587,7 @@
     gameTime += dt; hurtFlash = Math.max(0, hurtFlash - dt);
     swings = swings.filter(function (w) { w.t += dt; return w.t < 0.18; });
     novas = novas.filter(function (w) { w.t += dt; return w.t < 0.35; });
+    pillars = pillars.filter(function (w) { w.t += dt; return w.t < 0.5; });
     chains = chains.filter(function (c) { c.t += dt; return c.t < 0.28; });
     for (var i = parts.length - 1; i >= 0; i--) {
       var q = parts[i]; q.life -= dt; if (q.life <= 0) { parts.splice(i, 1); continue; }
