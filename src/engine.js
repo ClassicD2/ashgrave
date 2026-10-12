@@ -363,7 +363,7 @@ var Engine = (function () {
   function uniqueDef(id) { for (var i = 0; i < D.uniques.length; i++) if (D.uniques[i].id === id) return D.uniques[i]; return null; }
   // A unique item: fixed name and base, stats rolled inside its ranges.
   function genUnique(S, ilvl, id) {
-    var r = S.rng, u = id ? uniqueDef(id) : pick(r, D.uniques);
+    var r = S.rng, u = id ? uniqueDef(id) : pick(r, D.uniques.filter(function (x) { return !x.drop; }));
     var b = BASES[u.base], it = { uid: S.nextId++, base: b.id, slot: b.slot, ilvl: Math.max(ilvl, D.uniqueRules.minIlvl), rarity: 3, unique: u.id, mods: {}, affixes: [] };
     if (b.dmg) it.dmg = [b.dmg[0], b.dmg[1]];
     if (b.armor) it.armor = rint(r, b.armor[0], b.armor[1]);
@@ -556,7 +556,8 @@ var Engine = (function () {
       dodge: (nodeVal(p, 'sun_evasion') + nodeVal(p, 'night_evasion') + (m.dodge || 0)) / 100,
       dr: (m.dr || 0) / 100, pierce: m.pierce || 0, multiArrows: m.multiArrows || 0, rainDur: m.rainDur || 0,
       zealDur: m.zealDur || 0, ripPct: m.ripPct || 0, chainPct: m.chainPct || 0, cleaveArea: m.cleaveArea || 0, rendMax: m.rendMax || 0,
-      darkDur: m.darkFast ? 2 : R.darkDuration, darkKillMana: m.darkKillMana || 0, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
+      darkDur: m.darkFast ? 2 : R.darkDuration, darkKillMana: m.darkKillMana || 0,
+      boneWard: !!m.boneWard, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
       leechRaw: m.leech || 0,
       speed: 4.2 * (1 + (m.run || 0) / 100),
       light: 6 + (m.light || 0) + (core.light || 0),
@@ -1309,7 +1310,7 @@ var Engine = (function () {
   function ccImmune(m) { return !!m.boss || !!m.under; }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
-    var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100);
+    var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100 - (p.st.novaCost || 0));
     if (p.cd > 0 || p.mana < cost) { if (p.mana < cost) emit(S, { t: 'msg', pid: p.id, text: 'Not enough mana.', quiet: true }); return; }
     p.mana -= cost; skillOrder(p);
     var core = coreOf(p);
@@ -1815,7 +1816,8 @@ var Engine = (function () {
     if (p.st.dodge && rnd(S.rng) < p.st.dodge) { emit(S, { t: 'dodge', pid: p.id, x: p.x, y: p.y }); return; }
     if (src && src.decay && src.decay.end > S.time) { var wk = S.players[src.decay.by]; if (wk && coreOf(wk).decay) raw *= 1 - (coreOf(wk).decay.weaken || 0); }
     var armor = p.st.armor;
-    var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0)) * (1 - (p.st.dr || 0))));
+    var bw = p.bwT > S.time ? (p.bwN || 0) * 0.04 : 0;   // Marrowcleaver's Bone Ward
+    var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0)) * (1 - (p.st.dr || 0)) * (1 - bw)));
     if (p.shield > 0) { var ab = Math.min(p.shield, dmg); p.shield -= ab; dmg -= ab; if (p.shield <= 0) p.shield = 0; p.ver++; if (dmg <= 0) { emit(S, { t: 'absorb', pid: p.id, x: p.x, y: p.y }); return; } }
     var ward = classOf(p).ward;
     if (ward && p.mana > 0) { var wm = Math.min(p.mana, dmg * ward); p.mana -= wm; dmg = Math.max(1, Math.round(dmg - wm)); }
@@ -1853,10 +1855,18 @@ var Engine = (function () {
     if (m.hp <= 0) killMonster(S, m, p);
     return total;
   }
+  // A boss's own weapon for this difficulty, for the class of someone in the game (solo: always your own).
+  function bossWeapon(S, kind, ilvl) {
+    var cls = Object.keys(S.players).map(function (id) { return S.players[id].cls; });
+    var pool = D.uniques.filter(function (u) { return u.drop === kind && u.diffs.indexOf(S.difficulty) >= 0 && cls.indexOf(u.cls) >= 0; });
+    return pool.length ? genUnique(S, ilvl, pick(S.rng, pool).id) : null;
+  }
   // What a kill gives the one who made it.
   function onKill(S, m, p) {
     if (!p || p.dead) return;
     if (p.st.darkKillMana && m.lastKind === 'dark') p.mana = Math.min(p.st.maxMana, p.mana + p.st.darkKillMana);
+    if (p.st.killMana) p.mana = Math.min(p.st.maxMana, p.mana + p.st.maxMana * p.st.killMana);
+    if (p.st.boneWard) { p.bwN = Math.min(5, (p.bwT > S.time ? p.bwN : 0) + 1); p.bwT = S.time + 6; p.ver++; }
     if (hasNode(p, 'bloodlust')) {
       var BL = nodeDef('bloodlust');
       p.blN = Math.min(BL.stacks, (p.blT > S.time ? p.blN : 0) + 1); p.blT = S.time + BL.dur; p.ver++;
@@ -1918,7 +1928,7 @@ var Engine = (function () {
       if (S.ossuary) S.ossuary.done = true;
       emit(S, { t: 'wardenDown', kind: m.boss, name: m.name });
       var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib;
-      if (rnd(r) < WR.unique) { n--; s = spot(); var uw = genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
+      if (rnd(r) < WR.unique) { n--; s = spot(); var uw = bossWeapon(S, m.boss, ilw) || genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
       for (var gw = 0; gw < 3; gw++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, WR.gold[0], WR.gold[1]) * S.depth }); }
     }
     if (m.boss === 'true') { n = 4; minR = 2; ib = 4; }
@@ -1977,6 +1987,7 @@ var Engine = (function () {
                 if (da < gdef.shield.arc) { emit(S, { t: 'shieldBlock', id: m.id, x: pr.x, y: pr.y }); dead = true; break; }
               }
               hurtMonster(S, m, pr.dmg, pr.light || 0, S.players[pr.owner], pr.kind, pr.dark || 0);
+              if (m.dead && pr.kind === 'arrow' && !pr.shard) boneShards(S, pr, m);
               if (pr.kind === 'spark') sparkHit(S, pr, m);
               if (pr.pierce > 0) { pr.pierce--; pr.hitIds.push(m.id); pr.dmg *= pr.keep; pr.light *= pr.keep; pr.dark *= pr.keep; } else dead = true;
               break;
@@ -1994,6 +2005,17 @@ var Engine = (function () {
     }
   }
 
+  // Ossuary String: an arrow that kills bursts into bone shards that fly on in a fan.
+  function boneShards(S, pr, m) {
+    var p = S.players[pr.owner], n = p && p.st && p.st.boneShards; if (!n) return;
+    var a = Math.atan2(pr.vy, pr.vx), sp = Math.hypot(pr.vx, pr.vy);
+    for (var i = 0; i < n; i++) {
+      var o = (i - (n - 1) / 2) * 0.45;
+      S.projs.push({ id: S.nextId++, kind: 'arrow', shard: true, from: 'p', owner: pr.owner, x: m.x, y: m.y, vx: Math.cos(a + o) * sp, vy: Math.sin(a + o) * sp,
+        life: 0.4, dmg: pr.dmg * 0.5, light: (pr.light || 0) * 0.5, dark: (pr.dark || 0) * 0.5, pierce: 0, keep: 0, hitIds: [m.id] });
+    }
+    emit(S, { t: 'shards', x: m.x, y: m.y });
+  }
   function steerSpark(S, pr, dt) {
     var sp = Math.hypot(pr.vx, pr.vy), ux = pr.vx / sp, uy = pr.vy / sp, best = null, bd = 2.6;
     for (var j = 0; j < S.monsters.length; j++) {

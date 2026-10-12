@@ -234,7 +234,18 @@ var DATA = {
     { id: 'bright_vow', name: 'Ring of the Bright Vow', base: 'ring', cls: 'warrior', mods: { lightMin: [3, 5], lightMax: [6, 10], life: 15, chainPct: 10, node_bright_leap: 1 },
       fx: ['Chain of Light leaps deal 10% more (Templar)', '+1 to Bright Leap (Templar)'] },
     { id: 'bloodsigil', name: 'Bloodsigil', base: 'ring', cls: 'warrior', mods: { darkMin: [3, 5], darkMax: [6, 10], str: 3, hitHeal: 1 },
-      fx: ['Each hit heals 1% of your life'] }
+      fx: ['Each hit heals 1% of your life'] },
+    // Boss weapons: never rolled at random, only dropped by their boss (drop: boss kind, diffs: difficulties).
+    // These are the Normal versions, made for a character around level 11.
+    { id: 'marrowcleaver', name: 'Marrowcleaver', base: 'war_axe', cls: 'warrior', drop: 'warden', diffs: ['normal'],
+      mods: { dmgPct: [70, 90], str: [6, 10], life: [15, 25], boneWard: 1 },
+      fx: ['Kills grant Bone Ward: you take 4% less damage per stack, up to 5 stacks, for 6s'] },
+    { id: 'ossuary_string', name: 'Ossuary String', base: 'composite_bow', cls: 'archer', drop: 'warden', diffs: ['normal'],
+      mods: { dmgPct: [60, 80], dex: [6, 10], pierce: 1, boneShards: 3 },
+      fx: ['Arrows pierce 1 more enemy', 'Arrows that kill burst into 3 bone shards dealing 50% damage'] },
+    { id: 'gravewardens_crook', name: "Gravewarden's Crook", base: 'bone_staff', cls: 'mage', drop: 'warden', diffs: ['normal'],
+      mods: { dmgPct: [60, 80], ene: [8, 12], mana: [15, 25], killMana: 3, novaCost: 2 },
+      fx: ['Each kill restores 3% of your mana', 'Nova costs 2% less of your mana'] }
   ],
 
   // wclass: which class can wield a weapon
@@ -466,6 +477,7 @@ var DATA = {
       depth: 8, scale: 1.9,
       spikes: { every: 6, cast: 0.6, count: 5, step: 0.9, radius: 0.6, fuse: 0.9, stagger: 0.12, dmg: [4, 7] },
       raise: { at: [0.6, 0.3], count: 3 },
+      // unique: chance of a unique; where the boss has its own weapons for this difficulty, it is one of those.
       reward: { items: 3, minRarity: 2, ilvlBonus: 4, unique: 0.25, gold: [15, 30] }
     },
     // Optional boss on Nightmare and Hell, in a throne room on a random level from 10 to 12 (fixed per game).

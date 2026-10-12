@@ -442,6 +442,7 @@
           spray(e.x, e.y, 16, { colors: ['#efe6d2', '#9a8f7a', '#3a3530'], speed: 1.2, up: 140, life: 0.7, size: 2.4, grav: 120 }); break;
         case 'wardenDown':
           addLog(e.kind === 'king' ? e.name + ' falls. The throne stands empty.' : e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
+        case 'shards': spray(e.x, e.y, 10, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 2, up: 120, life: 0.4, grav: 300, size: 2 }); sfx('bone'); break;
         case 'tempest':
           swings.push({ x: e.x, y: e.y, face: 0, arc: 6.283, big: true, reach: e.r, t: 0 }); sfx('cleave');
           spray(e.x, e.y, 22, { colors: ['#9a5a30', '#c88a50', '#5a3418'], speed: 2.6, up: 90, life: 0.5, size: 2.2 }); break;
