@@ -13,7 +13,18 @@ var DATA = {
                   abilities: ['Fireball Volley', 'Withering Curse'] },
     gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
                   abilities: ['Bone Spikes', 'Raise the Dead'] },
-    ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 }
+    ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 },
+    // Monsters that punish keeping your distance. Forest: hounds that leap at you, guards whose shields stop missiles.
+    grave_hound: { name: 'Grave Hound', hp: 9, dmg: [2, 4], speed: 3.4, range: 0.55, atkTime: 0.3, atkCd: 1.0, xp: 8, r: 0.28, ai: 'hound', aggro: 9,
+                   leap: { min: 3.2, max: 7, cd: 4, windup: 0.4, dur: 0.28, mult: 1.4 } },
+    barrow_guard: { name: 'Barrow Guard', hp: 40, dmg: [4, 7], speed: 1.5, range: 0.75, atkTime: 0.5, atkCd: 1.6, xp: 22, r: 0.37, ai: 'melee', aggro: 7,
+                   shield: { arc: 1.35 } },
+    // Snow (for now in the caverns): a wraith that blinks to whoever stands farthest away and burns mana,
+    // and a burrower that travels under the ground and bursts up beside you.
+    frost_wraith: { name: 'Frost Wraith', hp: 18, dmg: [3, 6], speed: 2.4, range: 0.7, atkTime: 0.4, atkCd: 1.3, xp: 20, r: 0.3, ai: 'wraith', aggro: 10,
+                   blink: { every: 5, minDist: 3.5, range: 12 }, manaBurn: 0.1, chill: 2 },
+    rime_burrower: { name: 'Rime Burrower', hp: 22, dmg: [4, 7], speed: 2.0, range: 0.6, atkTime: 0.35, atkCd: 1.2, xp: 20, r: 0.3, ai: 'burrower', aggro: 9,
+                   burrow: { at: 2.8, speed: 4.4, emerge: 1.1, radius: 1.6, mult: 1.3, chill: 1.5, surface: 3, windup: 0.5 } }
   },
 
   // Packs: which monsters spawn together, weight, minimum depth
@@ -21,7 +32,13 @@ var DATA = {
     { w: 4, minDepth: 1, units: [['gnawer', 3, 5]] },
     { w: 4, minDepth: 1, units: [['bonewalker', 2, 3]] },
     { w: 2, minDepth: 1, units: [['ashpriest', 1, 1], ['bonewalker', 1, 2]] },
-    { w: 2, minDepth: 2, units: [['ashpriest', 2, 2], ['gnawer', 2, 3]] }
+    { w: 2, minDepth: 2, units: [['ashpriest', 2, 2], ['gnawer', 2, 3]] },
+    { w: 4, minDepth: 1, themes: ['forest'], units: [['grave_hound', 3, 5]] },
+    { w: 3, minDepth: 1, themes: ['forest'], units: [['barrow_guard', 1, 2], ['grave_hound', 1, 2]] },
+    { w: 2, minDepth: 2, themes: ['forest', 'crypt'], units: [['barrow_guard', 1, 1], ['ashpriest', 1, 1]] },
+    { w: 3, minDepth: 1, themes: ['caves'], units: [['frost_wraith', 2, 3]] },
+    { w: 3, minDepth: 1, themes: ['caves'], units: [['rime_burrower', 2, 3]] },
+    { w: 2, minDepth: 1, themes: ['caves', 'monastery'], units: [['frost_wraith', 1, 1], ['rime_burrower', 1, 2], ['bonewalker', 1, 1]] }
   ],
 
   // Difficulty by dungeon level d: multiplier = (1 + linear*(d-1)) * growth^(d-1)

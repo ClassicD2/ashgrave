@@ -908,7 +908,7 @@ var Engine = (function () {
 
   function spawnMonsters(S) {
     var r = S.rng, map = S.map, d = S.depth;
-    var packs = D.packs.filter(function (pk) { return pk.minDepth <= d; });
+    var packs = D.packs.filter(function (pk) { return pk.minDepth <= d && (!pk.themes || pk.themes.indexOf(map.theme) >= 0); });
     var cc = D.championChance, champChance = cc[Math.min(d, cc.length - 1)];
     var s0 = map.rooms[map.startRoom], nearest = -1, nd = 1e9;
     map.rooms.forEach(function (o, ri) {
@@ -1218,7 +1218,7 @@ var Engine = (function () {
   }
   // Bosses of every kind (mini bosses, the Gravewarden, the Judge, the Abbot) ignore crowd control:
   // no knockback, pull, stun or loss of target. Champions (blue) are not bosses and are affected.
-  function ccImmune(m) { return !!m.boss; }
+  function ccImmune(m) { return !!m.boss || !!m.under; }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
     var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100);
@@ -1232,7 +1232,7 @@ var Engine = (function () {
         if (!sightable(S.map, x, y)) break;   // Blink crosses lava but not rock
         if (canStand(S.map, x, y, p.r)) { bx = x; by = y; }
       }
-      emit(S, { t: 'blink', pid: p.id, x0: p.x, y0: p.y, x: bx, y: by });
+      emit(S, { t: 'pblink', pid: p.id, x0: p.x, y0: p.y, x: bx, y: by });
       p.x = bx; p.y = by; p.path = null;
     }
     var rad = sk.radius * (1 + (nodeVal(p, 'wide_nova') + nodeVal(p, 'event_horizon')) / 100), pull = !!core.pull;
@@ -1406,6 +1406,7 @@ var Engine = (function () {
   }
   // Damage with no hit roll: auras and bleeding. No leech, no ambush, no number popping up.
   function dealRaw(S, m, amt, by, kind) {
+    if (m.under) return;
     m.hpFrac = (m.hpFrac || 0) + amt * (1 - (m.dr || 0));
     var whole = Math.floor(m.hpFrac); if (whole <= 0) return;
     m.hpFrac -= whole; m.hp -= whole; m.lastKind = kind; wake(S, m);
@@ -1425,7 +1426,7 @@ var Engine = (function () {
     p.hp = Math.min(st.maxHp, p.hp + st.regen * dt);
     p.mana = Math.min(st.maxMana, p.mana + st.manaRegen * dt);
     if (p.shield && S.time >= (p.shieldEnd || 0)) { p.shield = 0; p.ver++; }
-    p.cd = Math.max(0, p.cd - dt); if (p.rainCd) p.rainCd = Math.max(0, p.rainCd - dt); p.anim = Math.max(0, p.anim - dt); p.slowT = Math.max(0, (p.slowT || 0) - dt);
+    p.cd = Math.max(0, p.cd - dt); if (p.rainCd) p.rainCd = Math.max(0, p.rainCd - dt); p.anim = Math.max(0, p.anim - dt); p.slowT = Math.max(0, (p.slowT || 0) - dt); if (p.chillT) p.chillT = Math.max(0, p.chillT - dt);
     if (p.ascendancy) ascTick(S, p, dt);
     p.zeal = Math.max(0, (p.zeal || 0) - dt);
     if (p.charge != null && S.time - p.charge > 6) { p.charge = null; p.ver++; }
@@ -1434,7 +1435,7 @@ var Engine = (function () {
     var o = p.order;
     if (!o || o.t !== 'revive') p.chan = null;
     if (o) {
-      if (o.t === 'move') { if (!followPath(S, p, st.speed, dt)) p.order = null; }
+      if (o.t === 'move') { if (!followPath(S, p, pSpeed(p), dt)) p.order = null; }
       else if (o.t === 'attack') {
         var m = findMonster(S, o.id);
         if (!m || m.hp <= 0) { p.order = null; p.path = null; }
@@ -1442,9 +1443,9 @@ var Engine = (function () {
           var d = Math.hypot(m.x - p.x, m.y - p.y);
           if (st.melee) {
             if (d <= st.range + p.r + m.r) { p.path = null; p.face = Math.atan2(m.y - p.y, m.x - p.x); swing(S, p, m); }
-            else { pathTo(S, p, m.x, m.y, dt, 3000); p.repath = Math.min(p.repath, 0.15); followPath(S, p, st.speed, dt); }
+            else { pathTo(S, p, m.x, m.y, dt, 3000); p.repath = Math.min(p.repath, 0.15); followPath(S, p, pSpeed(p), dt); }
           } else if (d <= st.range && los(S.map, p, m)) { p.path = null; p.face = Math.atan2(m.y - p.y, m.x - p.x); shoot(S, p, m.x, m.y); }
-          else { pathTo(S, p, m.x, m.y, dt, 3000); followPath(S, p, st.speed, dt); }
+          else { pathTo(S, p, m.x, m.y, dt, 3000); followPath(S, p, pSpeed(p), dt); }
         }
       }
       else if (o.t === 'shoot') {
@@ -1456,7 +1457,7 @@ var Engine = (function () {
         var g = findGround(S, o.id);
         if (!g) p.order = null;
         else if (Math.hypot(g.x - p.x, g.y - p.y) < 1.1) { pickUp(S, p, g); p.order = null; p.path = null; }
-        else { pathTo(S, p, g.x, g.y, dt, 3000); if (!followPath(S, p, st.speed, dt) && !p.path) p.order = null; }
+        else { pathTo(S, p, g.x, g.y, dt, 3000); if (!followPath(S, p, pSpeed(p), dt) && !p.path) p.order = null; }
       }
       else if (o.t === 'revive') {
         var q = S.players[o.id];
@@ -1470,13 +1471,13 @@ var Engine = (function () {
             if (p.chan.t >= reviveChannel(p)) { revive(S, q, p); p.chan = null; p.order = null; }
           }
         }
-        else { p.chan = null; pathTo(S, p, q.x, q.y, dt, 3000); if (!followPath(S, p, st.speed, dt) && !p.path) p.order = null; }
+        else { p.chan = null; pathTo(S, p, q.x, q.y, dt, 3000); if (!followPath(S, p, pSpeed(p), dt) && !p.path) p.order = null; }
       }
       else if (o.t === 'talk') {
         var npc = findNpc(S, o.id);
         if (!npc) p.order = null;
         else if (Math.hypot(npc.x - p.x, npc.y - p.y) < D.merchant.talkRange) { p.order = null; p.path = null; p.face = Math.atan2(npc.y - p.y, npc.x - p.x); emit(S, npc.kind === 'merchant' ? { t: 'shop', pid: p.id, id: npc.id } : { t: 'dialog', pid: p.id, id: npc.id, kind: npc.kind, difficulty: S.trial ? 'trial' : S.difficulty }); }
-        else { pathTo(S, p, npc.x, npc.y, dt, 3000); if (!followPath(S, p, st.speed, dt) && !p.path) p.order = null; }
+        else { pathTo(S, p, npc.x, npc.y, dt, 3000); if (!followPath(S, p, pSpeed(p), dt) && !p.path) p.order = null; }
       }
       else if (o.t === 'stairs') {
         if (Math.hypot(S.map.stairs.x - p.x, S.map.stairs.y - p.y) < 1.0) {
@@ -1484,7 +1485,7 @@ var Engine = (function () {
           if (S.seal) { var sb = findMonster(S, S.seal); emit(S, { t: 'msg', pid: p.id, text: 'A dark seal holds the stairs. Defeat ' + (sb ? sb.name : 'the guardian') + ' first.' }); return; }
           descend(S, p); return;
         }
-        if (!followPath(S, p, st.speed, dt)) p.order = null;
+        if (!followPath(S, p, pSpeed(p), dt)) p.order = null;
       }
     }
     // Gold and potions are picked up automatically
@@ -1588,6 +1589,9 @@ var Engine = (function () {
     if (def.ai === 'abbot') { abbotAI(S, m, p, d, dt); return; }
     if (def.ai === 'judge') { judgeAI(S, m, p, d, dt); return; }
     if (def.ai === 'warden') { wardenAI(S, m, p, d, dt); return; }
+    if (def.ai === 'hound' && houndAI(S, m, p, d, dt, def)) return;
+    if (def.ai === 'wraith' && wraithAI(S, m, p, d, dt, def)) return;
+    if (def.ai === 'burrower' && burrowAI(S, m, p, d, dt, def)) return;
     if (m.atk > 0) {
       m.atk -= dt;
       if (m.atk <= 0) {
@@ -1599,6 +1603,7 @@ var Engine = (function () {
           emit(S, { t: 'cast', x: m.x, y: m.y });
         } else if (d <= def.range + m.r + p.r + 0.25) {
           hurtPlayer(S, p, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul, m.lvl, m);
+          if (def.manaBurn && !p.dead) { p.mana = Math.max(0, p.mana - p.st.maxMana * def.manaBurn); chill(S, p, def.chill); emit(S, { t: 'manaBurn', pid: p.id, x: p.x, y: p.y }); }
         } else emit(S, { t: 'miss', x: m.x, y: m.y });
       }
       return;
@@ -1619,6 +1624,72 @@ var Engine = (function () {
       else m.face = Math.atan2(p.y - m.y, p.x - m.x);
     }
   }
+  // Grave Hound: from 3-7 tiles away it crouches, then leaps onto you and bites harder on landing.
+  function houndAI(S, m, p, d, dt, def) {
+    var L = def.leap;
+    if (m.leapT > 0) {           // crouching
+      m.leapT -= dt; m.face = Math.atan2(p.y - m.y, p.x - m.x);
+      if (m.leapT <= 0) { m.leapFly = L.dur; m.leapTo = { x: p.x, y: p.y }; emit(S, { t: 'leap', id: m.id, x: m.x, y: m.y }); }
+      return true;
+    }
+    if (m.leapFly > 0) {         // in the air
+      var dx = m.leapTo.x - m.x, dy = m.leapTo.y - m.y, dd = Math.hypot(dx, dy), st = Math.min(dd - (m.r + p.r) * 0.8, (L.max / L.dur) * dt);
+      if (st > 0) for (var k = 0; k < 4; k++) moveEntity(S, m, dx / dd * st / 4, dy / dd * st / 4);
+      m.moving = true; m.leapFly -= dt;
+      if (m.leapFly <= 0) {
+        if (Math.hypot(p.x - m.x, p.y - m.y) <= def.range + m.r + p.r + 0.4) hurtPlayer(S, p, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul * L.mult, m.lvl, m);
+        emit(S, { t: 'land', x: m.x, y: m.y }); m.cd = def.atkCd;
+      }
+      return true;
+    }
+    m.leapCd = (m.leapCd || 0) - dt;
+    if (m.atk <= 0 && m.leapCd <= 0 && d >= L.min && d <= L.max && los(S.map, m, p) && clearLine(S.map, m.x, m.y, p.x, p.y, m.r * 0.9)) {
+      m.leapT = L.windup; m.leapCd = L.cd; m.path = null; return true;
+    }
+    return false;
+  }
+  // Frost Wraith: every few seconds it vanishes and reappears beside the player standing farthest from it.
+  function wraithAI(S, m, p, d, dt, def) {
+    var B = def.blink;
+    m.blinkCd = (m.blinkCd === undefined ? B.every * rnd(S.rng) : m.blinkCd) - dt;
+    if (m.blinkCd > 0 || m.atk > 0) return false;
+    var far = null, fd = B.minDist;
+    for (var id in S.players) { var q = S.players[id]; if (q.dead) continue; var qd = Math.hypot(q.x - m.x, q.y - m.y); if (qd > fd && qd < B.range) { fd = qd; far = q; } }
+    if (!far) return false;
+    for (var k = 0; k < 12; k++) {
+      var a = rnd(S.rng) * 6.283, tx = far.x + Math.cos(a) * 1.1, ty = far.y + Math.sin(a) * 1.1;
+      if (canStand(S.map, tx, ty, m.r) && los(S.map, far, { x: tx, y: ty })) {
+        emit(S, { t: 'blink', x: m.x, y: m.y, x2: tx, y2: ty, frost: true });
+        m.x = tx; m.y = ty; m.path = null; m.blinkCd = B.every; m.face = Math.atan2(far.y - ty, far.x - tx); m.cd = Math.min(m.cd, 0.4);
+        return true;
+      }
+    }
+    m.blinkCd = 1; return false;
+  }
+  // Rime Burrower: dives under the ground when you are not right next to it, tunnels to you (it cannot be hit
+  // while under) and bursts up with a slam that chills everyone close by. Then it fights above ground for a while.
+  function burrowAI(S, m, p, d, dt, def) {
+    var B = def.burrow;
+    if (m.under) {
+      if (m.emergeT > 0) {
+        m.emergeT -= dt;
+        if (m.emergeT <= 0) {
+          m.under = false; m.surfaceT = B.surface; m.cd = 0.6;
+          emit(S, { t: 'emerge', id: m.id, x: m.x, y: m.y, r: B.radius });
+          for (var id in S.players) { var q = S.players[id]; if (!q.dead && Math.hypot(q.x - m.x, q.y - m.y) <= B.radius) { hurtPlayer(S, q, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul * B.mult, m.lvl, m); chill(S, q, B.chill); } }
+        }
+        return true;
+      }
+      if (d <= B.emerge) { m.emergeT = B.windup; m.path = null; return true; }
+      var sp = m.speed; m.speed = B.speed; chase(S, m, p, dt, los(S.map, m, p)); m.speed = sp;
+      return true;
+    }
+    m.surfaceT = (m.surfaceT || 0) - dt;
+    if (m.surfaceT <= 0 && m.atk <= 0 && d > B.at) { m.under = true; m.emergeT = 0; m.atk = 0; m.path = null; emit(S, { t: 'burrow', id: m.id, x: m.x, y: m.y }); return true; }
+    return false;
+  }
+  function chill(S, p, sec) { if (!sec || p.st.noSlow) return; p.chillT = Math.max(p.chillT || 0, sec); p.ver++; }
+  function pSpeed(p) { return p.st.speed * ((p.chillT || 0) > 0 ? 0.65 : 1); }
   function chase(S, m, p, dt, seen) {
     if (seen && clearLine(S.map, m.x, m.y, p.x, p.y, m.r * 0.9)) {
       m.path = null;
@@ -1672,6 +1743,7 @@ var Engine = (function () {
   }
   // Physical and light land at once. Dark goes into a pool that drains over rules.darkDuration seconds.
   function hurtMonster(S, m, dmg, light, p, kind, dark) {
+    if (m.under) return 0;   // a burrowed Rime Burrower cannot be hit
     var mult = 1, ambush = false;
     if (p) {
       if (m.state === 'idle' && hasNode(p, 'from_the_dark')) { mult *= nodeDef('from_the_dark').mult; ambush = true; }
@@ -1807,7 +1879,14 @@ var Engine = (function () {
           for (var j = 0; j < S.monsters.length; j++) {
             var m = S.monsters[j];
             if (pr.hitIds && pr.hitIds.indexOf(m.id) >= 0) continue;
+            if (m.under) continue;
             if (Math.hypot(m.x - pr.x, m.y - pr.y) < m.r + 0.15) {
+              var gdef = D.monsters[m.type];
+              if (gdef.shield) {
+                // Barrow Guard: missiles coming at the front of its shield are stopped
+                var inc = Math.atan2(-pr.vy, -pr.vx), da = Math.abs(((inc - m.face + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+                if (da < gdef.shield.arc) { emit(S, { t: 'shieldBlock', id: m.id, x: pr.x, y: pr.y }); dead = true; break; }
+              }
               hurtMonster(S, m, pr.dmg, pr.light || 0, S.players[pr.owner], pr.kind, pr.dark || 0);
               if (pr.kind === 'spark') sparkHit(S, pr, m);
               if (pr.pierce > 0) { pr.pierce--; pr.hitIds.push(m.id); pr.dmg *= pr.keep; pr.light *= pr.keep; pr.dark *= pr.keep; } else dead = true;

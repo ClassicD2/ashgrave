@@ -335,7 +335,7 @@
     }
   }
   function floatText(x, y, txt, color, big) { texts.push({ x: x, y: y, h: 30, txt: txt, c: color, life: big ? 1.6 : 0.9, max: big ? 1.6 : 0.9, big: !!big }); }
-  var MCOL = { gravewarden: ['#efe6d2', '#c9bda4', '#8c816d'], judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
+  var MCOL = { grave_hound: ['#5b1010', '#3a332c', '#2a2420'], barrow_guard: ['#8a7a6a', '#5a4a3a', '#3a302a'], frost_wraith: ['#cfe8ff', '#7ab8ff', '#ffffff'], rime_burrower: ['#cfe0f4', '#5a7a9a', '#2a3a4a'], gravewarden: ['#efe6d2', '#c9bda4', '#8c816d'], judge: ['#c9c2d8', '#3a3644', '#f4f0ff'], abbot: ['#ff7a2a', '#4a1612', '#ffd27a'], gnawer: ['#5b1010', '#7a1a14', '#3a0a0a'], bonewalker: ['#e2d8c4', '#b9ad96', '#8c816d'], ashpriest: ['#77706a', '#4c4642', '#a19a92'] };
 
   function processEvents() {
     var evs = S.events; S.events = [];
@@ -464,9 +464,16 @@
           sfx('boom'); break;
         case 'frenzy': floatText(e.x, e.y, 'Frenzied!', '#ff6a4a', true); spray(e.x, e.y, 20, { colors: ['#ff3a2a', '#ff9a6a'], speed: 1.4, up: 160, life: 0.7, glow: true, size: 2.5 }); break;
         case 'blink':
-          spray(e.x, e.y, 16, { colors: ['#1a1022', '#5a3a7a', '#d8c8ff'], speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
-          spray(e.x2, e.y2, 16, { colors: ['#1a1022', '#5a3a7a', '#d8c8ff'], speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
+          var bc = e.frost ? ['#ffffff', '#cfe8ff', '#7ab8ff'] : ['#1a1022', '#5a3a7a', '#d8c8ff'];
+          spray(e.x, e.y, 16, { colors: bc, speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
+          spray(e.x2, e.y2, 16, { colors: bc, speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
           sfx('cast'); break;
+        case 'leap': spray(e.x, e.y, 8, { colors: ['#5a5048', '#3a332c'], speed: 1, up: 50, life: 0.4, size: 2 }); sfx('swing'); break;
+        case 'land': spray(e.x, e.y, 10, { colors: ['#5a5048', '#3a332c'], speed: 1.4, up: 40, life: 0.4, size: 2.2 }); break;
+        case 'shieldBlock': spray(e.x, e.y, 7, { colors: ['#ffffff', '#ffe08a', '#c8b89a'], speed: 1.8, up: 120, life: 0.3, glow: true, size: 1.6 }); sfx('bone'); floatText(e.x, e.y, 'Blocked', '#c8b89a'); break;
+        case 'manaBurn': spray(e.x, e.y, 10, { colors: ['#9fd0ff', '#4a7aff', '#ffffff'], speed: 1.2, up: 120, life: 0.6, glow: true, size: 2 }); break;
+        case 'burrow': spray(e.x, e.y, 14, { colors: ['#e8f0ff', '#b8c8dc', '#8a96a8'], speed: 1.4, up: 90, life: 0.5, size: 2.2 }); break;
+        case 'emerge': spray(e.x, e.y, 26, { colors: ['#ffffff', '#cfe0f4', '#8a96a8'], speed: 2.6, up: 160, life: 0.6, size: 2.6 }); novas.push({ x: e.x, y: e.y, r: e.r, pull: false, side: 'frost', t: 0 }); sfx('boom'); break;
         case 'trialDone':
           spray(e.x, e.y, 60, { colors: ['#ffffff', '#d8c8ff', '#f0d06a'], speed: 2, up: 320, life: 1.8, glow: true, grav: 80, size: 3 });
           addLog(e.name + ' is won. Nightmare is open to you.', 'rare'); addLog('The Veiled Keeper waits beside the Judge\'s ashes.', 'rare');
@@ -483,7 +490,7 @@
           spray(e.x2, e.y2, 8, { colors: ['#ffffff', '#fff1b0', '#ffe08a'], speed: 1.2, up: 120, life: 0.4, size: 1.8, glow: true, grav: -10 }); break;
         case 'nova': novas.push({ x: e.x, y: e.y, r: e.r, pull: !!e.pull, crush: !!e.crush, side: e.side, t: 0 }); sfx('nova');
           spray(e.x, e.y, 18, { colors: e.pull ? ['#2a1840', '#7a4ad0', '#b48cff'] : ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: e.pull ? -1.5 : 2.2, up: 60, life: 0.5, size: 2.2, glow: true, h: 16 }); break;
-        case 'blink': spray(e.x0, e.y0, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); spray(e.x, e.y, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); break;
+        case 'pblink': spray(e.x0, e.y0, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); spray(e.x, e.y, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); break;
         case 'absorb': spray(e.x, e.y, 6, { colors: ['#fff1b0', '#ffe08a'], speed: 1, up: 80, life: 0.35, size: 2, glow: true, h: 22 }); break;
         case 'decaySpread': for (var dsi = 1; dsi <= 4; dsi++) spray(e.x0 + (e.x - e.x0) * dsi / 4, e.y0 + (e.y - e.y0) * dsi / 4, 2, { colors: ['#6a8a3a', '#b48cff'], speed: 0.4, up: 40, life: 0.6, size: 2.2, glow: true, h: 14 }); break;
         case 'swing': swings.push({ x: e.x, y: e.y, face: e.face, arc: e.arc, big: !!e.big, reach: e.reach, t: 0 }); sfx(e.big ? 'cleave' : 'swing'); break;
@@ -540,7 +547,11 @@
     var i = Math.round((screenAngle(face) - Math.PI / 2) / (Math.PI / 4));
     return ((i % 8) + 8) % 8;
   }
-  var SPR_ALIAS = { gravewarden: 'bonewalker' };
+  var SPR_ALIAS = { gravewarden: 'bonewalker', grave_hound: 'gnawer', barrow_guard: 'bonewalker', frost_wraith: 'ashpriest', rime_burrower: 'gnawer' };
+  // Stand-in looks until the painted sheets arrive: [css filter, size]
+  var SPR_TINT = { gravewarden: ['brightness(1.35) saturate(0.55) sepia(0.15)', 1], grave_hound: ['grayscale(0.85) brightness(0.75) contrast(1.2)', 1.35],
+    barrow_guard: ['sepia(0.7) brightness(0.7) contrast(1.25)', 1.15], frost_wraith: ['hue-rotate(185deg) saturate(0.7) brightness(1.5)', 1],
+    rime_burrower: ['hue-rotate(175deg) saturate(1.6) brightness(1.35)', 1.25] };
   // Rows in the generated hero sheets that face the wrong way: draw the mirrored opposite row instead.
   // Archer SW is painted facing SE; warrior SE is painted facing SW. (rows: S SW W NW N NE E SE)
   // Mage SE (idle and walk) is painted facing SW, so walking diagonally flipped her back and forth.
@@ -657,8 +668,10 @@
     return drawIdle(actor, dir, 1, (p.id || '').length);
   }
   function drawMonsterSprite(m) {
-    var actor = SPR_ALIAS[m.type] || m.type, dir = dirIndex(m.face || 0), off = (m.id || 0) % 7, extra = 1;
-    if (m.type === 'gravewarden') { ctx.filter = 'brightness(1.35) saturate(0.55) sepia(0.15)'; try { return drawMonsterSprite0(m, actor, dir, off, extra); } finally { ctx.filter = 'none'; } }
+    var own = hasSprite0(m.type), actor = own ? m.type : (SPR_ALIAS[m.type] || m.type), dir = dirIndex(m.face || 0), off = (m.id || 0) % 7, extra = 1;
+    if (m.leapFly > 0) ctx.translate(0, -10);          // a hound in mid-leap
+    var tint = !own && SPR_TINT[m.type];
+    if (tint) { ctx.filter = tint[0]; try { return drawMonsterSprite0(m, actor, dir, off, tint[1]); } finally { ctx.filter = 'none'; } }
     return drawMonsterSprite0(m, actor, dir, off, extra);
   }
   function drawMonsterSprite0(m, actor, dir, off, extra) {
@@ -1303,6 +1316,7 @@
     hoverList = [];
     S.monsters.forEach(function (m) {
       var lp = lerpE(m); if (Math.hypot(lp.x - pp.x, lp.y - pp.y) > vis) return;
+      if (m.under) { if (Math.random() < 0.5) spray(lp.x, lp.y, 1, { colors: ['#e8f0ff', '#b8c8dc', '#7a6a5a'], speed: 0.5, up: 50, life: 0.5, size: 2.2 }); return; }
       list.push({ d: lp.x + lp.y, k: 'm', e: m, x: lp.x, y: lp.y });
       hoverList.push({ id: m.id, sx: sx(lp.x, lp.y), sy: sy(lp.x, lp.y) - 16 * Z * (m.scale || 1), r: (m.type === 'gnawer' ? 14 : 20) * Z * (m.scale || 1) + 4 });
     });
@@ -1984,6 +1998,8 @@
       if (m.decay && m.decay.end > S.time) o.decay = 1;
       if (m.rend && m.rend.length) o.rendN = m.rend.length;
       if (m.sunT && S.time - m.sunT < 0.6) o.sun = 1;
+      if (m.under) o.under = 1;
+      if (m.leapFly > 0) o.leapFly = 1;
       return o;
     });
     var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner }; });
