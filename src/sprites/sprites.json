@@ -303,6 +303,53 @@
      "rows": 8
     }
    }
+  },
+  "mage": {
+   "height": 88,
+   "frameSize": 128,
+   "anchor": [
+    64,
+    112
+   ],
+   "animations": {
+    "idle": {
+     "file": "mage-idle.png",
+     "frames": 4,
+     "columns": 4,
+     "rows": 8
+    },
+    "walk": {
+     "file": "mage-walk.png",
+     "frames": 8,
+     "columns": 8,
+     "rows": 8,
+     "fps": 9
+    },
+    "attack": {
+     "file": "mage-attack.png",
+     "frames": 6,
+     "columns": 6,
+     "rows": 8
+    },
+    "cast": {
+     "file": "mage-cast.png",
+     "frames": 6,
+     "columns": 6,
+     "rows": 8
+    },
+    "hit": {
+     "file": "mage-hit.png",
+     "frames": 2,
+     "columns": 2,
+     "rows": 8
+    },
+    "death": {
+     "file": "mage-death.png",
+     "frames": 8,
+     "columns": 8,
+     "rows": 8
+    }
+   }
   }
  },
  "icons": {

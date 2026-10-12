@@ -1268,7 +1268,7 @@ var Engine = (function () {
       var SN = nodeDef('sanctuary');
       S.zones.push({ id: S.nextId++, kind: 'holy', x: p.x, y: p.y, r: SN.radius, end: S.time + SN.dur, dur: SN.dur, owner: p.id, pct: SN.pct });
     }
-    p.cd = atkCd(p); p.anim = 0.3;
+    p.cd = atkCd(p); p.anim = 0.3; p.animK = 'cast';
     emit(S, { t: 'nova', pid: p.id, x: p.x, y: p.y, r: rad, pull: pull || undefined, crush: crush || undefined, side: ascOf(p) ? ascOf(p).side : null });
   }
   // Voidcaller's Decay: dark damage over time that moves on when its host dies.
@@ -1340,7 +1340,7 @@ var Engine = (function () {
   function shoot(S, p, tx, ty) {
     if (p.cd > 0) return false;
     if (p.st.caster) fireSpark(S, p, tx, ty); else fireArrow(S, p, tx, ty, 0, 1);
-    p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
+    p.cd = atkCd(p); p.anim = 0.25; p.animK = 'attack'; p.face = Math.atan2(ty - p.y, tx - p.x);
     emit(S, { t: 'shoot', pid: p.id, spark: p.st.caster || undefined });
     return true;
   }

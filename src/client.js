@@ -631,6 +631,10 @@
       var df = E.drawFrac(S, p);
       return drawSprite(actor, 'attack', dirIndex(face), Math.min(3, 1 + Math.floor(df * 3)));
     }
+    if (p.anim > 0 && actor === 'mage') {
+      var mk = p.animK === 'cast' ? 'cast' : 'attack', md = mk === 'cast' ? 0.3 : 0.25;
+      return drawSprite(actor, mk, dir, onceFrame(actor, mk, 1 - p.anim / md));
+    }
     if (p.anim > 0) {
       if (actor === 'warrior') return drawWarriorAttack(dir, 1 - p.anim / 0.25, p.face);
       return drawSprite(actor, 'attack', dir, onceFrame(actor, 'attack', 1 - p.anim / 0.25));
@@ -660,9 +664,9 @@
     if (m.moving) return drawWalk(actor, dir, extra, actor === 'gnawer' ? 12 : 8, off);
     return drawIdle(actor, dir, extra, off);
   }
-  var GROUND_SPR = { weapon: 'ground-bow', melee: 'ground-melee_weapon', helm: 'ground-helm', chest: 'ground-armor', gloves: 'ground-gloves', boots: 'ground-boots', ring: 'ground-ring', amulet: 'ground-amulet' };
-  var ICON_SPR = { weapon: 'icon-short_bow', melee: 'icon-short_sword', helm: 'icon-helm', chest: 'icon-leather_coat', gloves: 'icon-gloves', boots: 'icon-boots', ring: 'icon-ring', amulet: 'icon-amulet' };
-  function itemKind(it) { return it.slot === 'weapon' && E.baseOf(it).wclass === 'melee' ? 'melee' : it.slot === 'ring2' ? 'ring' : it.slot; }
+  var GROUND_SPR = { staff: 'ground-staff', weapon: 'ground-bow', melee: 'ground-melee_weapon', helm: 'ground-helm', chest: 'ground-armor', gloves: 'ground-gloves', boots: 'ground-boots', ring: 'ground-ring', amulet: 'ground-amulet' };
+  var ICON_SPR = { staff: 'icon-staff', weapon: 'icon-short_bow', melee: 'icon-short_sword', helm: 'icon-helm', chest: 'icon-leather_coat', gloves: 'icon-gloves', boots: 'icon-boots', ring: 'icon-ring', amulet: 'icon-amulet' };
+  function itemKind(it) { return it.slot === 'weapon' && E.baseOf(it).wclass === 'melee' ? 'melee' : it.slot === 'weapon' && E.baseOf(it).wclass === 'staff' ? 'staff' : it.slot === 'ring2' ? 'ring' : it.slot; }
   function drawGroundSprite(name) {
     if (!sprOk(name)) return false;
     ctx.drawImage(sprImg[name], -24 * 0.5, -24 * 0.5, 48 * 0.5, 32 * 0.5);
@@ -1844,7 +1848,7 @@
   var LIB = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
   var ICE = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
   var LOCAL = /[?&]transport=local/.test(location.search);
-  var LITE = ['x', 'y', 'hp', 'mana', 'face', 'moving', 'anim', 'dead', 'respawn', 'cd', 'order', 'ver', 'level', 'xp', 'name', 'deadAt', 'chan', 'slowT', 'blN', 'blT', 'charge', 'zeal', 'rainCd', 'shield', 'shieldEnd'];
+  var LITE = ['x', 'y', 'hp', 'mana', 'face', 'moving', 'anim', 'dead', 'respawn', 'cd', 'order', 'ver', 'level', 'xp', 'name', 'deadAt', 'chan', 'slowT', 'blN', 'blT', 'charge', 'zeal', 'rainCd', 'shield', 'shieldEnd', 'animK'];
 
   function netStatus(t, bad) { var el = $('netStatus'); el.textContent = t; el.classList.toggle('warn', !!bad); }
   function webrtcOk() { try { return typeof RTCPeerConnection !== 'undefined' && !!new RTCPeerConnection(); } catch (e) { return false; } }
