@@ -691,8 +691,11 @@
     forest:    { name: 'The Barrow Fields', floors: ['fo-grass-a', 'fo-grass-b', 'fo-grass-tall', 'fo-grass-dirt', 'fo-grass-mud', 'fo-grass-flowers', 'fo-grass-stones', 'fo-grass-bones', 'fo-grass-rune'],
                  floor: [400, 300, 120, 70, 40, 30, 25, 12, 3], outdoor: true, stairs: 'stairs-down-grass',
                  props: [['dead-tree', 30], ['bush', 30], ['gravestone', 18], ['gravestone-b', 12], ['mushrooms', 14], ['stone-circle', 6], ['crows', 8], ['barrow-mound', 6], ['cart', 4], ['well', 3]], propChance: 140, openProps: 22 },
-    monastery: { name: 'The Burning Abbey', floor: [380, 300, 80, 10, 20, 80, 90, 40], wall: { cracked: 40, moss: 10, torch: 90, banner: 90 },
-                 props: [['brazier', 45], ['urn', 25], ['broken-pillar', 15], ['floor-grate', 15]], propChance: 120 }
+    // The last level of every difficulty: the Burning Deep, with lava pools (tile 3) around the halls.
+    monastery: { name: 'The Burning Deep', hell: true, stairs: 'stairs-down-hell', portal: 'portal-hell',
+                 floors: ['hl-hell-basalt-a', 'hl-hell-basalt-b', 'hl-hell-ash', 'hl-hell-cracks', 'hl-hell-scorched', 'hl-hell-tiles', 'hl-hell-bones', 'hl-hell-blood', 'hl-hell-rune'],
+                 floor: [330, 260, 110, 110, 70, 60, 30, 25, 5],
+                 props: [['hell-brazier', 26], ['hell-bones', 20], ['hell-rocks', 18], ['hell-skulls', 14], ['hell-spikes', 12], ['hell-chains', 10], ['hell-vent', 10], ['hell-cage', 8], ['hell-obelisk', 6], ['hell-altar', 4]], propChance: 130 }
   };
   var lastTheme = null;
   function theme() { return THEMES[(S && S.map && S.map.theme) || 'crypt'] || THEMES.crypt; }
@@ -713,8 +716,16 @@
     if (hedge) return k < 180 ? 'fo-hedge-thorn' + side : 'fo-hedge-straight';
     return k < 200 ? 'fo-ruinwall-ivy' + side : k < 255 ? 'fo-ruinwall-lantern' + side : 'fo-ruinwall-straight';
   }
+  function hellWall(tx, ty, h) {
+    if (isFloor(tx - 1, ty) && isFloor(tx + 1, ty) && isFloor(tx, ty - 1) && isFloor(tx, ty + 1)) return 'hl-hell-pillar';
+    var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
+    if (!L && !Rr) return 'hl-hell-wall-straight';
+    var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
+    return k < 220 ? 'hl-hell-wall-veins' + side : k < 340 ? 'hl-hell-wall-spikes' + side : k < 430 ? 'hl-hell-wall-brazier' + side : 'hl-hell-wall-straight';
+  }
   function envWall(tx, ty, h) {
     if (theme().outdoor) return forestWall(tx, ty, h);
+    if (theme().hell) return hellWall(tx, ty, h);
     var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
     if (!L && !Rr) return 'wall-straight';
     var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
@@ -725,6 +736,7 @@
   var lamps = [];
   // Props are decoration only: they never block movement, so they sit along the walls, out of the way.
   var PROP_SCALE = { brazier: 0.62, urn: 0.5, 'skeleton-remains': 0.6, 'rubble-pile': 0.6, 'broken-pillar': 0.72, 'floor-grate': 0.62,
+    'hell-brazier': 0.62, 'hell-bones': 0.6, 'hell-rocks': 0.65, 'hell-skulls': 0.6, 'hell-spikes': 0.62, 'hell-chains': 0.7, 'hell-vent': 0.6, 'hell-cage': 0.7, 'hell-obelisk': 0.72, 'hell-altar': 0.7,
     'dead-tree': 0.95, bush: 0.6, gravestone: 0.55, 'gravestone-b': 0.55, mushrooms: 0.5, 'stone-circle': 0.85, crows: 0.55, 'barrow-mound': 0.8, cart: 0.7, well: 0.7 };
   var propMap = null, propKey = '';
   function buildProps() {
@@ -759,7 +771,7 @@
     ctx.save(); ctx.translate(x, y); if (pr.flip && pr.kind !== 'brazier') ctx.scale(-1, 1);
     ctx.drawImage(sprImg[name], -64 * s, -120 * s, 128 * s, 128 * s);
     ctx.restore();
-    if (pr.kind === 'brazier') {
+    if (pr.kind === 'brazier' || pr.kind === 'hell-brazier' || pr.kind === 'hell-vent') {
       lamps.push({ x: x, y: y - 70 * s, r: 60 * Z, warm: 1 });
       if (Math.random() < 0.25) spray(pr.x, pr.y, 1, { colors: ['#ffb347', '#ff6a1a', '#ffe08a'], speed: 0.25, up: 70, life: 0.7, glow: true, grav: -40, size: 1.8, h: 30 * pr.scale });
     }
@@ -767,6 +779,14 @@
   function drawFloor(tx, ty, tile) {
     if (envOk()) {
       var se = 2 * HW / 128, fx = sx(tx, ty) - 64 * se, fy = sy(tx, ty);
+      if (tile === 3) {
+        // lava: a 4-frame loop, each tile offset so the surface never pulses in step; it lights its surroundings
+        var lh = hash(tx * 3 + 1, ty * 7 + 5), lf = Math.floor(gameTime * 3 + (lh % 4)) % 4;
+        ctx.drawImage(sprImg['hl-lava-anim-' + lf] || sprImg['hl-lava-a'], fx, fy, 128 * se, 64 * se);
+        if (lh % 3 === 0) lamps.push({ x: fx + 64 * se, y: fy + 32 * se, r: 58 * Z, warm: 1 });
+        if (Math.random() < 0.004) spray(tx + 0.5, ty + 0.5, 1, { colors: ['#ffb347', '#ff6a1a', '#ffe08a'], speed: 0.2, up: 60, life: 0.9, glow: true, grav: -30, size: 1.8, h: 4 });
+        return;
+      }
       var os = S.ossuary, fl = envFloor(hash(tx, ty));
       if (os && tx >= os.x && tx < os.x + os.w && ty >= os.y && ty < os.y + os.h) {
         fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
@@ -825,6 +845,7 @@
         var gx = (bx + cx + dx) / 3, gy = (by + cy + dy) / 3 - 30 * sw, gg = ctx.createRadialGradient(gx, gy, 0, gx, gy, 46 * sw);
         gg.addColorStop(0, 'rgba(255,70,30,1)'); gg.addColorStop(1, 'rgba(255,40,10,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(gx, gy, 46 * sw, 0, 6.283); ctx.fill(); ctx.restore();
       }
+      if (wn.indexOf('hl-hell-wall-brazier') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'hl-hell-wall-brazier-l' ? 28 : 100) * sw, y: ay - 64 * sw + 70 * sw, r: 72 * Z, warm: 1 });
       if (wn.indexOf('fo-ruinwall-lantern') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'fo-ruinwall-lantern-l' ? 20 : 108) * sw, y: ay - 64 * sw + 74 * sw, r: 64 * Z, warm: 1 });
       if (wn.indexOf('wall-torch') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'wall-torch-l' ? 15 : 112) * sw, y: ay - 64 * sw + 64 * sw, r: 70 * Z, warm: 1 });
       ctx.globalAlpha = 1;
@@ -1065,9 +1086,10 @@
   }
   // The Veiled Keeper and the dark portal behind him.
   function drawPortal(t, n) {
-    if (sprOk('portal')) {
+    var pn = theme().portal && sprOk(theme().portal) ? theme().portal : 'portal';
+    if (sprOk(pn)) {
       var pa = 0.92 + 0.08 * Math.sin(t * 2.3);
-      ctx.save(); ctx.globalAlpha = pa; ctx.drawImage(sprImg.portal, -18 - 32, 6 - 92, 64, 96); ctx.restore();
+      ctx.save(); ctx.globalAlpha = pa; ctx.drawImage(sprImg[pn], -18 - 32, 6 - 92, 64, 96); ctx.restore();
       return;
     }
     var px = -18, py = -30;

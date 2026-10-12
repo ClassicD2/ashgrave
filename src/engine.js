@@ -183,6 +183,28 @@ var Engine = (function () {
       [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dd) { var nq = (c0y + dd[1]) * W + c0x + dd[0]; if (t[nq] && !reach[nq]) { reach[nq] = 1; stack.push(nq); } });
     }
     for (i = 0; i < W * H; i++) if (t[i] && !reach[i]) t[i] = 0;
+    if (theme === 'monastery') {
+      // The Burning Deep: pools of lava eat into the rock around the halls (only into rock, so no path is cut).
+      var lakes = 0;
+      for (var lk = 0; lk < 400 && lakes < 14; lk++) {
+        var lx = rint(r, 3, W - 4), ly = rint(r, 3, H - 4);
+        if (t[ly * W + lx] !== 0) continue;
+        var touches = false;
+        for (var oy3 = -1; oy3 <= 1; oy3++) for (var ox3 = -1; ox3 <= 1; ox3++) if (t[(ly + oy3) * W + lx + ox3] === 1) touches = true;
+        if (!touches) continue;
+        var lr = rint(r, 2, 4);
+        for (var yy3 = ly - lr; yy3 <= ly + lr; yy3++) for (var xx3 = lx - lr; xx3 <= lx + lr; xx3++) {
+          if (xx3 < 2 || yy3 < 2 || xx3 >= W - 2 || yy3 >= H - 2 || t[yy3 * W + xx3] !== 0) continue;
+          var e3 = Math.hypot(xx3 - lx, (yy3 - ly) * 1.1) / (lr + 0.5);
+          if (e3 <= 1 + (rnd(r) - 0.5) * 0.4) t[yy3 * W + xx3] = 3;
+        }
+        lakes++;
+      }
+      if (hall) {
+        // a lava channel across the far end of the nave, behind the Abbot
+        for (x = hall.x + 1; x < hall.x + hall.w - 1; x++) t[hall.y * W + x] = 3;
+      }
+    }
     var start = rooms[0], far = rooms[0], fd = -1;
     rooms.forEach(function (o) { if (!reach[o.cy * W + o.cx]) return; var d = Math.hypot(o.cx - start.cx, o.cy - start.cy); if (d > fd) { fd = d; far = o; } });
     if (hall) far = hall;
@@ -200,7 +222,9 @@ var Engine = (function () {
     if (tx < 0 || ty < 0 || tx >= map.W || ty >= map.H) return 0;
     return map.t[ty * map.W + tx];
   }
-  function walkable(map, x, y) { return tileAt(map, x, y) !== 0; }
+  // Tiles: 0 rock, 1 floor, 2 stairs, 3 lava. Lava cannot be walked on, but you can see and shoot across it.
+  function walkable(map, x, y) { var v = tileAt(map, x, y); return v !== 0 && v !== 3; }
+  function sightable(map, x, y) { return tileAt(map, x, y) !== 0; }
   function canStand(map, x, y, r) {
     return walkable(map, x - r, y - r) && walkable(map, x + r, y - r) && walkable(map, x - r, y + r) && walkable(map, x + r, y + r);
   }
@@ -208,7 +232,7 @@ var Engine = (function () {
     var d = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(d / 0.25));
     for (var i = 1; i <= n; i++) {
       var f = i / n, x = x0 + (x1 - x0) * f, y = y0 + (y1 - y0) * f;
-      if (r ? !canStand(map, x, y, r) : !walkable(map, x, y)) return false;
+      if (r ? !canStand(map, x, y, r) : !sightable(map, x, y)) return false;
     }
     return true;
   }
@@ -219,7 +243,7 @@ var Engine = (function () {
     var tx = Math.floor(x), ty = Math.floor(y), best = null, bd = 1e9;
     for (var dy = -rad; dy <= rad; dy++) for (var dx = -rad; dx <= rad; dx++) {
       var xx = tx + dx, yy = ty + dy;
-      if (tileAt(map, xx + 0.5, yy + 0.5) === 0) continue;
+      if (!walkable(map, xx + 0.5, yy + 0.5)) continue;
       var d = dx * dx + dy * dy;
       if (d < bd) { bd = d; best = { x: xx + 0.5, y: yy + 0.5 }; }
     }
@@ -264,8 +288,8 @@ var Engine = (function () {
         var dx = DIRS[k][0], dy = DIRS[k][1], nx = cx + dx, ny = cy + dy;
         if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
         var ni = ny * W + nx;
-        if (map.t[ni] === 0 || closed[ni]) continue;
-        if (dx && dy && (map.t[cy * W + nx] === 0 || map.t[ny * W + cx] === 0)) continue;
+        if (map.t[ni] === 0 || map.t[ni] === 3 || closed[ni]) continue;
+        if (dx && dy && (map.t[cy * W + nx] === 0 || map.t[ny * W + cx] === 0 || map.t[cy * W + nx] === 3 || map.t[ny * W + cx] === 3)) continue;
         var ng = gs[cur] + DIRS[k][2];
         if (ng < gs[ni]) { gs[ni] = ng; came[ni] = cur; push(ni, ng + hfun(ni)); }
       }
@@ -1202,7 +1226,7 @@ var Engine = (function () {
       var B = nodeDef('blink'), dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy) || 1, go = Math.min(d, B.range), bx = p.x, by = p.y;
       for (var i = 1; i <= Math.ceil(go / 0.2); i++) {
         var f = Math.min(go, i * 0.2), x = p.x + dx / d * f, y = p.y + dy / d * f;
-        if (!walkable(S.map, x, y)) break;
+        if (!sightable(S.map, x, y)) break;   // Blink crosses lava but not rock
         if (canStand(S.map, x, y, p.r)) { bx = x; by = y; }
       }
       emit(S, { t: 'blink', pid: p.id, x0: p.x, y0: p.y, x: bx, y: by });
@@ -1770,7 +1794,7 @@ var Engine = (function () {
       for (var k = 0; k < n && !dead; k++) {
         if (pr.home) steerSpark(S, pr, dt / n);
         pr.x += pr.vx * dt / n; pr.y += pr.vy * dt / n;
-        if (!walkable(S.map, pr.x, pr.y)) { dead = true; emit(S, { t: 'wall', kind: pr.kind, x: pr.x - pr.vx * dt / n, y: pr.y - pr.vy * dt / n }); break; }
+        if (!sightable(S.map, pr.x, pr.y)) { dead = true; emit(S, { t: 'wall', kind: pr.kind, x: pr.x - pr.vx * dt / n, y: pr.y - pr.vy * dt / n }); break; }
         if (pr.from === 'p') {
           for (var j = 0; j < S.monsters.length; j++) {
             var m = S.monsters[j];
@@ -1879,7 +1903,7 @@ var Engine = (function () {
     createSim: createSim, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,
     itemName: itemName, baseOf: baseOf, genItem: genItem, findPath: findPath,
-    walkable: walkable, tileAt: tileAt, damageReduction: damageReduction
+    walkable: walkable, sightable: sightable, tileAt: tileAt, damageReduction: damageReduction
   };
 })();
 
