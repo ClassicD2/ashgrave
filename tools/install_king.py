@@ -22,14 +22,28 @@ def clean(cell, min_px=150):
     return Image.fromarray(a)
 SRC = sys.argv[1]; OUT = os.path.join(os.path.dirname(__file__), '..', 'src', 'sprites')
 C, N = 256, 192
+def feet_x(cell):
+    a = np.array(cell); m = a[163:177, :, 3] > 90; ys, xs = np.nonzero(m)
+    return float(np.median(xs)) if len(xs) else None
+# Blade Tempest and Shed the Mantle drift sideways in the cell as the cloak swings out, which made the
+# King slide off his own spot while spinning: pin each frame's feet to where they stand in the idle row.
+ALIGN = ('tempest', 'shed')
+IDLE_FEET = [None] * 8
 SHEETS = {'idle': 4, 'walk': 8, 'hit': 2, 'attack': 6, 'tempest': 6, 'charge': 6, 'shed': 6, 'death': 8}
 for name, frames in SHEETS.items():
     im = Image.open(os.path.join(SRC, 'king-' + name + '.png')).convert('RGBA')
     out = Image.new('RGBA', (frames * N, 8 * N))
     for r in range(8):
         for f in range(frames):
-            cell = clean(im.crop((f * C, r * C, f * C + C, r * C + C)))
-            out.paste(cell.resize((N, N), Image.LANCZOS), (f * N, r * N))
+            cell = clean(im.crop((f * C, r * C, f * C + C, r * C + C))).resize((N, N), Image.LANCZOS)
+            if name == 'idle' and f == 0: IDLE_FEET[r] = feet_x(cell)
+            if name in ALIGN:
+                fx = feet_x(cell)
+                if f == 0: dx = 0   # a frame with no feet visible (mid-spin) keeps the previous frame's shift
+                if fx is not None and IDLE_FEET[r] is not None: dx = int(round(IDLE_FEET[r] - fx))
+                if dx:
+                    sh = Image.new('RGBA', (N, N)); sh.paste(cell, (dx, 0)); cell = sh
+            out.paste(cell, (f * N, r * N))
     out.save(os.path.join(OUT, 'king-' + name + '.webp'), 'WEBP', quality=84, method=6)
 Image.open(os.path.join(SRC, 'king-blade.png')).save(os.path.join(OUT, 'king-blade.webp'), 'WEBP', quality=90, method=6)
 Image.open(os.path.join(SRC, 'prop-throne.png')).save(os.path.join(OUT, 'prop-throne.webp'), 'WEBP', quality=88, method=6)

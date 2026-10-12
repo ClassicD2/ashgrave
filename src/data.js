@@ -13,7 +13,7 @@ var DATA = {
                   abilities: ['Fireball Volley', 'Withering Curse'] },
     gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
                   abilities: ['Bone Spikes', 'Raise the Dead'] },
-    king: { name: 'The Hollowed King', hp: 300, dmg: [6, 10], speed: 2.0, range: 1.0, atkTime: 0.55, atkCd: 1.4, xp: 600, r: 0.45, ai: 'king', aggro: 8,
+    king: { name: 'The Hollowed King', hp: 430, dmg: [9, 14], speed: 2.0, range: 1.0, atkTime: 0.55, atkCd: 1.4, xp: 600, r: 0.45, ai: 'king', aggro: 8,
                   abilities: ['Blade Tempest', 'Kingsfall Charge', 'Shed the Mantle'] },
     ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 },
     // Monsters that punish keeping your distance. Forest: hounds that leap at you, guards whose shields stop missiles.
@@ -474,9 +474,10 @@ var DATA = {
     // Shed the Mantle: at half life throws off his cloak in a storm of blades and fights faster from then on.
     king: {
       depths: [10, 12], difficulties: ['nightmare', 'hell'], scale: 1.9,
-      tempest: { every: 8, cast: 0.9, near: 4.5, radius: 2.3, mult: 1.3, blades: 8, bladeSpeed: 7.5, bladeLife: 0.9, bladeDmg: [3, 6] },
-      charge: { every: 7, windup: 0.6, min: 3, max: 9, speed: 12, mult: 1.6, recover: 0.7 },
-      shed: { at: 0.5, cast: 1.2, dr: 0.8, blades: 16, speed: 1.3, cd: 0.75, chargeEvery: 5 },
+      // Hits hard on purpose: every big attack is shown on the ground first and can be walked out of.
+      tempest: { every: 7, cast: 1.0, near: 4.5, radius: 2.4, mult: 2.0, blades: 8, bladeSpeed: 7.5, bladeLife: 0.9, bladeDmg: [6, 10] },
+      charge: { every: 6, windup: 0.7, min: 3, max: 9, speed: 13, mult: 2.6, width: 0.55, recover: 0.8 },
+      shed: { at: 0.5, cast: 1.2, dr: 0.8, blades: 16, speed: 1.3, cd: 0.75, chargeEvery: 4.5, tempestEvery: 5.5 },
       reward: { items: 4, minRarity: 2, ilvlBonus: 5, unique: 0.3, gold: [20, 40] }
     },
     abbot: {

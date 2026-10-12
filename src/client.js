@@ -1323,7 +1323,7 @@
     var os2 = S.ossuary;
     if (os2 && pm && explored[Math.floor(os2.cy) * W + Math.floor(os2.cx)]) {
       [[os2.x + 0.7, os2.y + 0.7], [os2.x + os2.w - 0.7, os2.y + 0.7], [os2.x + 0.7, os2.y + os2.h - 0.7], [os2.x + os2.w - 0.7, os2.y + os2.h - 0.7]].forEach(function (c) { props.push({ kind: 'brazier', scale: 0.62, x: c[0], y: c[1] }); });
-      if (os2.kind === 'king') props.push({ kind: 'throne', scale: 1.05, x: os2.cx - 0.5, y: os2.cy - 0.5 });
+      if (os2.kind === 'king') props.push({ kind: 'throne', scale: 2.0, x: os2.cx - 0.6, y: os2.cy - 0.6 });
       else props.push({ kind: 'skeleton-remains', scale: 0.6, x: os2.cx - 1.4, y: os2.cy + 0.8, flip: 1 });
     }
     lamps = [];
@@ -1341,6 +1341,24 @@
       ctx.fillStyle = bone ? 'rgba(230,215,180,' + (0.1 + 0.28 * k) + ')' : 'rgba(150,110,255,' + (0.12 + 0.25 * k) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy, rx * k, ry * k, 0, 0, 6.283); ctx.fill();
       ctx.strokeStyle = bone ? 'rgba(255,245,220,' + (0.55 + 0.4 * Math.sin(gameTime * 18) * k) + ')' : 'rgba(225,210,255,' + (0.55 + 0.4 * Math.sin(gameTime * 18) * k) + ')'; ctx.lineWidth = 2 * Z;
       ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
+      ctx.restore();
+    });
+    // The Hollowed King shows where his big attacks will land: the Tempest's circle and the charge's lane.
+    S.monsters.forEach(function (m) {
+      if (m.type !== 'king' || !(m.atk > 0)) return;
+      var KB = DATA.bosses.king;
+      ctx.save();
+      if (m.cast === 'tempest') {
+        var kt = 1 - m.atk / KB.tempest.cast, tcx = sx(m.x, m.y), tcy = sy(m.x, m.y), trx = KB.tempest.radius * HW * 1.414, tr_y = KB.tempest.radius * HH * 1.414;
+        ctx.fillStyle = 'rgba(200,70,30,' + (0.08 + 0.22 * kt) + ')'; ctx.beginPath(); ctx.ellipse(tcx, tcy, trx * kt, tr_y * kt, 0, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,140,80,' + (0.5 + 0.4 * Math.sin(gameTime * 18) * kt) + ')'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.ellipse(tcx, tcy, trx, tr_y, 0, 0, 6.283); ctx.stroke();
+      } else if (m.cast === 'chargeWind' && m.cdx != null) {
+        var kc = 1 - m.atk / KB.charge.windup, L = m.cleft || 6, hw = KB.charge.width * 0.5 + 0.35, nx = -m.cdy * hw, ny = m.cdx * hw;
+        var ex = m.x + m.cdx * L, ey = m.y + m.cdy * L;
+        ctx.fillStyle = 'rgba(200,70,30,' + (0.1 + 0.25 * kc) + ')'; ctx.strokeStyle = 'rgba(255,140,80,' + (0.45 + 0.4 * kc) + ')'; ctx.lineWidth = 1.5 * Z;
+        ctx.beginPath(); ctx.moveTo(sx(m.x + nx, m.y + ny), sy(m.x + nx, m.y + ny)); ctx.lineTo(sx(ex + nx, ey + ny), sy(ex + nx, ey + ny));
+        ctx.lineTo(sx(ex - nx, ey - ny), sy(ex - nx, ey - ny)); ctx.lineTo(sx(m.x - nx, m.y - ny), sy(m.x - nx, m.y - ny)); ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
       ctx.restore();
     });
     (S.zones || []).forEach(function (z) {
@@ -2070,6 +2088,7 @@
       if (m.under) o.under = 1;
       if (m.leapFly > 0) o.leapFly = 1;
       if (m.shed) o.shed = 1;
+      if (m.cast === 'chargeWind') { o.cdx = r2(m.cdx); o.cdy = r2(m.cdy); o.cleft = r2(m.cleft); }
       return o;
     });
     var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner }; });

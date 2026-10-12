@@ -849,7 +849,7 @@ var Engine = (function () {
       m.cleft -= moved; m.moving = true;
       for (var id in S.players) {
         var q = S.players[id];
-        if (q.dead || m.chHit.indexOf(id) >= 0 || Math.hypot(q.x - m.x, q.y - m.y) > m.r + q.r + 0.25) continue;
+        if (q.dead || m.chHit.indexOf(id) >= 0 || Math.hypot(q.x - m.x, q.y - m.y) > m.r + q.r + K.charge.width * 0.5) continue;
         m.chHit.push(id); hurtPlayer(S, q, rint(S.rng, def.dmg[0], def.dmg[1]) * m.dmgMul * K.charge.mult, m.lvl, m);
         emit(S, { t: 'kingCharge', hit: true, x: q.x, y: q.y });
       }
@@ -861,7 +861,8 @@ var Engine = (function () {
     }
     if (m.atk > 0) {
       m.atk -= dt; m.moving = false;
-      if (m.cast !== 'recover') m.face = Math.atan2(p.y - m.y, p.x - m.x);
+      if (m.cast === 'chargeWind') m.face = Math.atan2(m.cdy, m.cdx);
+      else if (m.cast !== 'recover') m.face = Math.atan2(p.y - m.y, p.x - m.x);
       if (m.atk > 0) return;
       if (m.cast === 'tempest') {
         var T = K.tempest;
@@ -872,9 +873,7 @@ var Engine = (function () {
         kingBlades(S, m, T.blades, m.face + Math.PI / T.blades);
         emit(S, { t: 'tempest', x: m.x, y: m.y, r: T.radius });
       } else if (m.cast === 'chargeWind') {
-        var dx = p.x - m.x, dy = p.y - m.y, dl = Math.hypot(dx, dy) || 1;
-        m.cdx = dx / dl; m.cdy = dy / dl; m.face = Math.atan2(dy, dx);
-        m.cleft = Math.min(K.charge.max, dl + 1.5); m.chHit = []; m.cast = 'charging';
+        m.face = Math.atan2(m.cdy, m.cdx); m.chHit = []; m.cast = 'charging';
         return;
       } else if (m.cast === 'shed') {
         m.dr = 0; m.speed *= K.shed.speed; m.cdMul = (m.cdMul || 1) * K.shed.cd;
@@ -885,10 +884,13 @@ var Engine = (function () {
       return;
     }
     if (m.tempest <= 0 && seen && d < K.tempest.near) {
-      m.cast = 'tempest'; m.atk = K.tempest.cast; m.tempest = K.tempest.every * cdm;
+      m.cast = 'tempest'; m.atk = K.tempest.cast; m.tempest = m.shed ? K.shed.tempestEvery : K.tempest.every;
       emit(S, { t: 'bossCast', id: m.id, name: 'Blade Tempest', x: m.x, y: m.y }); return;
     }
     if (m.charge <= 0 && seen && d >= K.charge.min && d <= K.charge.max && clearLine(S.map, m.x, m.y, p.x, p.y, m.r * 0.9)) {
+      // The lane is set when the wind-up starts and shown on the ground, so stepping aside dodges it.
+      var cdx = p.x - m.x, cdy = p.y - m.y, cdl = Math.hypot(cdx, cdy) || 1;
+      m.cdx = cdx / cdl; m.cdy = cdy / cdl; m.cleft = Math.min(K.charge.max, cdl + 1.5);
       m.cast = 'chargeWind'; m.atk = K.charge.windup; m.charge = (m.shed ? K.shed.chargeEvery : K.charge.every);
       emit(S, { t: 'bossCast', id: m.id, name: 'Kingsfall Charge', x: m.x, y: m.y }); return;
     }
