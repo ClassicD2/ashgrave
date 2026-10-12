@@ -39,13 +39,15 @@ var Engine = (function () {
   function themeFor(depth, finalDepth) {
     finalDepth = finalDepth || 10;
     if (depth >= finalDepth) return 'monastery';
-    var f = (depth - 1) / Math.max(1, finalDepth - 1);
-    return f < 0.3 ? 'crypt' : f < 0.6 ? 'catacombs' : 'caves';
+    // The first three levels are open fields above ground; then down through crypts, catacombs and caves.
+    if (depth <= 3) return 'forest';
+    var f = (depth - 4) / Math.max(1, finalDepth - 4);
+    return f < 1 / 3 ? 'crypt' : f < 2 / 3 ? 'catacombs' : 'caves';
   }
   function genLevel(seed, depth, finalDepth) {
     var theme = themeFor(depth, finalDepth);
     var r = { s: (seed * 7919 + depth * 104729) | 0 };
-    var W = theme === 'crypt' || theme === 'monastery' ? 60 : 64, H = W, t = new Array(W * H).fill(0), rooms = [], i, x, y;
+    var W = theme === 'crypt' || theme === 'monastery' ? 60 : theme === 'forest' ? 66 : 64, H = W, t = new Array(W * H).fill(0), rooms = [], i, x, y;
     function free(x, y, w, h, gap) { return !rooms.some(function (o) { return x < o.x + o.w + gap && x + w + gap > o.x && y < o.y + o.h + gap && y + h + gap > o.y; }); }
     function addRoom(x, y, w, h) { var o = { x: x, y: y, w: w, h: h, cx: x + (w >> 1), cy: y + (h >> 1) }; rooms.push(o); return o; }
     function fillRect(o) { for (var yy = o.y; yy < o.y + o.h; yy++) for (var xx = o.x; xx < o.x + o.w; xx++) t[yy * W + xx] = 1; }
@@ -94,6 +96,17 @@ var Engine = (function () {
         }
         set(ccx, ccy);
       }
+    } else if (theme === 'forest') {
+      // Open fields: wide, ragged clearings that run into each other, joined by broad trails.
+      for (var k2 = 0; k2 < 500 && rooms.length < 8; k2++) {
+        var frx = rint(r, 5, 9), fry = rint(r, 5, 9), fcx = rint(r, frx + 3, W - frx - 4), fcy = rint(r, fry + 3, H - fry - 4);
+        if (!free(fcx - frx, fcy - fry, frx * 2 + 1, fry * 2 + 1, -3)) continue;
+        var fo = addRoom(fcx - frx, fcy - fry, frx * 2 + 1, fry * 2 + 1); fo.cx = fcx; fo.cy = fcy;
+        for (var fy2 = fo.y; fy2 < fo.y + fo.h; fy2++) for (var fx2 = fo.x; fx2 < fo.x + fo.w; fx2++) {
+          var fex = (fx2 - fcx) / (frx + 0.5), fey = (fy2 - fcy) / (fry + 0.5);
+          if (fex * fex + fey * fey <= 1 + (rnd(r) - 0.5) * 0.6) set(fx2, fy2);
+        }
+      }
     } else {
       // The monastery: a pillared nave far from the entrance chapel, side chapels around it.
       addRoom(4, H - 12, 7, 7);
@@ -113,7 +126,39 @@ var Engine = (function () {
     }
     var loops = theme === 'catacombs' ? 5 : theme === 'caves' ? 3 : 2;
     for (i = 0; i < loops && rooms.length > 3; i++) edges.push([rint(r, 0, rooms.length - 1), rint(r, 0, rooms.length - 1)]);
-    edges.forEach(function (e) { if (e[0] !== e[1]) (theme === 'caves' ? tunnel : corridor)(rooms[e[0]], rooms[e[1]]); });
+    function trail(a, b) {   // a broad, wandering path between clearings
+      var cx = a.cx, cy = a.cy, guard = 0;
+      while ((Math.abs(cx - b.cx) > 1 || Math.abs(cy - b.cy) > 1) && guard++ < 600) {
+        for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) if (Math.abs(dx) + Math.abs(dy) <= 2 || rnd(r) < 0.3) set(cx + dx, cy + dy);
+        var toX = Math.sign(b.cx - cx), toY = Math.sign(b.cy - cy), q = rnd(r);
+        if (q < 0.7) { if (toX && (!toY || rnd(r) < 0.5)) cx += toX; else cy += toY; }
+        else if (q < 0.9) { if (toX) cy += rnd(r) < 0.5 ? 1 : -1; else cx += rnd(r) < 0.5 ? 1 : -1; }
+        else { if (toX) cx += toX; if (toY) cy += toY; }
+        cx = Math.max(3, Math.min(W - 4, cx)); cy = Math.max(3, Math.min(H - 4, cy));
+      }
+    }
+    edges.forEach(function (e) { if (e[0] !== e[1]) (theme === 'caves' ? tunnel : theme === 'forest' ? trail : corridor)(rooms[e[0]], rooms[e[1]]); });
+    if (theme === 'forest') {
+      // Soften the edges, then drop small thickets and broken walls into the open ground for cover.
+      for (var fp = 0; fp < 3; fp++) {
+        var fadd = [];
+        for (y = 2; y < H - 2; y++) for (x = 2; x < W - 2; x++) {
+          if (t[y * W + x]) continue;
+          var fnb = 0; for (var foy = -1; foy <= 1; foy++) for (var fox = -1; fox <= 1; fox++) if (t[(y + foy) * W + x + fox]) fnb++;
+          if (fnb >= 5) fadd.push(y * W + x);
+        }
+        fadd.forEach(function (q) { t[q] = 1; });
+      }
+      var clumps = 0;
+      for (var fk = 0; fk < 600 && clumps < 26; fk++) {
+        var qx = rint(r, 4, W - 5), qy = rint(r, 4, H - 5), open = true;
+        for (var oy2 = -2; oy2 <= 2 && open; oy2++) for (var ox2 = -2; ox2 <= 2; ox2++) if (!t[(qy + oy2) * W + qx + ox2]) { open = false; break; }
+        if (!open || rooms.some(function (o) { return Math.abs(o.cx - qx) <= 2 && Math.abs(o.cy - qy) <= 2; })) continue;
+        var sz = rint(r, 1, 4), ccx2 = qx, ccy2 = qy;
+        for (var si = 0; si < sz; si++) { t[ccy2 * W + ccx2] = 0; if (rnd(r) < 0.5) ccx2 += rnd(r) < 0.5 ? 1 : -1; else ccy2 += rnd(r) < 0.5 ? 1 : -1; }
+        clumps++;
+      }
+    }
     if (theme === 'caves') {
       // Smooth the rock: walls mostly surrounded by floor fall away. Only adds floor, so nothing gets cut off.
       for (var pass = 0; pass < 2; pass++) {

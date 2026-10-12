@@ -670,6 +670,9 @@
                  props: [['skeleton-remains', 40], ['urn', 30], ['brazier', 10], ['rubble-pile', 10], ['broken-pillar', 5], ['floor-grate', 5]], propChance: 170 },
     caves:     { name: 'The Caverns',       floor: [150, 150, 200, 200, 230, 50, 15, 5], wall: { cracked: 160, moss: 260, torch: 0, banner: 0 },
                  props: [['rubble-pile', 40], ['broken-pillar', 25], ['skeleton-remains', 20], ['urn', 5], ['brazier', 10]], propChance: 130 },
+    forest:    { name: 'The Barrow Fields', floors: ['fo-grass-a', 'fo-grass-b', 'fo-grass-tall', 'fo-grass-dirt', 'fo-grass-mud', 'fo-grass-flowers', 'fo-grass-stones', 'fo-grass-bones', 'fo-grass-rune'],
+                 floor: [400, 300, 120, 70, 40, 30, 25, 12, 3], outdoor: true, stairs: 'stairs-down-grass',
+                 props: [['dead-tree', 30], ['bush', 30], ['gravestone', 18], ['gravestone-b', 12], ['mushrooms', 14], ['stone-circle', 6], ['crows', 8], ['barrow-mound', 6], ['cart', 4], ['well', 3]], propChance: 140, openProps: 22 },
     monastery: { name: 'The Burning Abbey', floor: [380, 300, 80, 10, 20, 80, 90, 40], wall: { cracked: 40, moss: 10, torch: 90, banner: 90 },
                  props: [['brazier', 45], ['urn', 25], ['broken-pillar', 15], ['floor-grate', 15]], propChance: 120 }
   };
@@ -677,11 +680,23 @@
   function theme() { return THEMES[(S && S.map && S.map.theme) || 'crypt'] || THEMES.crypt; }
   function envFloor(h) {
     var k = h % 1000, w = theme().floor, acc = 0;
-    for (var i = 0; i < w.length; i++) { acc += w[i]; if (k < acc) return FLOOR_ORDER[i]; }
-    return 'floor-stone';
+    var order = theme().floors || FLOOR_ORDER;
+    for (var i = 0; i < w.length; i++) { acc += w[i]; if (k < acc) return order[i]; }
+    return order[0];
   }
   // Decorated faces only where they look into a room: l = the face toward +y, r = the face toward +x.
+  // Outdoors: hedges and broken field walls come in runs (a coarse hash picks which), with thorns, ivy
+  // and the odd lantern on faces that look into the open.
+  function forestWall(tx, ty, h) {
+    var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
+    var hedge = hash((tx / 5) | 0, (ty / 5) | 0) % 100 < 58, k = (h >>> 3) % 1000;
+    if (!L && !Rr) return hedge ? 'fo-hedge-straight' : 'fo-ruinwall-straight';
+    var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r';
+    if (hedge) return k < 180 ? 'fo-hedge-thorn' + side : 'fo-hedge-straight';
+    return k < 200 ? 'fo-ruinwall-ivy' + side : k < 255 ? 'fo-ruinwall-lantern' + side : 'fo-ruinwall-straight';
+  }
   function envWall(tx, ty, h) {
+    if (theme().outdoor) return forestWall(tx, ty, h);
     var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
     if (!L && !Rr) return 'wall-straight';
     var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
@@ -691,7 +706,8 @@
   }
   var lamps = [];
   // Props are decoration only: they never block movement, so they sit along the walls, out of the way.
-  var PROP_SCALE = { brazier: 0.62, urn: 0.5, 'skeleton-remains': 0.6, 'rubble-pile': 0.6, 'broken-pillar': 0.72, 'floor-grate': 0.62 };
+  var PROP_SCALE = { brazier: 0.62, urn: 0.5, 'skeleton-remains': 0.6, 'rubble-pile': 0.6, 'broken-pillar': 0.72, 'floor-grate': 0.62,
+    'dead-tree': 0.95, bush: 0.6, gravestone: 0.55, 'gravestone-b': 0.55, mushrooms: 0.5, 'stone-circle': 0.85, crows: 0.55, 'barrow-mound': 0.8, cart: 0.7, well: 0.7 };
   var propMap = null, propKey = '';
   function buildProps() {
     var map = S.map, key = S.seed + ':' + S.depth + ':' + (S.trial ? 't' : '') + ':' + map.theme, TH = theme();
@@ -703,10 +719,12 @@
     for (var y = 1; y < H - 1; y++) for (var x = 1; x < W - 1; x++) {
       if (map.t[y * W + x] !== 1) continue;
       var nW = map.t[y * W + x - 1] === 0, nE = map.t[y * W + x + 1] === 0, nN = map.t[(y - 1) * W + x] === 0, nS = map.t[(y + 1) * W + x] === 0;
-      // Only against the walls behind (north and west on screen), so the walls in front never hide them.
-      if (!(nW || nN) || nE || nS) continue;
       var h = hash(x + salt, y - salt);
-      if (h % 1000 >= TH.propChance) continue;
+      // Only against the walls behind (north and west on screen), so the walls in front never hide them.
+      // Outdoors a few also stand out in the open: trees, bushes and graves in the fields.
+      var openSpot = TH.openProps && !nW && !nN && !nE && !nS && h % 1000 < TH.openProps;
+      if (!openSpot && (!(nW || nN) || nE || nS)) continue;
+      if (!openSpot && h % 1000 >= TH.propChance) continue;
       if (Math.hypot(x + 0.5 - st.x, y + 0.5 - st.y) < 4 || Math.hypot(x + 0.5 - sr.x, y + 0.5 - sr.y) < 3) continue;
       if (placed.some(function (p) { return Math.abs(p[0] - x) + Math.abs(p[1] - y) < 5; })) continue;
       var r = hash(h & 0xffff, 7919) % tot, kd = kinds[kinds.length - 1];
@@ -737,7 +755,7 @@
       }
       ctx.drawImage(sprImg[fl], fx, fy, 128 * se, 64 * se);
       if (tile === 2) {
-        var sn = S.seal ? 'stairs-sealed' : 'stairs-down';
+        var sn = S.seal ? 'stairs-sealed' : (theme().stairs && sprOk(theme().stairs) ? theme().stairs : 'stairs-down');
         if (sprOk(sn)) ctx.drawImage(sprImg[sn], fx, fy, 128 * se, 96 * se);
         if (S.seal) { diamond(tx, ty); ctx.fillStyle = 'rgba(170,30,20,' + (0.12 + 0.1 * Math.sin(gameTime * 3)) + ')'; ctx.fill(); }
       } else if (propMap) {
@@ -789,6 +807,7 @@
         var gx = (bx + cx + dx) / 3, gy = (by + cy + dy) / 3 - 30 * sw, gg = ctx.createRadialGradient(gx, gy, 0, gx, gy, 46 * sw);
         gg.addColorStop(0, 'rgba(255,70,30,1)'); gg.addColorStop(1, 'rgba(255,40,10,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(gx, gy, 46 * sw, 0, 6.283); ctx.fill(); ctx.restore();
       }
+      if (wn.indexOf('fo-ruinwall-lantern') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'fo-ruinwall-lantern-l' ? 20 : 108) * sw, y: ay - 64 * sw + 74 * sw, r: 64 * Z, warm: 1 });
       if (wn.indexOf('wall-torch') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'wall-torch-l' ? 15 : 112) * sw, y: ay - 64 * sw + 64 * sw, r: 70 * Z, warm: 1 });
       ctx.globalAlpha = 1;
       return;
