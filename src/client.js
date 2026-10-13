@@ -449,7 +449,7 @@
     var nh = npcAt(e.clientX, e.clientY);
     if (nh) { mouse.held = 'none'; cmd({ t: 'talk', id: nh.id }); return; }
     var m = monsterAt(e.clientX, e.clientY);
-    if (e.shiftKey) { mouse.held = 'shoot'; cmd({ t: 'shoot', x: m ? m.x : w.x, y: m ? m.y : w.y }); return; }
+    if (stillHeld || (keys.still === 'shift' && e.shiftKey)) { mouse.held = 'shoot'; cmd({ t: 'shoot', x: m ? m.x : w.x, y: m ? m.y : w.y }); return; }
     if (m) { mouse.held = 'attack'; cmd({ t: 'attack', id: m.id }); return; }
     if (E.tileAt(S.map, w.x, w.y) === 2) { mouse.held = 'none'; cmd({ t: 'stairs' }); return; }
     mouse.held = 'move'; cmd({ t: 'move', x: w.x, y: w.y });
@@ -475,8 +475,10 @@
   }
   cv.addEventListener('mousedown', rightDown);
   window.addEventListener('mouseup', function (e) { if (e.button === 2 && drawing === 'mouse') releaseDraw(); });
-  window.addEventListener('keyup', function (e) { if (drawing === 'key' && e.key.toLowerCase() === keys.skill) releaseDraw(); });
-  window.addEventListener('blur', function () { if (drawing) releaseDraw(); });
+  window.addEventListener('keyup', function (e) { if (e.key.toLowerCase() === keys.still) stillHeld = false; if (drawing === 'key' && e.key.toLowerCase() === keys.skill) releaseDraw(); });
+  window.addEventListener('blur', function () { stillHeld = false; if (drawing) releaseDraw(); });
+  // No browser menu anywhere over the game while playing (text fields keep theirs)
+  document.addEventListener('contextmenu', function (e) { if (running && !/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) e.preventDefault(); });
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
   function handleHold(now) {
@@ -491,8 +493,12 @@
   }
 
   // ---------- Key bindings ----------
-  var DEFAULT_KEYS = { potionHp: '1', potionMp: '2', skill: 'q', character: 'c', inventory: 'i', map: 'tab', fullscreen: 'f' };
-  var KEY_LABELS = { potionHp: 'Healing potion', potionMp: 'Mana potion', skill: 'Class skill', character: 'Character', inventory: 'Inventory', map: 'Map', fullscreen: 'Fullscreen' };
+  // Firefox always opens its own menu on Shift + right-click, whatever the page does, so there
+  // "attack in place" defaults to Space instead of Shift.
+  var FIREFOX = /firefox/i.test(navigator.userAgent || '');
+  var DEFAULT_KEYS = { still: FIREFOX ? ' ' : 'shift', potionHp: '1', potionMp: '2', skill: 'q', character: 'c', inventory: 'i', map: 'tab', fullscreen: 'f' };
+  var KEY_LABELS = { still: 'Attack in place (hold)', potionHp: 'Healing potion', potionMp: 'Mana potion', skill: 'Class skill', character: 'Character', inventory: 'Inventory', map: 'Map', fullscreen: 'Fullscreen' };
+  var stillHeld = false;
   var keys = Object.assign({}, DEFAULT_KEYS), capturing = null, paused = false, settingsFrom = 'title';
   try { var savedKeys = JSON.parse(localStorage.getItem('ashgrave.keys') || 'null'); if (savedKeys) Object.keys(DEFAULT_KEYS).forEach(function (a) { if (typeof savedKeys[a] === 'string') keys[a] = savedKeys[a]; }); } catch (e) { }
   function saveKeys() { try { localStorage.setItem('ashgrave.keys', JSON.stringify(keys)); } catch (e) { } }
@@ -553,6 +559,7 @@
       return;
     }
     var k = e.key.toLowerCase();
+    if (k === keys.still && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) { stillHeld = true; if (running) e.preventDefault(); return; }
     if (k === 'escape') { e.preventDefault(); handleEscape(); return; }
     if (!running || !$('menu').hidden || !$('settings').hidden) return;
     if (k === keys.map) { e.preventDefault(); mapOpen = !mapOpen; return; }
