@@ -118,7 +118,7 @@
     </div>
     </details>
     <label class="fs-pref"><input type="checkbox" id="fsPref"> Start games in fullscreen</label>
-    <div class="tools"><button class="tb" id="bImport">Import character</button><button class="tb" id="tKeys">Key bindings</button></div>
+    <div class="tools"><button class="tb" id="bImport">Import character</button><button class="tb" id="tKeys">Settings</button></div>
   </div>
 </div>
 
@@ -127,11 +127,17 @@
 
 <div class="overlay" id="menu" hidden><div class="card menu-card">
   <h2 class="mh">Ashgrave</h2>
-  <div class="btns"><button class="big" id="mResume">Resume</button><button class="big ghost" id="mSettings">Key bindings</button><button class="big ghost" id="mQuit">Save and quit to main menu</button></div>
+  <div class="btns"><button class="big" id="mResume">Resume</button><button class="big ghost" id="mSettings">Settings</button><button class="big ghost" id="mQuit">Save and quit to main menu</button></div>
   <p class="hint" id="menuNote"></p>
 </div></div>
 <div class="overlay" id="settings" hidden><div class="card menu-card">
-  <h2 class="mh">Key bindings</h2>
+  <h2 class="mh">Settings</h2>
+  <h3 class="sh">Sound</h3>
+  <div class="vols">
+    <label>Music<input type="range" id="volMusic" min="0" max="100" step="1" aria-label="Music volume"></label>
+    <label>Effects<input type="range" id="volSfx" min="0" max="100" step="1" aria-label="Effects volume"></label>
+  </div>
+  <h3 class="sh">Key bindings</h3>
   <p class="hint">Click an action, then press the key you want. Pressing a key that is already used swaps the two.</p>
   <div class="binds" id="bindList"></div>
   <div class="btns"><button class="big ghost" id="bindReset">Reset to defaults</button><button class="big" id="bindBack">Done</button></div>

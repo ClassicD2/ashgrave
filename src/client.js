@@ -73,13 +73,22 @@
   }
 
   // ---------- Audio (synthesized, no files) ----------
-  var AC = null, master = null, noiseBuf = null, lastSfx = {}, muted = false;
-  try { muted = localStorage.getItem('ashgrave.mute') === '1'; } catch (e) { }
+  var AC = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null, lastSfx = {}, muted = false;
+  var musicVol = 0.5, sfxVol = 1;
+  try {
+    muted = localStorage.getItem('ashgrave.mute') === '1';
+    var mv0 = localStorage.getItem('ashgrave.vol.music'), sv0 = localStorage.getItem('ashgrave.vol.sfx');
+    if (mv0 !== null && !isNaN(+mv0)) musicVol = +mv0; if (sv0 !== null && !isNaN(+sv0)) sfxVol = +sv0;
+  } catch (e) { }
   function ensureAudio() {
     if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
-      master = AC.createGain(); master.gain.value = 0.45; master.connect(AC.destination);
+      master = AC.createGain(); master.gain.value = muted ? 0 : 0.45; master.connect(AC.destination);
+      sfxBus = AC.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master);
+      // music is built quiet (many soft layers), so it gets a fixed boost before the volume slider
+      var musicTrim = AC.createGain(); musicTrim.gain.value = 4; musicTrim.connect(master);
+      musicBus = AC.createGain(); musicBus.gain.value = musicVol; musicBus.connect(musicTrim);
       noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
       var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     } catch (e) { AC = null; }
@@ -91,12 +100,12 @@
   function noise(dur, type, freq, q, vol, delay) {
     var t0 = AC.currentTime + (delay || 0), s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
     s.buffer = noiseBuf; f.type = type; f.frequency.value = freq; f.Q.value = q; env(g, t0, vol, dur);
-    s.connect(f); f.connect(g); g.connect(master); s.start(t0, Math.random() * 0.5); s.stop(t0 + dur + 0.02);
+    s.connect(f); f.connect(g); g.connect(sfxBus); s.start(t0, Math.random() * 0.5); s.stop(t0 + dur + 0.02);
   }
   function tone(type, f0, f1, dur, vol, delay) {
     var t0 = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
     o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur);
-    env(g, t0, vol, dur); o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + 0.02);
+    env(g, t0, vol, dur); o.connect(g); g.connect(sfxBus); o.start(t0); o.stop(t0 + dur + 0.02);
   }
   var SFX = {
     swing: function () { noise(0.09, 'bandpass', 900, 1.2, 0.28); },
@@ -125,6 +134,149 @@
     if (!AC || muted) return;
     var now = performance.now(); if (lastSfx[n] && now - lastSfx[n] < 45) return; lastSfx[n] = now;
     try { SFX[n](); } catch (e) { }
+  }
+
+  // ---------- Music (synthesized, no files) ----------
+  // Each place has its own mood, built from drones, noise and sparse notes: the fields wind and a lone
+  // melody, the crypts low drones and dripping water, the Burning Deep a rumble and struck metal.
+  // Drums come in on top while a boss is in sight.
+  var MUS = { scene: null, cur: null, boss: null, bossSeen: -99, verb: null };
+  var SCALE = [293.66, 329.63, 349.23, 392, 440, 466.16, 523.25, 587.33];   // D minor, D4..D5
+  function musicReverb() {
+    if (MUS.verb) return MUS.verb;
+    var len = Math.floor(AC.sampleRate * 3.2), b = AC.createBuffer(2, len, AC.sampleRate);
+    for (var c = 0; c < 2; c++) { var d = b.getChannelData(c); for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    var cv2 = AC.createConvolver(); cv2.buffer = b; cv2.connect(musicBus); MUS.verb = cv2; return cv2;
+  }
+  // a longer noise loop than the effects use, so wind and rumble never repeat audibly
+  function musicNoise() {
+    if (MUS.noise) return MUS.noise;
+    var len = AC.sampleRate * 6, fade = Math.floor(AC.sampleRate * 0.25), raw = new Float32Array(len + fade), last = 0;
+    for (var i = 0; i < raw.length; i++) { last = last * 0.6 + (Math.random() * 2 - 1) * 0.4; raw[i] = last * 1.6; }
+    var b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
+    for (var j = 0; j < len; j++) d[j] = raw[j];
+    // the tail beyond the loop is blended into the start, so the seam is seamless
+    for (var k = 0; k < fade; k++) { var w = k / fade; d[k] = raw[k] * w + raw[len + k] * (1 - w); }
+    MUS.noise = b; return b;
+  }
+  function musicLayer(send) {
+    var L = { out: AC.createGain(), srcs: [], timers: [], alive: true };
+    L.out.gain.value = 0.0001; L.out.connect(musicBus);
+    var rs = AC.createGain(); rs.gain.value = send; L.out.connect(rs); rs.connect(musicReverb());
+    L.fade = function (to, sec) { var t = AC.currentTime; L.out.gain.cancelScheduledValues(t); L.out.gain.setValueAtTime(Math.max(0.0001, L.out.gain.value), t); L.out.gain.exponentialRampToValueAtTime(Math.max(0.0001, to), t + sec); };
+    L.stop = function (sec) {
+      L.alive = false; L.fade(0.0001, sec);
+      setTimeout(function () { L.timers.forEach(clearTimeout); L.srcs.forEach(function (n) { try { n.stop(); } catch (e) { } }); try { L.out.disconnect(); } catch (e) { } }, sec * 1000 + 200);
+    };
+    // a held tone through a slowly breathing low-pass filter
+    L.drone = function (type, f, vol, cut, detune) {
+      var o = AC.createOscillator(), fl = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain();
+      o.type = type; o.frequency.value = f; o.detune.value = detune || 0; fl.type = 'lowpass'; fl.frequency.value = cut; g.gain.value = vol;
+      lfo.frequency.value = 0.04 + Math.random() * 0.04; lg.gain.value = cut * 0.45; lfo.connect(lg); lg.connect(fl.frequency);
+      o.connect(fl); fl.connect(g); g.connect(L.out); o.start(); lfo.start(); L.srcs.push(o, lfo);
+    };
+    // filtered noise (wind, rumble) that swells and fades
+    L.bed = function (type, f, q, vol, sweep, rate) {
+      var n = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain(), lfo2 = AC.createOscillator(), lg2 = AC.createGain();
+      n.buffer = musicNoise(); n.loop = true; fl.type = type; fl.frequency.value = f; fl.Q.value = q; g.gain.value = vol;
+      lfo.frequency.value = rate; lg.gain.value = sweep; lfo.connect(lg); lg.connect(fl.frequency);
+      lfo2.frequency.value = rate * 1.7; lg2.gain.value = vol * 0.6; lfo2.connect(lg2); lg2.connect(g.gain);
+      n.connect(fl); fl.connect(g); g.connect(L.out); n.start(); lfo.start(); lfo2.start(); L.srcs.push(n, lfo, lfo2);
+    };
+    L.note = function (type, f, t, dur, vol, att, f1) {
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + Math.min(dur, 0.08));
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (att || 0.01)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(L.out); o.start(t); o.stop(t + dur + 0.05);
+    };
+    L.every = function (min, max, fn) {
+      (function next() {
+        if (!L.alive) return;
+        L.timers.push(setTimeout(function () { if (!L.alive) return; if (!muted && !document.hidden) { try { fn(AC.currentTime + 0.05); } catch (e) { } } next(); }, (min + Math.random() * (max - min)) * 1000));
+      })();
+    };
+    return L;
+  }
+  var SCENES = {
+    fields: function () {
+      var L = musicLayer(0.55);
+      L.bed('bandpass', 520, 0.7, 0.07, 320, 0.07);                       // wind
+      L.drone('sine', 73.42, 0.022, 400); L.drone('sine', 110, 0.016, 400);  // a faint open fifth
+      L.every(4, 9, function (t) {                                         // the lone melody
+        var i = Math.floor(Math.random() * 5), n = 3 + Math.floor(Math.random() * 4);
+        for (var k = 0; k < n; k++) {
+          var d = 0.5 + Math.random() * 0.6;
+          L.note('triangle', SCALE[i], t, d * 1.8, 0.05, 0.07); t += d;
+          i = Math.max(0, Math.min(SCALE.length - 1, i + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
+        }
+      });
+      return L;
+    },
+    crypt: function () {
+      var L = musicLayer(0.7);
+      L.drone('sawtooth', 36.71, 0.05, 190, -5); L.drone('sawtooth', 36.71, 0.05, 190, 5); L.drone('sine', 73.42, 0.03, 300);
+      L.every(14, 26, function (t) {                                       // a slow, uneasy swell
+        var f = [77.78, 103.83, 110][Math.floor(Math.random() * 3)];
+        L.note('sine', f, t, 7, 0.025, 3);
+      });
+      L.every(0.8, 4, function (t) {                                       // dripping water
+        var f = 1300 + Math.random() * 900; L.note('sine', f, t, 0.14, 0.035, 0.002, f * 0.55);
+      });
+      return L;
+    },
+    deep: function () {
+      var L = musicLayer(0.6);
+      L.bed('lowpass', 95, 0.5, 0.2, 40, 0.09);                            // the rumble
+      L.drone('square', 32.7, 0.03, 120);
+      L.every(3, 8, function (t) {                                         // struck metal, sometimes twice
+        var base = 110 + Math.random() * 110, hits = Math.random() < 0.3 ? 2 : 1;
+        for (var h = 0; h < hits; h++) [1, 2.76, 5.4, 8.93].forEach(function (r, i) { L.note('sine', base * r, t + h * 0.42, 2.6 / (1 + i * 0.5), 0.035 / (1 + i), 0.002); });
+      });
+      return L;
+    },
+    // Boss drums: a slow, heavy pattern scheduled ahead on the audio clock.
+    boss: function () {
+      var L = musicLayer(0.35), step = 60 / 84 / 2, nextT = AC.currentTime + 0.1, i = 0;
+      var PAT = ['K', '', 'T', 'K', 'K', '', 'T', 'L'];
+      function kick(t) { L.note('sine', 72, t, 0.45, 0.32, 0.003, 38); }
+      function tom(t, f) { L.note('sine', f, t, 0.3, 0.17, 0.003, f * 0.62); }
+      (function sched() {
+        if (!L.alive) return;
+        while (nextT < AC.currentTime + 0.25) {
+          var x = PAT[i % 8];
+          if (!muted) { if (x === 'K') kick(nextT); else if (x === 'T') tom(nextT, 140); else if (x === 'L') tom(nextT, 96); if (i % 16 === 0) L.note('sawtooth', 36.71, nextT, step * 15, 0.03, 0.4); }
+          nextT += step; i++;
+        }
+        L.timers.push(setTimeout(sched, 60));
+      })();
+      return L;
+    }
+  };
+  function musicScene() {
+    if (!S || !running) return 'crypt';
+    if (S.trial) return 'crypt';
+    var th = S.map && S.map.theme;
+    return th === 'forest' ? 'fields' : th === 'monastery' ? 'deep' : 'crypt';
+  }
+  // Called every frame: crossfades to the place's mood, brings the drums in while a boss is near.
+  function musicTick(bossInSight) {
+    if (!AC || !musicBus) return;
+    var sc = musicScene();
+    if (sc !== MUS.scene) {
+      if (MUS.cur) MUS.cur.stop(2.5);
+      MUS.scene = sc; MUS.cur = SCENES[sc](); MUS.cur.fade(1, 3);
+    }
+    var now = AC.currentTime;
+    if (bossInSight) MUS.bossSeen = now;
+    var want = now - MUS.bossSeen < 3;
+    if (want && !MUS.boss) { MUS.boss = SCENES.boss(); MUS.boss.fade(1, 1.2); }
+    else if (!want && MUS.boss) { MUS.boss.stop(3); MUS.boss = null; }
+  }
+  function setVolume(kind, v) {
+    v = Math.max(0, Math.min(1, v));
+    if (kind === 'music') { musicVol = v; if (musicBus) musicBus.gain.setTargetAtTime(v, AC.currentTime, 0.05); }
+    else { sfxVol = v; if (sfxBus) sfxBus.gain.setTargetAtTime(v, AC.currentTime, 0.05); }
+    try { localStorage.setItem('ashgrave.vol.' + kind, String(v)); } catch (e) { }
   }
 
   // ---------- Isometry ----------
@@ -263,7 +415,9 @@
       return '<div class="bind"><span>' + KEY_LABELS[a] + '</span><button class="tb" data-rebind="' + a + '">' + (capturing === a ? 'Press a key…' : keyName(keys[a])) + '</button></div>';
     }).join('');
   }
-  function openSettings(from) { settingsFrom = from; capturing = null; renderBinds(); $('settings').hidden = false; $('menu').hidden = true; }
+  function openSettings(from) { settingsFrom = from; capturing = null; renderBinds(); $('volMusic').value = Math.round(musicVol * 100); $('volSfx').value = Math.round(sfxVol * 100); $('settings').hidden = false; $('menu').hidden = true; }
+  $('volMusic').addEventListener('input', function () { ensureAudio(); setVolume('music', this.value / 100); });
+  $('volSfx').addEventListener('input', function () { ensureAudio(); setVolume('sfx', this.value / 100); sfx('pick'); });
   function closeSettings() { capturing = null; $('settings').hidden = true; if (settingsFrom === 'menu') $('menu').hidden = false; }
   document.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-rebind]') : null; if (!b) return;
@@ -1721,6 +1875,7 @@
     var tm = hm && !mouse.touch ? hm : (p.order && p.order.t === 'attack' ? S.monsters.filter(function (m) { return m.id === p.order.id; })[0] : null);
     var bossNear = null;
     S.monsters.forEach(function (m) { if (m.boss && Math.hypot(m.x - p.x, m.y - p.y) < p.st.light + 4) bossNear = m; });
+    musicBossNear = !!bossNear;
     if (bossNear) {
       $('bossBar').hidden = false; $('bossBar').classList.toggle('true', bossNear.boss === 'true' || bossNear.boss === 'trial');
       setTxt('bbName', bossNear.name); setTxt('bbTraits', (bossNear.traits || []).join(' · ')); setW('bbFill', bossNear.hp / bossNear.max);
@@ -1798,7 +1953,7 @@
   $('bPotMp').addEventListener('click', function () { ensureAudio(); cmd({ t: 'potion', kind: 'mp' }); });
   $('bSkill').addEventListener('click', function () { ensureAudio(); castSkillAuto(); });
   function sndLabel() { $('bSnd').textContent = muted ? 'Sound off' : 'Sound on'; $('bSnd').setAttribute('aria-pressed', muted ? 'false' : 'true'); }
-  $('bSnd').addEventListener('click', function () { muted = !muted; try { localStorage.setItem('ashgrave.mute', muted ? '1' : '0'); } catch (e) { } sndLabel(); ensureAudio(); });
+  $('bSnd').addEventListener('click', function () { muted = !muted; try { localStorage.setItem('ashgrave.mute', muted ? '1' : '0'); } catch (e) { } sndLabel(); ensureAudio(); if (master) master.gain.setTargetAtTime(muted ? 0 : 0.45, AC.currentTime, 0.05); });
   sndLabel();
 
   var ICON = {
@@ -2618,6 +2773,7 @@
     }
     if (acc > TICK) acc = 0;
   }
+  var musicBossNear = false;
   function frame(now) {
     requestAnimationFrame(frame);
     var dt = Math.min(0.1, (now - last) / 1000); last = now;
@@ -2628,12 +2784,14 @@
     }
     updateFx(dt);
     render();
+    musicBossNear = false;
     if (S && running) updateHud();
+    musicTick(musicBossNear);
   }
   document.addEventListener('visibilitychange', function () { if (document.hidden) writeSave(); });
 
   // Console debugging: __ashgrave.S is the engine state
-  window.__ashgrave = { get S() { return S; }, props: function () { return propMap; }, cmd: cmd, pid: function () { return PID; } };
+  window.__ashgrave = { get S() { return S; }, props: function () { return propMap; }, cmd: cmd, pid: function () { return PID; }, audio: function () { ensureAudio(); return { AC: AC, master: master, mus: MUS }; } };
 
   function boot(data) {
     document.body.classList.add('at-title');

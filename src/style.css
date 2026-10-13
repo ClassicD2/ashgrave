@@ -357,3 +357,12 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
 .gift.keystone b { color: #e7c98a; }
 .gift.locked { opacity: .55; }
 .gift.locked em { color: #a08c7a; }
+
+/* Settings: sound */
+.menu-card .sh { margin: 14px 0 4px; font-family: var(--font-display); font-weight: 400; font-size: 18px; letter-spacing: .04em; color: var(--bone); text-align: left; }
+.vols { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.vols label { display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 10px; text-align: left; font-size: 14px; }
+.vols input[type=range] { width: 100%; accent-color: #b8432c; }
+
+/* Settings can open over the title screen: keep what is behind it out of sight */
+#settings { background: radial-gradient(ellipse at 50% 40%, rgba(40,22,12,.97), rgba(8,6,5,.99) 65%); }
