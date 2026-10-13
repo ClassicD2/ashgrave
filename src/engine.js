@@ -1307,8 +1307,8 @@ var Engine = (function () {
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
     emit(S, { t: 'shoot', pid: p.id, multi: true, draw: draw || 0 });
   }
-  // Bosses of every kind (mini bosses, the Gravewarden, the Judge, the Abbot) ignore crowd control:
-  // no knockback, pull, stun or loss of target. Champions (blue) are not bosses and are affected.
+  // Bosses of every kind (mini bosses, the Gravewarden, the Judge, the Abbot, the King) ignore crowd control:
+  // no knockback, pull, stun, slow or loss of target. Champions (blue) are not bosses and are affected.
   function ccImmune(m) { return !!m.boss || !!m.under; }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
@@ -1796,7 +1796,8 @@ var Engine = (function () {
       moveEntity(S, m, dx / d * s, dy / d * s); m.face = Math.atan2(dy, dx); m.moving = true;
     } else { pathTo(S, m, p.x, p.y, dt, 700); followPath(S, m, mSpeed(S, m), dt); }
   }
-  function mSpeed(S, m) { return m.speed * (m.slowUntil > S.time ? 1 - (m.slowPct || 0) : 1); }
+  // Bosses are never slowed either (like stuns and pulls, see ccImmune).
+  function mSpeed(S, m) { return m.speed * (m.slowUntil > S.time && !ccImmune(m) ? 1 - (m.slowPct || 0) : 1); }
   function wake(S, m) {
     if (m.state === 'hunt') return;
     m.state = 'hunt';
@@ -1865,8 +1866,8 @@ var Engine = (function () {
     return total;
   }
   // A boss's own weapon for this difficulty, for the class of someone in the game (solo: always your own).
-  function bossWeapon(S, kind, ilvl) {
-    var cls = Object.keys(S.players).map(function (id) { return S.players[id].cls; });
+  function bossWeapon(S, kind, ilvl, forCls) {
+    var cls = forCls ? [forCls] : Object.keys(S.players).map(function (id) { return S.players[id].cls; });
     var pool = D.uniques.filter(function (u) { return u.drop === kind && u.diffs.indexOf(S.difficulty) >= 0 && cls.indexOf(u.cls) >= 0; });
     return pool.length ? genUnique(S, ilvl, pick(S.rng, pool).id) : null;
   }
@@ -1937,7 +1938,17 @@ var Engine = (function () {
       if (S.ossuary) S.ossuary.done = true;
       emit(S, { t: 'wardenDown', kind: m.boss, name: m.name });
       var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib;
-      if (rnd(r) < WR.unique) { n--; s = spot(); var uw = bossWeapon(S, m.boss, ilw) || genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
+      // First kill per character and difficulty: that hero's own weapon is guaranteed (when this boss has one here).
+      var firsts = 0;
+      for (var fid in S.players) {
+        var fq = S.players[fid], fpr = fq.progress[S.difficulty], fk = fpr.firstKills || (fpr.firstKills = {});
+        if (fq.dead || fk[m.boss]) continue;
+        var fw = bossWeapon(S, m.boss, ilw, fq.cls); if (!fw) continue;
+        fk[m.boss] = true; fq.ver++; firsts++; s = spot();
+        S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: fw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] });
+        emit(S, { t: 'msg', pid: fid, text: 'First victory over ' + m.name + ': a weapon made for you.' });
+      }
+      if (!firsts && rnd(r) < WR.unique) { n--; s = spot(); var uw = bossWeapon(S, m.boss, ilw) || genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
       for (var gw = 0; gw < 3; gw++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, WR.gold[0], WR.gold[1]) * S.depth }); }
     }
     if (m.boss === 'true') { n = 4; minR = 2; ib = 4; }
