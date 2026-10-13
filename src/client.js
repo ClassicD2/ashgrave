@@ -449,7 +449,7 @@
     var nh = npcAt(e.clientX, e.clientY);
     if (nh) { mouse.held = 'none'; cmd({ t: 'talk', id: nh.id }); return; }
     var m = monsterAt(e.clientX, e.clientY);
-    if (stillHeld || (keys.still === 'shift' && e.shiftKey)) { mouse.held = 'shoot'; cmd({ t: 'shoot', x: m ? m.x : w.x, y: m ? m.y : w.y }); return; }
+    if (e.shiftKey || stillHeld || spaceHeld) { mouse.held = 'shoot'; cmd({ t: 'shoot', x: m ? m.x : w.x, y: m ? m.y : w.y }); return; }
     if (m) { mouse.held = 'attack'; cmd({ t: 'attack', id: m.id }); return; }
     if (E.tileAt(S.map, w.x, w.y) === 2) { mouse.held = 'none'; cmd({ t: 'stairs' }); return; }
     mouse.held = 'move'; cmd({ t: 'move', x: w.x, y: w.y });
@@ -475,8 +475,8 @@
   }
   cv.addEventListener('mousedown', rightDown);
   window.addEventListener('mouseup', function (e) { if (e.button === 2 && drawing === 'mouse') releaseDraw(); });
-  window.addEventListener('keyup', function (e) { if (e.key.toLowerCase() === keys.still) stillHeld = false; if (drawing === 'key' && e.key.toLowerCase() === keys.skill) releaseDraw(); });
-  window.addEventListener('blur', function () { stillHeld = false; if (drawing) releaseDraw(); });
+  window.addEventListener('keyup', function (e) { var ku = e.key.toLowerCase(); if (ku === keys.still) stillHeld = false; if (ku === ' ') spaceHeld = false; if (drawing === 'key' && e.key.toLowerCase() === keys.skill) releaseDraw(); });
+  window.addEventListener('blur', function () { stillHeld = false; spaceHeld = false; if (drawing) releaseDraw(); });
   // No browser menu anywhere over the game while playing (text fields keep theirs)
   document.addEventListener('contextmenu', function (e) { if (running && !/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) e.preventDefault(); });
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
@@ -493,14 +493,14 @@
   }
 
   // ---------- Key bindings ----------
-  // Firefox always opens its own menu on Shift + right-click, whatever the page does, so there
-  // "attack in place" defaults to Space instead of Shift.
-  var FIREFOX = /firefox/i.test(navigator.userAgent || '');
-  var DEFAULT_KEYS = { still: FIREFOX ? ' ' : 'shift', potionHp: '1', potionMp: '2', skill: 'q', character: 'c', inventory: 'i', map: 'tab', fullscreen: 'f' };
+  // Attack in place: Shift (or the key bound here), and Space always works too. Firefox opens its own
+  // menu on Shift + right-click whatever the page does, so Space is the way to use the skill standing still there.
+  var DEFAULT_KEYS = { still: 'shift', potionHp: '1', potionMp: '2', skill: 'q', character: 'c', inventory: 'i', map: 'tab', fullscreen: 'f' };
   var KEY_LABELS = { still: 'Attack in place (hold)', potionHp: 'Healing potion', potionMp: 'Mana potion', skill: 'Class skill', character: 'Character', inventory: 'Inventory', map: 'Map', fullscreen: 'Fullscreen' };
-  var stillHeld = false;
+  var stillHeld = false, spaceHeld = false;
   var keys = Object.assign({}, DEFAULT_KEYS), capturing = null, paused = false, settingsFrom = 'title';
   try { var savedKeys = JSON.parse(localStorage.getItem('ashgrave.keys') || 'null'); if (savedKeys) Object.keys(DEFAULT_KEYS).forEach(function (a) { if (typeof savedKeys[a] === 'string') keys[a] = savedKeys[a]; }); } catch (e) { }
+  if (keys.still === ' ') keys.still = 'shift';   // an earlier build set Space here in Firefox; Space now works anyway
   function saveKeys() { try { localStorage.setItem('ashgrave.keys', JSON.stringify(keys)); } catch (e) { } }
   function keyName(k) { return k === ' ' ? 'Space' : k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1); }
   function refreshKeyLabels() {
@@ -559,7 +559,7 @@
       return;
     }
     var k = e.key.toLowerCase();
-    if (k === keys.still && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) { stillHeld = true; if (running) e.preventDefault(); return; }
+    if ((k === keys.still || k === ' ') && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) { if (k === ' ') spaceHeld = true; else stillHeld = true; if (running) e.preventDefault(); return; }
     if (k === 'escape') { e.preventDefault(); handleEscape(); return; }
     if (!running || !$('menu').hidden || !$('settings').hidden) return;
     if (k === keys.map) { e.preventDefault(); mapOpen = !mapOpen; return; }
