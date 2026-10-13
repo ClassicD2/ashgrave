@@ -560,7 +560,7 @@ var Engine = (function () {
       sparkSpeed: (m.sparkSpeed || 0) / 100, prism: !!m.prism, blinkRange: m.blinkRange || 0, novaShield: (m.novaShield || 0) / 100, decayDur: m.decayDur || 0,
       decayKillMana: (m.decayKillMana || 0) / 100, ward: (m.ward || 0) / 100, echoEvery: m.echoEvery || 0,
       cleaveBlades: m.cleaveBlades || 0, mantleEvery: m.mantleEvery || 0, novaBlades: m.novaBlades || 0,
-      boneWard: !!m.boneWard, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
+      boneWard: (m.boneWard || 0) / 100, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
       leechRaw: m.leech || 0,
       speed: 4.2 * (1 + (m.run || 0) / 100),
       light: 6 + (m.light || 0) + (core.light || 0),
@@ -1295,7 +1295,10 @@ var Engine = (function () {
       hurtMonster(S, m, h.dmg, h.light, p, 'melee', h.dark);
       if (p.ascendancy === 'reaver' && !m.dead && m.rend && m.rend.length) ripOpen(S, m, p);
     });
-    if (p.st.cleaveBlades) playerBlades(S, p, p.x, p.y, [a - 0.3, a, a + 0.3], 0.4, 1);   // Kingsfall
+    if (p.st.cleaveBlades) {   // Kingsfall, Crownbreaker: a fan of blades forward
+      var cb = p.st.cleaveBlades, ca = []; for (var ci = 0; ci < cb; ci++) ca.push(a + (ci - (cb - 1) / 2) * 0.25);
+      playerBlades(S, p, p.x, p.y, ca, 0.4, 1);
+    }
   }
 
   function castMultishot(S, p, tx, ty, draw) {
@@ -1840,7 +1843,7 @@ var Engine = (function () {
     if (p.st.dodge && rnd(S.rng) < p.st.dodge) { emit(S, { t: 'dodge', pid: p.id, x: p.x, y: p.y }); return; }
     if (src && src.decay && src.decay.end > S.time) { var wk = S.players[src.decay.by]; if (wk && coreOf(wk).decay) raw *= 1 - (coreOf(wk).decay.weaken || 0); }
     var armor = p.st.armor;
-    var bw = p.bwT > S.time ? (p.bwN || 0) * 0.04 : 0;   // Marrowcleaver's Bone Ward
+    var bw = p.bwT > S.time ? (p.bwN || 0) * (p.st.boneWard || 0) : 0;   // Bone Ward (Gravewarden's axes)
     var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0)) * (1 - (p.st.dr || 0)) * (1 - bw)));
     if (p.shield > 0) { var ab = Math.min(p.shield, dmg); p.shield -= ab; dmg -= ab; if (p.shield <= 0) p.shield = 0; p.ver++; if (dmg <= 0) { emit(S, { t: 'absorb', pid: p.id, x: p.x, y: p.y }); return; } }
     var ward = classOf(p).ward ? classOf(p).ward + (p.st.ward || 0) : 0;

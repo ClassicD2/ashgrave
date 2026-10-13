@@ -255,7 +255,7 @@ var DATA = {
     // Boss weapons: never rolled at random, only dropped by their boss (drop: boss kind, diffs: difficulties).
     // These are the Normal versions, made for a character around level 11.
     { id: 'marrowcleaver', name: 'Marrowcleaver', base: 'war_axe', cls: 'warrior', drop: 'warden', diffs: ['normal'],
-      mods: { dmgPct: [70, 90], str: [6, 10], life: [15, 25], boneWard: 1 },
+      mods: { dmgPct: [70, 90], str: [6, 10], life: [15, 25], boneWard: 4 },
       fx: ['Kills grant Bone Ward: you take 4% less damage per stack, up to 5 stacks, for 6s'] },
     { id: 'ossuary_string', name: 'Ossuary String', base: 'composite_bow', cls: 'archer', drop: 'warden', diffs: ['normal'],
       mods: { dmgPct: [60, 80], dex: [6, 10], pierce: 1, boneShards: 3 },
@@ -273,7 +273,36 @@ var DATA = {
       fx: ['Every 4th arrow is a spinning mantle blade that passes through every enemy'] },
     { id: 'hollow_court', name: 'Scepter of the Hollow Court', base: 'grave_staff', dmg: [15, 33], cls: 'mage', drop: 'king', diffs: ['nightmare'],
       mods: { dmgPct: [70, 90], ene: [12, 18], darkMin: [6, 9], darkMax: [11, 16], novaBlades: 8 },
-      fx: ['Nova hurls 8 rusted blades outward, each dealing 35% of your hit'] }
+      fx: ['Nova hurls 8 rusted blades outward, each dealing 35% of your hit'] },
+    // The Gravewarden on Nightmare (for a character around level 24) and Hell (around level 38).
+    { id: 'ossuary_reaver', name: 'Ossuary Reaver', base: 'battle_axe', dmg: [16, 34], cls: 'warrior', drop: 'warden', diffs: ['nightmare'],
+      mods: { dmgPct: [80, 100], str: [12, 18], life: [35, 50], boneWard: 5 },
+      fx: ['Kills grant Bone Ward: you take 5% less damage per stack, up to 5 stacks, for 6s'] },
+    { id: 'marrowstring', name: 'Marrowstring', base: 'ashwood_bow', dmg: [15, 33], cls: 'archer', drop: 'warden', diffs: ['nightmare'],
+      mods: { dmgPct: [70, 90], dex: [12, 18], pierce: 1, boneShards: 5 },
+      fx: ['Arrows pierce 1 more enemy', 'Arrows that kill burst into 5 bone shards dealing 50% damage'] },
+    { id: 'ossuary_crook', name: 'Crook of the Ossuary', base: 'grave_staff', dmg: [14, 31], cls: 'mage', drop: 'warden', diffs: ['nightmare'],
+      mods: { dmgPct: [70, 90], ene: [15, 22], mana: [30, 45], killMana: 4, novaCost: 3 },
+      fx: ['Each kill restores 4% of your mana', 'Nova costs 3% less of your mana'] },
+    { id: 'gravelords_cleaver', name: "Gravelord's Cleaver", base: 'battle_axe', dmg: [26, 52], cls: 'warrior', drop: 'warden', diffs: ['hell'],
+      mods: { dmgPct: [100, 130], str: [18, 25], life: [50, 70], boneWard: 6 },
+      fx: ['Kills grant Bone Ward: you take 6% less damage per stack, up to 5 stacks, for 6s'] },
+    { id: 'bonechoir', name: 'Bonechoir', base: 'grave_bow', dmg: [22, 48], cls: 'archer', drop: 'warden', diffs: ['hell'],
+      mods: { dmgPct: [90, 120], dex: [18, 25], pierce: 2, boneShards: 5 },
+      fx: ['Arrows pierce 2 more enemies', 'Arrows that kill burst into 5 bone shards dealing 50% damage'] },
+    { id: 'last_rite', name: "Warden's Last Rite", base: 'obsidian_staff', dmg: [21, 46], cls: 'mage', drop: 'warden', diffs: ['hell'],
+      mods: { dmgPct: [90, 120], ene: [22, 30], mana: [45, 60], killMana: 5, novaCost: 3 },
+      fx: ['Each kill restores 5% of your mana', 'Nova costs 3% less of your mana'] },
+    // The Hollowed King on Hell (for a character around level 41).
+    { id: 'crownbreaker', name: 'Crownbreaker', base: 'executioner_sword', dmg: [29, 58], cls: 'warrior', drop: 'king', diffs: ['hell'],
+      mods: { dmgPct: [110, 140], str: [20, 28], life: [55, 75], cleaveBlades: 5 },
+      fx: ['Cleave hurls 5 rusted blades forward, each dealing 40% of your hit'] },
+    { id: 'regicide', name: 'Regicide', base: 'ember_longbow', dmg: [25, 54], cls: 'archer', drop: 'king', diffs: ['hell'],
+      mods: { dmgPct: [100, 130], dex: [20, 28], ias: 15, mantleEvery: 3 },
+      fx: ['Every 3rd arrow is a spinning mantle blade that passes through every enemy'] },
+    { id: 'fallen_throne', name: 'Scepter of the Fallen Throne', base: 'ember_staff', dmg: [24, 51], cls: 'mage', drop: 'king', diffs: ['hell'],
+      mods: { dmgPct: [100, 130], ene: [22, 30], darkMin: [12, 16], darkMax: [20, 28], novaBlades: 12 },
+      fx: ['Nova hurls 12 rusted blades outward, each dealing 35% of your hit'] }
   ],
 
   // wclass: which class can wield a weapon
