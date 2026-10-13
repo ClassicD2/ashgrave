@@ -2215,6 +2215,17 @@
   var MODE = 'solo', conns = [], pendingEv = [], lastSnap = 0, SNAP_MS = 66, snapAt = 0, peer = null, hostConn = null, roomCode = '', nextPid = 2;
   var LIB = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
   var ICE = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
+  // Relay (TURN) for networks that block a direct link. A free Metered.ca account gives the URL:
+  // https://<app>.metered.live/api/v1/turn/credentials?apiKey=<key>. Empty = direct links only.
+  var TURN_URL = '';
+  var turnLoaded = null;
+  function loadTurn() {
+    if (!TURN_URL || typeof fetch !== 'function') return Promise.resolve();
+    if (!turnLoaded) turnLoaded = fetch(TURN_URL).then(function (r) { return r.ok ? r.json() : []; }).then(function (list) {
+      if (Array.isArray(list) && list.length) ICE.config.iceServers = ICE.config.iceServers.concat(list);
+    }).catch(function () { });
+    return turnLoaded;
+  }
   var LOCAL = /[?&]transport=local/.test(location.search);
   var LITE = ['x', 'y', 'hp', 'mana', 'face', 'moving', 'anim', 'dead', 'respawn', 'cd', 'order', 'ver', 'level', 'xp', 'name', 'deadAt', 'chan', 'slowT', 'blN', 'blT', 'charge', 'zeal', 'rainCd', 'shield', 'shieldEnd', 'animK'];
 
@@ -2255,7 +2266,7 @@
   function prepare() {
     if (LOCAL) return Promise.resolve();
     if (!webrtcOk()) return Promise.reject(new Error('Co-op does not run in this preview. Download the game file and open it in Chrome, Edge or Firefox.'));
-    return loadPeerLib();
+    return loadPeerLib().then(loadTurn);
   }
 
   function charForNet() { var c = loadStore().slots[selSlot]; return c ? JSON.parse(JSON.stringify(c)) : null; }
@@ -2384,7 +2395,7 @@
     prepare().then(function () {
       roomCode = code;
       peer = newPeer();
-      var timer = setTimeout(function () { if (MODE !== 'client') { netStatus('Could not connect. Check the code, or a firewall may be blocking a direct link.', true); try { peer.destroy(); } catch (e) { } } }, 15000);
+      var timer = setTimeout(function () { if (MODE !== 'client') { netStatus('Could not connect. Check the room name and that the host has opened it. If it still fails, this network may block a direct link.', true); try { peer.destroy(); } catch (e) { } } }, 15000);
       peer.on('open', function () {
         hostConn = peer.connect('ashgrave-' + code, { reliable: true });
         hostConn.on('open', function () { hostConn.send({ t: 'hello', char: charForNet(), build: myBuild() }); });
