@@ -905,8 +905,8 @@
     ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, -22, 20, 26, 0, 0, 6.283); ctx.fill(); ctx.restore();
   }
   var ATK_TIME = { gnawer: 0.28, bonewalker: 0.45, ashpriest: 0.6, abbot: 0.5 };
-  // Light paths are drawn pale, almost white; dark paths almost black.
-  var SIDE_FILTER = { light: 'grayscale(0.7) brightness(1.75) contrast(0.8)', dark: 'grayscale(0.75) brightness(0.62) contrast(1.2)' };
+  // Light paths are drawn paler and warmer, dark paths darker and colder.
+  var SIDE_FILTER = { light: 'brightness(1.22) saturate(0.8) sepia(0.15)', dark: 'brightness(0.68) saturate(0.9) contrast(1.12) hue-rotate(-12deg)' };
   function drawPlayerSprite(p) {
     var asc = p.ascendancy && DATA.ascendancies[p.ascendancy], sf = asc && SIDE_FILTER[asc.side];
     if (!sf) return drawPlayerSprite1(p);
