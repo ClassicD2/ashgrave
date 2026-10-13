@@ -167,8 +167,8 @@ var DATA = {
       name: 'Lightbinder', cls: 'mage', side: 'light', skill: 'nova',
       lore: 'Gathers the dark to her and holds it where her allies can reach it. Nova draws enemies in and shields the ones who stand with her.',
       core: { name: 'Radiant Ward',
-        desc: 'Nova draws enemies in toward you and stuns them for 0.6 seconds, and shields you and every ally within its ring for 12% of your life for 4 seconds. A shield can only be renewed every 6 seconds.',
-        pull: true, stun: 0.6, shield: { pct: 0.12, dur: 4, cooldown: 6 } },
+        desc: 'Nova draws enemies in toward you and stuns them for 0.6 seconds, and shields you and every ally within its ring for 12% of your life for 4 seconds. A shield can only be renewed every 6 seconds. Radiant Spark: each Spark strikes the same enemy again a moment later for 40% of the hit.',
+        pull: true, stun: 0.6, shield: { pct: 0.12, dur: 4, cooldown: 6 }, echo: { delay: 0.3, pct: 0.4 } },
       nodes: [
         { id: 'radiant_shield', name: 'Radiant Shield', max: 7, per: 10, desc: 'Nova shields absorb +{v}% more.' },
         { id: 'wide_nova', name: 'Wide Nova', max: 7, per: 5, desc: 'Nova reaches +{v}% further.' },
@@ -183,8 +183,8 @@ var DATA = {
       name: 'Voidcaller', cls: 'mage', side: 'dark', skill: 'nova',
       lore: 'Casts the world away and lets it rot at a distance. What dies in the Decay passes it on.',
       core: { name: 'Decay',
-        desc: 'Nova throws enemies back and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 15% less damage. When an enemy dies in Decay, it passes to an enemy nearby.',
-        decay: { pct: 0.6, dur: 4, spread: 4.5, weaken: 0.15 } },
+        desc: 'Nova throws enemies back and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 15% less damage. When an enemy dies in Decay, it passes to an enemy nearby. Void Spark: each Spark leaves a stack of rot dealing 45% of the hit as dark damage over 3 seconds, up to 5 stacks on one enemy.',
+        decay: { pct: 0.6, dur: 4, spread: 4.5, weaken: 0.15 }, voidSpark: { pct: 0.45, dur: 3, max: 5 } },
       nodes: [
         { id: 'virulence', name: 'Virulence', max: 7, per: 8, desc: 'Decay deals +{v}% damage.' },
         { id: 'lingering', name: 'Lingering Rot', max: 6, per: 0.5, desc: 'Decay lasts {v}s longer.' },

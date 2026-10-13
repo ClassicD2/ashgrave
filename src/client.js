@@ -747,6 +747,7 @@
           spray(e.x2, e.y2, 8, { colors: ['#ffffff', '#fff1b0', '#ffe08a'], speed: 1.2, up: 120, life: 0.4, size: 1.8, glow: true, grav: -10 }); break;
         case 'nova': novas.push({ x: e.x, y: e.y, r: e.r, pull: !!e.pull, crush: !!e.crush, side: e.side, t: 0 }); sfx('nova');
           spray(e.x, e.y, 18, { colors: e.side === 'dark' ? ['#2a1840', '#7a4ad0', '#b48cff'] : e.side === 'light' ? ['#ffffff', '#fff1b8', '#f0d06a'] : ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: e.pull ? -1.5 : 2.2, up: 60, life: 0.5, size: 2.2, glow: true, h: 16 }); break;
+        case 'echo': spray(e.x, e.y, 8, { colors: ['#ffffff', '#fff1b8', '#f0d06a'], speed: 1.2, up: 140, life: 0.35, glow: true, size: 2, h: 26 }); sfx('spark'); break;
         case 'crush': spray(e.x, e.y, 12, { colors: ['#2a1840', '#7a4ad0', '#5a5048'], speed: 1.6, up: 90, life: 0.5, size: 2.4 }); sfx('boom'); break;
         case 'pblink': spray(e.x0, e.y0, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); spray(e.x, e.y, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); break;
         case 'absorb': spray(e.x, e.y, 6, { colors: ['#fff1b0', '#ffe08a'], speed: 1, up: 80, life: 0.35, size: 2, glow: true, h: 22 }); break;

@@ -654,7 +654,7 @@ var Engine = (function () {
   function loadTrial(S) {
     var T = D.trial, r = S.rng;
     S.map = genTrial(S.seed);
-    S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.hazards = []; S.zones = []; S.seal = null; S.gateBoss = {};
+    S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.hazards = []; S.zones = []; S.echoes = []; S.seal = null; S.gateBoss = {};
     var types = T.chamberTypes.slice();
     for (var sh = types.length - 1; sh > 0; sh--) { var sj = Math.floor(rnd(r) * (sh + 1)), tmp = types[sh]; types[sh] = types[sj]; types[sj] = tmp; }
     T.chambers.forEach(function (ch, i) {
@@ -743,7 +743,7 @@ var Engine = (function () {
     S.map = genLevel(S.seed, depth, D.difficulties[S.difficulty].finalDepth);
     var DF = D.difficulties[S.difficulty];
     if (depth >= DF.finalDepth) applyFinal(S.map);
-    S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.zones = []; S.hazards = [];
+    S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.zones = []; S.hazards = []; S.echoes = [];
     spawnMonsters(S);
     S.seal = null;
     var B = D.bosses;
@@ -1403,6 +1403,29 @@ var Engine = (function () {
     var st = p.st, hit = (st.dmin + st.dmax + st.lmin + st.lmax) / 2 + (st.dkmin + st.dkmax) / 2;
     var dur = core.decay.dur + nodeVal(p, 'lingering') + (st.decayDur || 0), total = hit * core.decay.pct * (1 + nodeVal(p, 'virulence') / 100) * st.darkMul;
     m.decay = { dps: total / dur, end: S.time + dur, by: p.id, t: 0 };
+  }
+  // Radiant Spark echoes and Void Spark stacks
+  function updateSparkFx(S, dt) {
+    if (S.echoes && S.echoes.length) {
+      for (var i = S.echoes.length - 1; i >= 0; i--) {
+        var e = S.echoes[i]; if (S.time < e.at) continue;
+        S.echoes.splice(i, 1);
+        var m = null; for (var j = 0; j < S.monsters.length; j++) if (S.monsters[j].id === e.mid) { m = S.monsters[j]; break; }
+        if (!m || m.dead || m.under) continue;
+        emit(S, { t: 'echo', x: m.x, y: m.y });
+        hurtMonster(S, m, e.dmg, e.light, S.players[e.pid] || null, 'spark', e.dark);
+      }
+    }
+    S.monsters.slice().forEach(function (m) {
+      if (!m.vstk || !m.vstk.length) return;
+      m.vstk = m.vstk.filter(function (x) { return x.end > S.time; }); if (!m.vstk.length) return;
+      m.vsT += dt; if (m.vsT < 0.5) return;
+      var step = m.vsT, dps = 0, by = m.vstk[0].by; m.vsT = 0;
+      m.vstk.forEach(function (x) { dps += x.dps; });
+      var p = S.players[by] || null, rw = p && hasNode(p, 'rot_wave') ? nodeDef('rot_wave') : null;
+      var mul = rw && Math.hypot(m.x - p.x, m.y - p.y) > rw.dist ? 1 + rw.pct : 1;
+      m.byDecay = true; dealRaw(S, m, dps * step * mul, p, 'dark'); m.byDecay = false;
+    });
   }
   function updateDecay(S, dt) {
     S.monsters.slice().forEach(function (m) {
@@ -2093,6 +2116,19 @@ var Engine = (function () {
   }
   function sparkHit(S, pr, m) {
     var p = S.players[pr.owner]; if (!p) return;
+    var core = coreOf(p);
+    // Lightbinder, Radiant Spark: the same enemy is struck again a moment later
+    if (core.echo && !pr.small) {
+      (S.echoes || (S.echoes = [])).push({ at: S.time + core.echo.delay, mid: m.id, pid: p.id,
+        dmg: pr.dmg * core.echo.pct, light: (pr.light || 0) * core.echo.pct, dark: (pr.dark || 0) * core.echo.pct });
+    }
+    // Voidcaller, Void Spark: a stack of rot, up to three on one enemy
+    if (core.voidSpark && !m.dead) {
+      var VS = core.voidSpark, st = p.st, tot = (pr.dmg + (pr.light || 0) + (pr.dark || 0)) * VS.pct * (1 + nodeVal(p, 'virulence') / 100) * st.darkMul;
+      var stk = (m.vstk || (m.vstk = [])).filter(function (x) { return x.end > S.time; });
+      if (stk.length >= VS.max) stk.sort(function (a, b) { return a.end - b.end; }).shift();
+      stk.push({ dps: tot / VS.dur, end: S.time + VS.dur, by: p.id }); m.vstk = stk; m.vsT = m.vsT || 0;
+    }
     if (pr.prism) {
       var a = Math.atan2(pr.vy, pr.vx), sp = Math.hypot(pr.vx, pr.vy), k = 0.5;   // Starfall Rod
       [-0.6, 0.6].forEach(function (o) {
@@ -2130,7 +2166,7 @@ var Engine = (function () {
     updateProjectiles(S, dt);
     updateHazards(S, dt);
     updateZones(S, dt);
-    updateDecay(S, dt);
+    updateDecay(S, dt); updateSparkFx(S, dt);
   }
   // Holy ground from Consecrate: heals everyone standing on it.
   function updateZones(S, dt) {
