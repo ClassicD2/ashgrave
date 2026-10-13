@@ -192,6 +192,13 @@
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (att || 0.01)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g); g.connect(L.out); o.start(t); o.stop(t + dur + 0.05);
     };
+    // a short burst of filtered noise: the attack of a drum, a scrape
+    L.hit = function (t, f, dur, vol) {
+      var n = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain();
+      n.buffer = noiseBuf; fl.type = 'bandpass'; fl.frequency.value = f; fl.Q.value = 0.9;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      n.connect(fl); fl.connect(g); g.connect(L.out); n.start(t, Math.random() * 0.5); n.stop(t + dur + 0.05);
+    };
     L.every = function (min, max, fn) {
       (function next() {
         if (!L.alive) return;
@@ -217,22 +224,25 @@
     },
     crypt: function () {
       var L = musicLayer(0.7);
-      L.drone('sawtooth', 36.71, 0.05, 190, -5); L.drone('sawtooth', 36.71, 0.05, 190, 5); L.drone('sine', 73.42, 0.03, 300);
+      L.drone('sawtooth', 36.71, 0.032, 190, -5); L.drone('sawtooth', 36.71, 0.032, 190, 5); L.drone('sine', 73.42, 0.025, 300);
+      // the same chord an octave and two up, darker and quieter, so phones and laptops hear it too
+      L.drone('sawtooth', 146.83, 0.03, 650, -7); L.drone('sawtooth', 220, 0.019, 750, 6); L.drone('triangle', 293.66, 0.013, 900);
       L.every(14, 26, function (t) {                                       // a slow, uneasy swell
         var f = [77.78, 103.83, 110][Math.floor(Math.random() * 3)];
-        L.note('sine', f, t, 7, 0.025, 3);
+        L.note('sine', f, t, 7, 0.025, 3); L.note('triangle', f * 4, t, 7, 0.008, 3);
       });
       L.every(0.8, 4, function (t) {                                       // dripping water
-        var f = 1300 + Math.random() * 900; L.note('sine', f, t, 0.14, 0.035, 0.002, f * 0.55);
+        var f = 1300 + Math.random() * 900; L.note('sine', f, t, 0.14, 0.05, 0.002, f * 0.55);
       });
       return L;
     },
     deep: function () {
       var L = musicLayer(0.6);
       L.bed('lowpass', 95, 0.5, 0.2, 40, 0.09);                            // the rumble
-      L.drone('square', 32.7, 0.03, 120);
+      L.bed('bandpass', 380, 0.8, 0.05, 160, 0.13);                       // the roar of the fire above it
+      L.drone('square', 32.7, 0.03, 120); L.drone('sawtooth', 130.81, 0.012, 600, -6); L.drone('sawtooth', 196, 0.007, 700, 5);
       L.every(3, 8, function (t) {                                         // struck metal, sometimes twice
-        var base = 110 + Math.random() * 110, hits = Math.random() < 0.3 ? 2 : 1;
+        var base = 180 + Math.random() * 160, hits = Math.random() < 0.3 ? 2 : 1;
         for (var h = 0; h < hits; h++) [1, 2.76, 5.4, 8.93].forEach(function (r, i) { L.note('sine', base * r, t + h * 0.42, 2.6 / (1 + i * 0.5), 0.035 / (1 + i), 0.002); });
       });
       return L;
@@ -241,8 +251,8 @@
     boss: function () {
       var L = musicLayer(0.35), step = 60 / 84 / 2, nextT = AC.currentTime + 0.1, i = 0;
       var PAT = ['K', '', 'T', 'K', 'K', '', 'T', 'L'];
-      function kick(t) { L.note('sine', 72, t, 0.45, 0.32, 0.003, 38); }
-      function tom(t, f) { L.note('sine', f, t, 0.3, 0.17, 0.003, f * 0.62); }
+      function kick(t) { L.note('sine', 72, t, 0.45, 0.24, 0.003, 38); L.note('triangle', 150, t, 0.14, 0.16, 0.002, 70); L.hit(t, 1800, 0.06, 0.24); }
+      function tom(t, f) { L.note('sine', f * 1.3, t, 0.3, 0.17, 0.003, f * 0.8); L.note('triangle', f * 2.6, t, 0.18, 0.06, 0.002, f * 1.6); L.hit(t, 900, 0.1, 0.2); }
       (function sched() {
         if (!L.alive) return;
         while (nextT < AC.currentTime + 0.25) {
