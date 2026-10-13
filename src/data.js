@@ -506,11 +506,13 @@ var DATA = {
   // requires: 'trial' = the Trial must be done, or the id of a difficulty that must be completed.
   difficulties: {
     normal:    { name: 'Normal',    finalDepth: 10, requires: null,        mlvl: 0,  ilvl: 0 },
+    // Each new difficulty opens a step above where the last one ended (about +25% life, +15% damage),
+    // then climbs a little more gently so its last levels stay where they were tuned.
     nightmare: { name: 'Nightmare', finalDepth: 14, requires: 'trial',     mlvl: 12, ilvl: 12,
-                 start: { hp: 10, dmg: 5, xp: 4 },  curve: { hp: 0.12, dmg: 0.08, xp: 0.1 },
+                 start: { hp: 12.5, dmg: 6, xp: 6.2 },  curve: { hp: 0.0806, dmg: 0.0539, xp: 0.0372 },
                  lockText: 'Complete the Trial to unlock.' },
     hell:      { name: 'Hell',      finalDepth: 18, requires: 'nightmare', mlvl: 26, ilvl: 26,
-                 start: { hp: 28, dmg: 11, xp: 9 }, curve: { hp: 0.12, dmg: 0.08, xp: 0.1 },
+                 start: { hp: 32, dmg: 11.75, xp: 10.5 }, curve: { hp: 0.0976, dmg: 0.0711, xp: 0.0782 },
                  lockText: 'Defeat The Ember Abbot on Nightmare to unlock.' }
   },
 
