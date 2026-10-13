@@ -1848,7 +1848,7 @@
   function dpsOf(st) { return (st.dmin + st.dmax + st.lmin + st.lmax + st.dkmin + st.dkmax) / 2 * st.aps; }
   function compareHtml(p, it, slotOverride, prefix) {
     var a = p.st, eq = {}; DATA.slots.forEach(function (s) { eq[s] = p.eq[s]; }); eq[slotOverride || E.targetSlot(p, it)] = it;
-    if (!E.canWield(p, it)) return '<div class="cmp dn">A ' + E.classOf(p).name.toLowerCase() + " can't use this.</div>";
+    if (!E.canWield(p, it)) { var cn = E.classOf(p).name.toLowerCase(); return '<div class="cmp dn">' + (/^[aeiou]/.test(cn) ? 'An ' : 'A ') + cn + " can't use this.</div>"; }
     var b = E.derive({ base: p.base, level: p.level, eq: eq, cls: p.cls, ascendancy: p.ascendancy, ascNodes: p.ascNodes });
     var rows = [
       ['DPS', dpsOf(a), dpsOf(b), 1],

@@ -303,6 +303,23 @@ var Engine = (function () {
   }
 
   // ---------- Items ----------
+  // [[value, weight], ...] -> a value
+  function weighted(r, list) {
+    var tot = 0; list.forEach(function (e) { tot += e[1]; });
+    var x = rnd(r) * tot; for (var i = 0; i < list.length; i++) { x -= list[i][1]; if (x < 0) return list[i][0]; }
+    return list[list.length - 1][0];
+  }
+  // Only the highest few tiers the item level allows can roll, and the higher, the rarer (see D.loot).
+  function pickTier(r, tiers) {
+    var L = D.loot, win = tiers.slice(-L.tierWindow), n = 0, list = [];
+    for (var i = win.length - 1; i >= 0; i--) {
+      var t = win[i], w = null;
+      L.endgame.forEach(function (e) { if (w === null && t.ilvl >= e[0]) w = e[1]; });
+      if (w === null) w = L.tierWeights[Math.min(n++, L.tierWeights.length - 1)];
+      list.push([t, w]);
+    }
+    return weighted(r, list);
+  }
   function genItem(S, ilvl, forceSlot, minRarity) {
     var r = S.rng;
     var slotPool = ['weapon', 'weapon', 'chest', 'helm', 'gloves', 'boots', 'ring', 'amulet'];
@@ -316,7 +333,7 @@ var Engine = (function () {
     var cands = D.bases.filter(function (b) { return b.slot === slot && b.ilvl <= ilvl && (!wclass || b.wclass === wclass); });
     cands.sort(function (a, b) { return a.ilvl - b.ilvl; });
     var base = pick(r, cands.slice(-3));
-    var x = rnd(r), rarity = x < 0.07 + ilvl * 0.004 ? 2 : (x < 0.36 ? 1 : 0);
+    var L = D.loot, x = rnd(r), rarity = x < Math.min(L.rareCap, L.rareBase + ilvl * L.rarePerIlvl) ? 2 : (x < 0.36 ? 1 : 0);
     if ((slot === 'ring' || slot === 'amulet') && rarity === 0) rarity = 1;
     if (minRarity && rarity < minRarity) rarity = minRarity;
     var item = { uid: S.nextId++, base: base.id, slot: slot, ilvl: ilvl, rarity: rarity, mods: {}, affixes: [] };
@@ -325,16 +342,14 @@ var Engine = (function () {
 
     var nPre = 0, nSuf = 0;
     if (rarity === 1) { var c = rnd(r); if (c < 0.4) nPre = 1; else if (c < 0.75) nSuf = 1; else { nPre = 1; nSuf = 1; } }
-    if (rarity === 2) { var tot = rint(r, 3, 5); nPre = Math.min(3, rint(r, 1, tot - 1)); nSuf = Math.min(3, tot - nPre); }
+    if (rarity === 2) { var tot = weighted(r, L.rareAffixes); nPre = Math.min(3, rint(r, 1, tot - 1)); nSuf = Math.min(3, tot - nPre); }
     var used = {};
     function roll(kind, n) {
       for (var i = 0; i < n; i++) {
         var pool = D.affixes.filter(function (a) { return a.kind === kind && !used[a.id] && a.slots.indexOf(slot) >= 0 && a.tiers[0].ilvl <= ilvl; });
         if (!pool.length) return;
         var a = pick(r, pool); used[a.id] = 1;
-        var tiers = a.tiers.filter(function (t) { return t.ilvl <= ilvl; });
-        var ti = tiers.length > 1 && rnd(r) < 0.55 ? tiers.length - 1 : rint(r, 0, tiers.length - 1);
-        var tier = tiers[ti];
+        var tier = pickTier(r, a.tiers.filter(function (t) { return t.ilvl <= ilvl; }));
         Object.keys(tier.mods).forEach(function (k) {
           item.mods[k] = (item.mods[k] || 0) + rint(r, tier.mods[k][0], tier.mods[k][1]);
         });

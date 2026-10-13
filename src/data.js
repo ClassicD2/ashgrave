@@ -201,6 +201,10 @@ var DATA = {
   // pierce, multiArrows, rainDur, stealth (% later noticed), dodge, block, dr (% less damage), zealDur,
   // ripPct, chainPct, cleaveArea, rendMax, darkFast (dark lands in 2s), darkKillMana, hitHeal (% life per hit),
   // noSlow, and node_<id> (+ranks to that tree node, above its max).
+  // Loot: rare chance = rareBase + rarePerIlvl * ilvl (capped). Affix tiers: only the four highest the item level
+  // allows can roll; weights from the top down are tierWeights; endgame tiers (item level 55 / 70) get their own small weights.
+  loot: { rareBase: 0.04, rarePerIlvl: 0.0015, rareCap: 0.14, rareAffixes: [[3, 50], [4, 35], [5, 15]],
+          tierWindow: 4, tierWeights: [1, 3, 6, 8], endgame: [[70, 0.08], [55, 0.3]] },
   uniqueRules: { minIlvl: 12, chance: 0.015, mini: 0.08, boss: 0.2, trial: 0.15 },
   uniques: [
     { id: 'dawnpiercer', name: 'Dawnpiercer', base: 'war_bow', cls: 'archer', mods: { dmgPct: [50, 70], lightMin: [5, 7], lightMax: [9, 12], dex: 8, pierce: 1, node_focused_draw: 1 },
@@ -346,6 +350,21 @@ var DATA = {
     { id: 'battle_axe',    name: 'Battle Axe',    slot: 'weapon', wclass: 'melee', ilvl: 24, dmg: [17, 36], aps: 1.2 },
     { id: 'war_hammer',    name: 'War Hammer',    slot: 'weapon', wclass: 'melee', ilvl: 31, dmg: [23, 44], aps: 1.15 },
     { id: 'executioner_sword', name: 'Executioner Sword', slot: 'weapon', wclass: 'melee', ilvl: 40, dmg: [28, 56], aps: 1.25 },
+    // Endgame bases (rifts): item level 55 and 70.
+    { id: 'wraith_bow',    name: 'Wraith Bow',    slot: 'weapon', wclass: 'bow',   ilvl: 55, dmg: [30, 64], aps: 1.45 },
+    { id: 'ashen_greatbow', name: 'Ashen Greatbow', slot: 'weapon', wclass: 'bow', ilvl: 70, dmg: [37, 79], aps: 1.45 },
+    { id: 'reaver_axe',    name: 'Reaver Axe',    slot: 'weapon', wclass: 'melee', ilvl: 55, dmg: [35, 70], aps: 1.2 },
+    { id: 'doomblade',     name: 'Doomblade',     slot: 'weapon', wclass: 'melee', ilvl: 70, dmg: [44, 86], aps: 1.25 },
+    { id: 'wraith_staff',  name: 'Wraith Staff',  slot: 'weapon', wclass: 'staff', ilvl: 55, dmg: [29, 61], aps: 1.35 },
+    { id: 'abyssal_staff', name: 'Abyssal Staff', slot: 'weapon', wclass: 'staff', ilvl: 70, dmg: [36, 75], aps: 1.35 },
+    { id: 'wraith_helm',   name: 'Wraith Helm',   slot: 'helm',   ilvl: 55, armor: [46, 60] },
+    { id: 'doom_helm',     name: 'Doom Helm',     slot: 'helm',   ilvl: 70, armor: [60, 78] },
+    { id: 'wraith_plate',  name: 'Wraith Plate',  slot: 'chest',  ilvl: 55, armor: [80, 102] },
+    { id: 'doom_plate',    name: 'Doom Plate',    slot: 'chest',  ilvl: 70, armor: [104, 132] },
+    { id: 'wraith_grips',  name: 'Wraith Grips',  slot: 'gloves', ilvl: 55, armor: [22, 29] },
+    { id: 'doom_gauntlets', name: 'Doom Gauntlets', slot: 'gloves', ilvl: 70, armor: [29, 38] },
+    { id: 'wraith_treads', name: 'Wraith Treads', slot: 'boots',  ilvl: 55, armor: [22, 29] },
+    { id: 'doom_greaves',  name: 'Doom Greaves',  slot: 'boots',  ilvl: 70, armor: [29, 38] },
     { id: 'great_helm',    name: 'Great Helm',    slot: 'helm',   ilvl: 16, armor: [16, 22] },
     { id: 'bone_visor',    name: 'Bone Visor',    slot: 'helm',   ilvl: 26, armor: [24, 32] },
     { id: 'crown_of_ash',  name: 'Crown of Ash',  slot: 'helm',   ilvl: 38, armor: [33, 44] },
@@ -370,7 +389,8 @@ var DATA = {
       { ilvl: 10, name: 'Ghastly', mods: { dmgPct: [41, 70] } },
       { ilvl: 18, name: 'Savage',      mods: { dmgPct: [71, 100] } },
       { ilvl: 30, name: 'Merciless',   mods: { dmgPct: [101, 140] } },
-      { ilvl: 42, name: 'Cataclysmic', mods: { dmgPct: [141, 190] } } ] },
+      { ilvl: 42, name: 'Cataclysmic', mods: { dmgPct: [141, 190] } },
+      { ilvl: 55, name: 'Apocalyptic', mods: { dmgPct: [191, 240] } }, { ilvl: 70, name: 'Worldending', mods: { dmgPct: [241, 300] } } ] },
     // Light: added to every hit at once. Set a little under the old fire values; light paths get +20% on top.
     { id: 'light', kind: 'prefix', slots: ['weapon', 'ring', 'gloves'], tiers: [
       { ilvl: 1,  name: 'Gleaming',  mods: { lightMin: [1, 2], lightMax: [3, 4] } },
@@ -378,7 +398,8 @@ var DATA = {
       { ilvl: 10, name: 'Hallowed',  mods: { lightMin: [5, 8], lightMax: [11, 17] } },
       { ilvl: 18, name: 'Dawnlit',   mods: { lightMin: [9, 12], lightMax: [18, 26] } },
       { ilvl: 30, name: 'Sunforged', mods: { lightMin: [13, 19], lightMax: [26, 38] } },
-      { ilvl: 42, name: 'Seraphic',  mods: { lightMin: [20, 27], lightMax: [39, 55] } } ] },
+      { ilvl: 42, name: 'Seraphic',  mods: { lightMin: [20, 27], lightMax: [39, 55] } },
+      { ilvl: 55, name: 'Empyrean', mods: { lightMin: [28, 35], lightMax: [56, 72] } }, { ilvl: 70, name: 'Godlit', mods: { lightMin: [36, 45], lightMax: [73, 92] } } ] },
     // Dark: dealt over rules.darkDuration seconds after the hit. More in total than light, but slower; dark paths get +20%.
     { id: 'dark', kind: 'prefix', slots: ['weapon', 'ring', 'gloves'], tiers: [
       { ilvl: 1,  name: 'Shadowed',    mods: { darkMin: [1, 3], darkMax: [4, 6] } },
@@ -386,19 +407,22 @@ var DATA = {
       { ilvl: 10, name: 'Gloomforged', mods: { darkMin: [7, 10], darkMax: [15, 23] } },
       { ilvl: 18, name: 'Nightborn',   mods: { darkMin: [12, 16], darkMax: [24, 35] } },
       { ilvl: 30, name: 'Abyssal',     mods: { darkMin: [17, 25], darkMax: [36, 52] } },
-      { ilvl: 42, name: 'Voidtouched', mods: { darkMin: [26, 37], darkMax: [53, 75] } } ] },
+      { ilvl: 42, name: 'Voidtouched', mods: { darkMin: [26, 37], darkMax: [53, 75] } },
+      { ilvl: 55, name: 'Eclipsed', mods: { darkMin: [38, 48], darkMax: [76, 98] } }, { ilvl: 70, name: 'Oblivion', mods: { darkMin: [49, 61], darkMax: [99, 125] } } ] },
     { id: 'armor', kind: 'prefix', slots: ['helm', 'chest', 'gloves', 'boots'], tiers: [
       { ilvl: 1,  name: 'Sturdy',     mods: { armorPct: [10, 20] } },
       { ilvl: 5,  name: 'Strong',     mods: { armorPct: [21, 40] } },
       { ilvl: 10, name: 'Unyielding', mods: { armorPct: [41, 70] } },
       { ilvl: 18, name: 'Bastion',    mods: { armorPct: [71, 100] } },
       { ilvl: 30, name: 'Adamant',    mods: { armorPct: [101, 140] } },
-      { ilvl: 42, name: 'Godforged',  mods: { armorPct: [141, 180] } } ] },
+      { ilvl: 42, name: 'Godforged',  mods: { armorPct: [141, 180] } },
+      { ilvl: 55, name: 'Titanforged', mods: { armorPct: [181, 230] } }, { ilvl: 70, name: 'Unbreakable', mods: { armorPct: [231, 290] } } ] },
     { id: 'leech', kind: 'prefix', slots: ['weapon', 'ring'], tiers: [
       { ilvl: 3, name: 'Bloody',   mods: { leech: [2, 4] } },
       { ilvl: 9, name: 'Vampiric', mods: { leech: [5, 8] } },
       { ilvl: 20, name: 'Bloodthirsty',   mods: { leech: [9, 12] } },
-      { ilvl: 36, name: 'Exsanguinating', mods: { leech: [13, 16] } } ] },
+      { ilvl: 36, name: 'Exsanguinating', mods: { leech: [13, 16] } },
+      { ilvl: 55, name: 'Vampiric', mods: { leech: [17, 20] } } ] },
 
     { id: 'life', kind: 'suffix', slots: ['helm', 'chest', 'boots', 'ring', 'amulet', 'gloves'], tiers: [
       { ilvl: 1, name: 'of the Wolf',  mods: { life: [5, 10] } },
@@ -406,43 +430,51 @@ var DATA = {
       { ilvl: 9, name: 'of the Giant', mods: { life: [21, 35] } },
       { ilvl: 16, name: 'of the Colossus',  mods: { life: [36, 55] } },
       { ilvl: 28, name: 'of the Leviathan', mods: { life: [56, 80] } },
-      { ilvl: 40, name: 'of the Undying',   mods: { life: [81, 110] } } ] },
+      { ilvl: 40, name: 'of the Undying',   mods: { life: [81, 110] } },
+      { ilvl: 55, name: 'of the Colossus', mods: { life: [111, 145] } }, { ilvl: 70, name: 'of Eternity', mods: { life: [146, 190] } } ] },
     { id: 'mana', kind: 'suffix', slots: ['helm', 'ring', 'amulet', 'gloves'], tiers: [
       { ilvl: 1, name: 'of the Owl', mods: { mana: [5, 10] } },
       { ilvl: 6, name: 'of Wisdom',  mods: { mana: [11, 20] } },
       { ilvl: 16, name: 'of the Sage',     mods: { mana: [21, 35] } },
-      { ilvl: 30, name: 'of the Archmage', mods: { mana: [36, 55] } } ] },
+      { ilvl: 30, name: 'of the Archmage', mods: { mana: [36, 55] } },
+      { ilvl: 55, name: 'of the Archon', mods: { mana: [56, 80] } }, { ilvl: 70, name: 'of Infinity', mods: { mana: [81, 110] } } ] },
     { id: 'dex', kind: 'suffix', slots: ['weapon', 'helm', 'chest', 'gloves', 'boots', 'ring', 'amulet'], tiers: [
       { ilvl: 1,  name: 'of the Stag',   mods: { dex: [2, 5] } },
       { ilvl: 5,  name: 'of the Falcon', mods: { dex: [6, 10] } },
       { ilvl: 10, name: 'of the Eagle',  mods: { dex: [11, 16] } },
       { ilvl: 18, name: 'of the Hawk',  mods: { dex: [17, 22] } },
-      { ilvl: 32, name: 'of Precision', mods: { dex: [23, 30] } } ] },
+      { ilvl: 32, name: 'of Precision', mods: { dex: [23, 30] } },
+      { ilvl: 55, name: 'of the Phantom', mods: { dex: [31, 40] } }, { ilvl: 70, name: 'of the Wind God', mods: { dex: [41, 52] } } ] },
     { id: 'str', kind: 'suffix', slots: ['weapon', 'helm', 'chest', 'gloves', 'boots', 'ring', 'amulet'], tiers: [
       { ilvl: 1,  name: 'of the Ox',    mods: { str: [2, 5] } },
       { ilvl: 5,  name: 'of the Bull',  mods: { str: [6, 10] } },
       { ilvl: 10, name: 'of the Titan', mods: { str: [11, 16] } },
       { ilvl: 18, name: 'of Might',        mods: { str: [17, 22] } },
-      { ilvl: 32, name: 'of the Behemoth', mods: { str: [23, 30] } } ] },
+      { ilvl: 32, name: 'of the Behemoth', mods: { str: [23, 30] } },
+      { ilvl: 55, name: 'of the Titan', mods: { str: [31, 40] } }, { ilvl: 70, name: 'of the Mountain', mods: { str: [41, 52] } } ] },
     { id: 'vit', kind: 'suffix', slots: ['helm', 'chest', 'boots', 'ring', 'amulet'], tiers: [
       { ilvl: 1, name: 'of the Oak',      mods: { vit: [2, 5] } },
       { ilvl: 6, name: 'of the Mountain', mods: { vit: [6, 12] } },
       { ilvl: 16, name: 'of the Ancients', mods: { vit: [13, 20] } },
-      { ilvl: 30, name: 'of the Earth',    mods: { vit: [21, 30] } } ] },
+      { ilvl: 30, name: 'of the Earth',    mods: { vit: [21, 30] } },
+      { ilvl: 55, name: 'of the Oak', mods: { vit: [31, 42] } }, { ilvl: 70, name: 'of the World Tree', mods: { vit: [43, 56] } } ] },
     { id: 'ene', kind: 'suffix', slots: ['helm', 'ring', 'amulet'], tiers: [
       { ilvl: 1, name: 'of the Moon',  mods: { ene: [2, 5] } },
       { ilvl: 6, name: 'of the Stars', mods: { ene: [6, 12] } },
       { ilvl: 16, name: 'of the Void',   mods: { ene: [13, 20] } },
-      { ilvl: 30, name: 'of the Cosmos', mods: { ene: [21, 30] } } ] },
+      { ilvl: 30, name: 'of the Cosmos', mods: { ene: [21, 30] } },
+      { ilvl: 55, name: 'of the Stars', mods: { ene: [31, 42] } }, { ilvl: 70, name: 'of the Aether', mods: { ene: [43, 56] } } ] },
     { id: 'ias', kind: 'suffix', slots: ['weapon', 'gloves'], tiers: [
       { ilvl: 2, name: 'of Swiftness', mods: { ias: [5, 10] } },
       { ilvl: 8, name: 'of Haste',     mods: { ias: [11, 20] } },
       { ilvl: 18, name: 'of Fury',   mods: { ias: [21, 30] } },
-      { ilvl: 34, name: 'of Frenzy', mods: { ias: [31, 40] } } ] },
+      { ilvl: 34, name: 'of Frenzy', mods: { ias: [31, 40] } },
+      { ilvl: 55, name: 'of Bloodrage', mods: { ias: [41, 48] } }, { ilvl: 70, name: 'of the Whirlwind', mods: { ias: [49, 56] } } ] },
     { id: 'run', kind: 'suffix', slots: ['boots'], tiers: [
       { ilvl: 1, name: 'of the Wind',  mods: { run: [10, 15] } },
       { ilvl: 6, name: 'of the Storm', mods: { run: [16, 25] } },
-      { ilvl: 20, name: 'of the Tempest', mods: { run: [26, 35] } } ] },
+      { ilvl: 20, name: 'of the Tempest', mods: { run: [26, 35] } },
+      { ilvl: 55, name: 'of the Gale', mods: { run: [36, 40] } } ] },
     { id: 'light', kind: 'suffix', slots: ['helm', 'ring', 'amulet'], tiers: [
       { ilvl: 1, name: 'of Light',   mods: { light: [1, 1] } },
       { ilvl: 7, name: 'of the Sun', mods: { light: [2, 2] } } ] },
@@ -454,7 +486,8 @@ var DATA = {
       { ilvl: 3, name: 'of Renewal', mods: { regen: [1, 1] } },
       { ilvl: 8, name: 'of Life',    mods: { regen: [2, 3] } },
       { ilvl: 18, name: 'of Vigor',       mods: { regen: [4, 6] } },
-      { ilvl: 34, name: 'of Immortality', mods: { regen: [7, 10] } } ] }
+      { ilvl: 34, name: 'of Immortality', mods: { regen: [7, 10] } },
+      { ilvl: 55, name: 'of Renewal', mods: { regen: [11, 15] } }, { ilvl: 70, name: 'of the Phoenix', mods: { regen: [16, 21] } } ] }
   ],
 
   // Wandering merchant: shows up on the level you start on, then every 1-3 levels.
