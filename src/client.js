@@ -74,7 +74,7 @@
 
   // ---------- Audio (synthesized, no files) ----------
   var AC = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null, lastSfx = {}, muted = false;
-  var musicVol = 0.5, sfxVol = 1;
+  var musicVol = 0.5, sfxVol = 1, MASTER_VOL = 0.9;
   try {
     muted = localStorage.getItem('ashgrave.mute') === '1';
     var mv0 = localStorage.getItem('ashgrave.vol.music'), sv0 = localStorage.getItem('ashgrave.vol.sfx');
@@ -84,10 +84,13 @@
     if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
-      master = AC.createGain(); master.gain.value = muted ? 0 : 0.45; master.connect(AC.destination);
+      // a gentle limiter at the end lets everything sit louder without clipping when a lot happens at once
+      var lim = AC.createDynamicsCompressor(); lim.threshold.value = -10; lim.knee.value = 6; lim.ratio.value = 6; lim.attack.value = 0.003; lim.release.value = 0.25;
+      lim.connect(AC.destination);
+      master = AC.createGain(); master.gain.value = muted ? 0 : MASTER_VOL; master.connect(lim);
       sfxBus = AC.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master);
       // music is built quiet (many soft layers), so it gets a fixed boost before the volume slider
-      var musicTrim = AC.createGain(); musicTrim.gain.value = 4; musicTrim.connect(master);
+      var musicTrim = AC.createGain(); musicTrim.gain.value = 8; musicTrim.connect(master);
       musicBus = AC.createGain(); musicBus.gain.value = musicVol; musicBus.connect(musicTrim);
       noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
       var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -252,6 +255,8 @@
       return L;
     }
   };
+  // evens out how loud the moods are against each other (measured)
+  var SCENE_LEVEL = { fields: 1.3, crypt: 1, deep: 1.6, boss: 0.6 };
   function musicScene() {
     if (!S || !running) return 'crypt';
     if (S.trial) return 'crypt';
@@ -264,12 +269,12 @@
     var sc = musicScene();
     if (sc !== MUS.scene) {
       if (MUS.cur) MUS.cur.stop(2.5);
-      MUS.scene = sc; MUS.cur = SCENES[sc](); MUS.cur.fade(1, 3);
+      MUS.scene = sc; MUS.cur = SCENES[sc](); MUS.cur.fade(SCENE_LEVEL[sc] || 1, 3);
     }
     var now = AC.currentTime;
     if (bossInSight) MUS.bossSeen = now;
     var want = now - MUS.bossSeen < 3;
-    if (want && !MUS.boss) { MUS.boss = SCENES.boss(); MUS.boss.fade(1, 1.2); }
+    if (want && !MUS.boss) { MUS.boss = SCENES.boss(); MUS.boss.fade(SCENE_LEVEL.boss, 1.2); }
     else if (!want && MUS.boss) { MUS.boss.stop(3); MUS.boss = null; }
   }
   function setVolume(kind, v) {
@@ -1953,7 +1958,7 @@
   $('bPotMp').addEventListener('click', function () { ensureAudio(); cmd({ t: 'potion', kind: 'mp' }); });
   $('bSkill').addEventListener('click', function () { ensureAudio(); castSkillAuto(); });
   function sndLabel() { $('bSnd').textContent = muted ? 'Sound off' : 'Sound on'; $('bSnd').setAttribute('aria-pressed', muted ? 'false' : 'true'); }
-  $('bSnd').addEventListener('click', function () { muted = !muted; try { localStorage.setItem('ashgrave.mute', muted ? '1' : '0'); } catch (e) { } sndLabel(); ensureAudio(); if (master) master.gain.setTargetAtTime(muted ? 0 : 0.45, AC.currentTime, 0.05); });
+  $('bSnd').addEventListener('click', function () { muted = !muted; try { localStorage.setItem('ashgrave.mute', muted ? '1' : '0'); } catch (e) { } sndLabel(); ensureAudio(); if (master) master.gain.setTargetAtTime(muted ? 0 : MASTER_VOL, AC.currentTime, 0.05); });
   sndLabel();
 
   var ICON = {
