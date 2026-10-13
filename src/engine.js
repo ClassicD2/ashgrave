@@ -1323,7 +1323,9 @@ var Engine = (function () {
     if (p.cd > 0 || p.mana < ms.mana) { if (p.mana < ms.mana) emit(S, { t: 'msg', pid: p.id, text: 'Not enough mana.', quiet: true }); return; }
     p.mana -= ms.mana; skillOrder(p);
     var C = coreOf(p).charge, mult = ms.mult, extra = 0;
-    if (C && draw > 0) { mult *= 1 + draw * (C.dmg + nodeVal(p, 'focused_draw') / 100); extra = Math.round(draw * C.pierce); }
+    // The bonus grows with the square of the draw, so a full draw is worth more per second than quick half draws
+    // (about twice the damage per second of plain Multishot at full draw).
+    if (C && draw > 0) { mult *= (1 + draw * draw * C.dmg) * (1 + draw * draw * nodeVal(p, 'focused_draw') / 100); extra = Math.round(draw * C.pierce); }
     var n = (hasNode(p, 'radiant_volley') ? nodeDef('radiant_volley').arrows : ms.arrows) + (p.st.multiArrows || 0), half = (n - 1) / 2;
     for (var i = 0; i < n; i++) fireArrow(S, p, tx, ty, (i - half) * ms.spread, mult, extra);
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);

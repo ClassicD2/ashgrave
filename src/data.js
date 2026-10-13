@@ -135,8 +135,8 @@ var DATA = {
       name: 'Sunwarden', cls: 'archer', side: 'light', skill: 'multishot',
       lore: 'Carries the dawn into the deep. Draws the bow long and lets the light go through everything.',
       core: { name: 'Lantern Soul',
-        desc: '+2 light radius. Your arrows pierce one enemy, losing 50% damage per pierce. Hold Multishot to draw it: at full draw (2 seconds) it deals +50% damage and pierces 2 more enemies.',
-        light: 2, pierce: 1, pierceKeep: 0.5, charge: { min: 0, full: 2, dmg: 0.5, pierce: 2 } },
+        desc: '+2 light radius. Your arrows pierce one enemy, losing 50% damage per pierce. Hold Multishot to draw it: the longer you draw, the harder it hits, and at full draw (2 seconds) every arrow deals more than six times its damage and pierces 2 more enemies.',
+        light: 2, pierce: 1, pierceKeep: 0.5, charge: { min: 0, full: 2, dmg: 5.4, pierce: 2 } },
       nodes: [
         { id: 'focused_draw', name: 'Focused Draw', max: 7, per: 6, desc: 'A full draw deals +{v}% more damage.' },
         { id: 'quick_draw', name: 'Quick Draw', max: 6, per: 0.1, desc: 'A full draw takes {v}s less.' },
