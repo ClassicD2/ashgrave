@@ -346,9 +346,11 @@ var Engine = (function () {
     var used = {};
     function roll(kind, n) {
       for (var i = 0; i < n; i++) {
-        var pool = D.affixes.filter(function (a) { return a.kind === kind && !used[a.id] && a.slots.indexOf(slot) >= 0 && a.tiers[0].ilvl <= ilvl; });
+        var pool = D.affixes.filter(function (a) { return a.kind === kind && !used[kind + a.id] && a.slots.indexOf(slot) >= 0 && a.tiers[0].ilvl <= ilvl; });
         if (!pool.length) return;
-        var a = pick(r, pool); used[a.id] = 1;
+        var a = pick(r, pool); used[kind + a.id] = 1;
+        // Light or dark damage, never both on one item: picking one closes the other.
+        if (kind === 'prefix' && (a.id === 'light' || a.id === 'dark')) used['prefix' + (a.id === 'light' ? 'dark' : 'light')] = 1;
         var tier = pickTier(r, a.tiers.filter(function (t) { return t.ilvl <= ilvl; }));
         Object.keys(tier.mods).forEach(function (k) {
           item.mods[k] = (item.mods[k] || 0) + rint(r, tier.mods[k][0], tier.mods[k][1]);
