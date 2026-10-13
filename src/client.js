@@ -90,7 +90,7 @@
       master = AC.createGain(); master.gain.value = muted ? 0 : MASTER_VOL; master.connect(lim);
       sfxBus = AC.createGain(); sfxBus.gain.value = sfxVol; sfxBus.connect(master);
       // music is built quiet (many soft layers), so it gets a fixed boost before the volume slider
-      var musicTrim = AC.createGain(); musicTrim.gain.value = 8; musicTrim.connect(master);
+      var musicTrim = AC.createGain(); musicTrim.gain.value = 4; musicTrim.connect(master);
       musicBus = AC.createGain(); musicBus.gain.value = musicVol; musicBus.connect(musicTrim);
       noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
       var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
