@@ -905,7 +905,15 @@
     ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, -22, 20, 26, 0, 0, 6.283); ctx.fill(); ctx.restore();
   }
   var ATK_TIME = { gnawer: 0.28, bonewalker: 0.45, ashpriest: 0.6, abbot: 0.5 };
+  // Light paths are drawn paler and warmer, dark paths darker and colder.
+  var SIDE_FILTER = { light: 'brightness(1.22) saturate(0.8) sepia(0.15)', dark: 'brightness(0.68) saturate(0.9) contrast(1.12) hue-rotate(-12deg)' };
   function drawPlayerSprite(p) {
+    var asc = p.ascendancy && DATA.ascendancies[p.ascendancy], sf = asc && SIDE_FILTER[asc.side];
+    if (!sf) return drawPlayerSprite1(p);
+    ctx.filter = sf;
+    try { return drawPlayerSprite1(p); } finally { ctx.filter = 'none'; }
+  }
+  function drawPlayerSprite1(p) {
     var actor = p.cls === 'warrior' ? 'warrior' : 'archer', dir = dirIndex(p.face || 0);
     // The Mage has no painted sheets yet: borrow the archer's, recoloured, until they arrive.
     if (p.cls === 'mage' && !hasSprite0('mage')) { ctx.filter = 'hue-rotate(205deg) saturate(1.4) brightness(1.05)'; try { return drawPlayerSprite0(p, actor, dir); } finally { ctx.filter = 'none'; } }
