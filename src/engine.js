@@ -557,6 +557,8 @@ var Engine = (function () {
       dr: (m.dr || 0) / 100, pierce: m.pierce || 0, multiArrows: m.multiArrows || 0, rainDur: m.rainDur || 0,
       zealDur: m.zealDur || 0, ripPct: m.ripPct || 0, chainPct: m.chainPct || 0, cleaveArea: m.cleaveArea || 0, rendMax: m.rendMax || 0,
       darkDur: m.darkFast ? 2 : R.darkDuration, darkKillMana: m.darkKillMana || 0,
+      sparkSpeed: (m.sparkSpeed || 0) / 100, blinkRange: m.blinkRange || 0, novaShield: (m.novaShield || 0) / 100, decayDur: m.decayDur || 0,
+      decayKillMana: (m.decayKillMana || 0) / 100, ward: (m.ward || 0) / 100, echoEvery: m.echoEvery || 0,
       cleaveBlades: m.cleaveBlades || 0, mantleEvery: m.mantleEvery || 0, novaBlades: m.novaBlades || 0,
       boneWard: !!m.boneWard, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
       leechRaw: m.leech || 0,
@@ -1317,7 +1319,7 @@ var Engine = (function () {
     p.mana -= cost; skillOrder(p);
     var core = coreOf(p);
     if (hasNode(p, 'blink')) {
-      var B = nodeDef('blink'), dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy) || 1, go = Math.min(d, B.range), bx = p.x, by = p.y;
+      var B = nodeDef('blink'), dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy) || 1, go = Math.min(d, B.range + (p.st.blinkRange || 0)), bx = p.x, by = p.y;
       for (var i = 1; i <= Math.ceil(go / 0.2); i++) {
         var f = Math.min(go, i * 0.2), x = p.x + dx / d * f, y = p.y + dy / d * f;
         if (!sightable(S.map, x, y)) break;   // Blink crosses lava but not rock
@@ -1353,7 +1355,7 @@ var Engine = (function () {
       struck.forEach(function (m) { if (!m.dead) { var h2 = rollHit(S, p, C.mult); hurtMonster(S, m, h2.dmg, h2.light, p, 'nova', h2.dark); } });
     }
     if (core.shield) {
-      var amt = Math.round(p.st.maxHp * core.shield.pct * (1 + nodeVal(p, 'radiant_shield') / 100));
+      var amt = Math.round(p.st.maxHp * core.shield.pct * (1 + nodeVal(p, 'radiant_shield') / 100 + (p.st.novaShield || 0)));
       for (var id in S.players) {
         var q = S.players[id];
         if (q.dead || Math.hypot(q.x - p.x, q.y - p.y) > rad || S.time < (q.shieldNext || 0)) continue;
@@ -1372,7 +1374,7 @@ var Engine = (function () {
   function applyDecay(S, m, p, fresh) {
     var core = coreOf(p); if (!core.decay) return;
     var st = p.st, hit = (st.dmin + st.dmax + st.lmin + st.lmax) / 2 + (st.dkmin + st.dkmax) / 2;
-    var dur = core.decay.dur + nodeVal(p, 'lingering'), total = hit * core.decay.pct * (1 + nodeVal(p, 'virulence') / 100) * st.darkMul;
+    var dur = core.decay.dur + nodeVal(p, 'lingering') + (st.decayDur || 0), total = hit * core.decay.pct * (1 + nodeVal(p, 'virulence') / 100) * st.darkMul;
     m.decay = { dps: total / dur, end: S.time + dur, by: p.id, t: 0 };
   }
   function updateDecay(S, dt) {
@@ -1383,7 +1385,7 @@ var Engine = (function () {
       if (p && hasNode(p, 'withering')) { m.slowUntil = S.time + 0.2; m.slowPct = Math.max(m.slowPct && m.slowUntil > S.time ? m.slowPct : 0, nodeVal(p, 'withering') / 100); }
       dc.t += dt; if (dc.t < 0.5) return;
       var step = dc.t; dc.t = 0;
-      dealRaw(S, m, dc.dps * step, p, 'dark');
+      m.byDecay = true; dealRaw(S, m, dc.dps * step, p, 'dark'); m.byDecay = false;
     });
   }
   function spreadDecay(S, m) {
@@ -1430,9 +1432,12 @@ var Engine = (function () {
   }
   // Mage: a bolt of force that bends a little toward the nearest enemy in its path.
   function fireSpark(S, p, tx, ty) {
-    var a = Math.atan2(ty - p.y, tx - p.x), h = rollHit(S, p, 1);
-    S.projs.push({ id: S.nextId++, kind: 'spark', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35,
-      vx: Math.cos(a) * R.sparkSpeed, vy: Math.sin(a) * R.sparkSpeed, life: p.st.range / R.sparkSpeed + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
+    // Ring of Hollow Echoes: every few Sparks hits harder and gives mana back
+    var echo = p.st.echoEvery && (p.echoN = (p.echoN || 0) + 1) % p.st.echoEvery === 0;
+    if (echo) p.mana = Math.min(p.st.maxMana, p.mana + 3);
+    var a = Math.atan2(ty - p.y, tx - p.x), h = rollHit(S, p, echo ? 1.5 : 1), spd = R.sparkSpeed * (1 + (p.st.sparkSpeed || 0));
+    S.projs.push({ id: S.nextId++, kind: 'spark', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35, echo: echo || undefined,
+      vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, life: p.st.range / spd + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
       pierce: 0, keep: 0, hitIds: [], home: true, prism: hasNode(p, 'prism') });
   }
   function shoot(S, p, tx, ty) {
@@ -1829,7 +1834,7 @@ var Engine = (function () {
     var bw = p.bwT > S.time ? (p.bwN || 0) * 0.04 : 0;   // Marrowcleaver's Bone Ward
     var dmg = Math.max(1, Math.round(raw * (1 - damageReduction(armor, mlvl)) * (1 - (classOf(p).dr || 0)) * (1 - (p.st.dr || 0)) * (1 - bw)));
     if (p.shield > 0) { var ab = Math.min(p.shield, dmg); p.shield -= ab; dmg -= ab; if (p.shield <= 0) p.shield = 0; p.ver++; if (dmg <= 0) { emit(S, { t: 'absorb', pid: p.id, x: p.x, y: p.y }); return; } }
-    var ward = classOf(p).ward;
+    var ward = classOf(p).ward ? classOf(p).ward + (p.st.ward || 0) : 0;
     if (ward && p.mana > 0) { var wm = Math.min(p.mana, dmg * ward); p.mana -= wm; dmg = Math.max(1, Math.round(dmg - wm)); }
     p.hp -= dmg;
     if (src && src.vamp && src.hp > 0) src.hp = Math.min(src.max, src.hp + dmg * src.vamp);
@@ -1875,6 +1880,7 @@ var Engine = (function () {
   function onKill(S, m, p) {
     if (!p || p.dead) return;
     if (p.st.darkKillMana && m.lastKind === 'dark') p.mana = Math.min(p.st.maxMana, p.mana + p.st.darkKillMana);
+    if (p.st.decayKillMana && m.byDecay) p.mana = Math.min(p.st.maxMana, p.mana + p.st.maxMana * p.st.decayKillMana);
     if (p.st.killMana) p.mana = Math.min(p.st.maxMana, p.mana + p.st.maxMana * p.st.killMana);
     if (p.st.boneWard) { p.bwN = Math.min(5, (p.bwT > S.time ? p.bwN : 0) + 1); p.bwT = S.time + 6; p.ver++; }
     if (hasNode(p, 'bloodlust')) {

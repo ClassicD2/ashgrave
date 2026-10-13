@@ -235,6 +235,23 @@ var DATA = {
       fx: ['Chain of Light leaps deal 10% more (Templar)', '+1 to Bright Leap (Templar)'] },
     { id: 'bloodsigil', name: 'Bloodsigil', base: 'ring', cls: 'warrior', mods: { darkMin: [3, 5], darkMax: [6, 10], str: 3, hitHeal: 1 },
       fx: ['Each hit heals 1% of your life'] },
+    // Mage: three for the Lightbinder, three for the Voidcaller, two for either.
+    { id: 'starfall_rod', name: 'Starfall Rod', base: 'battle_staff', cls: 'mage', mods: { dmgPct: [60, 80], lightMin: [4, 6], lightMax: [8, 12], ene: 8, sparkSpeed: 30, node_prism: 1 },
+      fx: ['Spark flies 30% faster', '+1 to Prism (Lightbinder)'] },
+    { id: 'blinkstep', name: 'Blinkstep Sandals', base: 'boots', cls: 'mage', mods: { run: [15, 20], mana: 15, blinkRange: 2, node_blink: 1 },
+      fx: ['Blink reaches 2 tiles further', '+1 to Blink (Lightbinder)'] },
+    { id: 'bright_ward', name: 'Band of the Bright Ward', base: 'ring', cls: 'mage', mods: { lightMin: [2, 4], lightMax: [5, 8], mana: 15, novaShield: 20, node_radiant_shield: 1 },
+      fx: ['Nova shields absorb 20% more', '+1 to Radiant Shield (Lightbinder)'] },
+    { id: 'voidwoven', name: 'Voidwoven Shroud', base: 'leather_coat', cls: 'mage', mods: { armorPct: [40, 60], life: [20, 30], darkMin: [3, 5], darkMax: [6, 9], node_contagion: 1 },
+      fx: ['+1 to Contagion (Voidcaller)'] },
+    { id: 'grasp_of_the_void', name: 'Grasp of the Void', base: 'gloves', cls: 'mage', mods: { ias: 15, ene: [5, 8], decayDur: 1, node_event_horizon: 1 },
+      fx: ['Decay lasts 1s longer (Voidcaller)', '+1 to Event Horizon (Voidcaller)'] },
+    { id: 'eye_of_the_abyss', name: 'Eye of the Abyss', base: 'amulet', cls: 'mage', mods: { ene: [10, 15], darkMin: [5, 8], darkMax: [9, 14], decayKillMana: 2 },
+      fx: ['Enemies killed by Decay restore 2% of your mana'] },
+    { id: 'quiet_mind', name: 'Circlet of the Quiet Mind', base: 'hood', cls: 'mage', mods: { ene: [10, 15], mana: [20, 30], ward: 10 },
+      fx: ['Ward takes 35% of damage from your mana instead of 25%'] },
+    { id: 'hollow_echoes', name: 'Ring of Hollow Echoes', base: 'ring', cls: 'mage', mods: { mana: 20, life: [10, 15], echoEvery: 5 },
+      fx: ['Every 5th Spark deals 50% more damage and restores 3 mana'] },
     // Boss weapons: never rolled at random, only dropped by their boss (drop: boss kind, diffs: difficulties).
     // These are the Normal versions, made for a character around level 11.
     { id: 'marrowcleaver', name: 'Marrowcleaver', base: 'war_axe', cls: 'warrior', drop: 'warden', diffs: ['normal'],
