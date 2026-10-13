@@ -92,7 +92,7 @@ var DATA = {
   // Node text: {v} is replaced by rank x per (the node's current total).
   ascendancy: {
     firstLevel: 10,   // one point per level from level 10 (level 14 = 5 points), once the Trial is passed
-    treeVersion: 2,   // bump when ranks change: saved trees are refunded
+    treeVersion: 3,   // bump when ranks change: saved trees are refunded
     sideBonus: 0.2, // light paths deal +20% light damage, dark paths +20% dark damage
     renounceCost: 5000
   },
@@ -165,10 +165,10 @@ var DATA = {
     },
     lightbinder: {
       name: 'Lightbinder', cls: 'mage', side: 'light', skill: 'nova',
-      lore: 'Keeps the light around the ones who stand with her. Nova becomes a shield as much as a blow.',
+      lore: 'Gathers the dark to her and holds it where her allies can reach it. Nova draws enemies in and shields the ones who stand with her.',
       core: { name: 'Radiant Ward',
-        desc: 'Nova shields you and every ally within its ring for 12% of your life for 4 seconds. A shield can only be renewed every 6 seconds.',
-        shield: { pct: 0.12, dur: 4, cooldown: 6 } },
+        desc: 'Nova draws enemies in toward you and stuns them for 0.6 seconds, and shields you and every ally within its ring for 12% of your life for 4 seconds. A shield can only be renewed every 6 seconds.',
+        pull: true, stun: 0.6, shield: { pct: 0.12, dur: 4, cooldown: 6 } },
       nodes: [
         { id: 'radiant_shield', name: 'Radiant Shield', max: 7, per: 10, desc: 'Nova shields absorb +{v}% more.' },
         { id: 'wide_nova', name: 'Wide Nova', max: 7, per: 5, desc: 'Nova reaches +{v}% further.' },
@@ -176,23 +176,23 @@ var DATA = {
         { id: 'dazzle', name: 'Dazzle', max: 6, per: 0.3, desc: 'Enemies struck by Nova lose track of you for {v}s. Bosses are not fooled.' },
         { id: 'blink', name: 'Blink', max: 1, per: 1, req: 4, desc: 'Nova first carries you to the cursor (up to 6 tiles, where you can see), then bursts there.', range: 6 },
         { id: 'sanctuary', name: 'Sanctuary', max: 1, per: 1, req: 8, desc: 'Nova leaves holy ground for 3 seconds. Allies on it heal 3% of their life each second.', dur: 3, radius: 2, pct: 0.03 },
-        { id: 'prism', name: 'Prism', max: 1, per: 1, req: 16, desc: 'Spark splits into two more sparks when it hits, each dealing 50%.', pct: 0.5 }
+        { id: 'sunfall', name: 'Sunfall', max: 1, per: 1, req: 16, desc: 'Every second Nova brings down the light on the enemies it draws in for 200% of your hit.', mult: 2 }
       ]
     },
     voidcaller: {
       name: 'Voidcaller', cls: 'mage', side: 'dark', skill: 'nova',
-      lore: 'Pulls the world in and lets it rot. What dies in the Decay passes it on.',
+      lore: 'Casts the world away and lets it rot at a distance. What dies in the Decay passes it on.',
       core: { name: 'Decay',
-        desc: 'Nova pulls enemies toward you instead of throwing them back, stuns them for 0.6 seconds and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 15% less damage. When an enemy dies in Decay, it passes to the nearest enemy.',
-        pull: true, stun: 0.6, decay: { pct: 0.6, dur: 4, spread: 3, weaken: 0.15 } },
+        desc: 'Nova throws enemies back and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 15% less damage. When an enemy dies in Decay, it passes to an enemy nearby.',
+        decay: { pct: 0.6, dur: 4, spread: 4.5, weaken: 0.15 } },
       nodes: [
         { id: 'virulence', name: 'Virulence', max: 7, per: 8, desc: 'Decay deals +{v}% damage.' },
         { id: 'lingering', name: 'Lingering Rot', max: 6, per: 0.5, desc: 'Decay lasts {v}s longer.' },
-        { id: 'event_horizon', name: 'Event Horizon', max: 7, per: 5, desc: 'Nova pulls from +{v}% further.' },
+        { id: 'repulsion', name: 'Repulsion', max: 7, per: 10, desc: 'Nova throws enemies +{v}% further.' },
         { id: 'withering', name: 'Withering', max: 6, per: 5, desc: 'Enemies in Decay are slowed by {v}%.' },
-        { id: 'siphon', name: 'Siphon', max: 1, per: 1, req: 4, desc: 'Each Spark that hits restores 2 mana.', mana: 2 },
+        { id: 'rot_wave', name: 'Rot Wave', max: 1, per: 1, req: 4, desc: 'Decay deals 30% more damage to enemies more than 3 tiles away from you.', pct: 0.3, dist: 3 },
         { id: 'contagion', name: 'Contagion', max: 1, per: 1, req: 8, desc: 'Decay passes on to two enemies at full strength when its host dies.' },
-        { id: 'collapse', name: 'Collapse', max: 1, per: 1, req: 16, desc: 'Every second Nova crushes the enemies it pulls in for 200% of your hit.', mult: 2 }
+        { id: 'crushing_dark', name: 'Crushing Dark', max: 1, per: 1, req: 16, desc: 'Enemies that Nova throws into a wall are crushed for 150% of your hit.', mult: 1.5 }
       ]
     }
   },
@@ -236,16 +236,16 @@ var DATA = {
     { id: 'bloodsigil', name: 'Bloodsigil', base: 'ring', cls: 'warrior', mods: { darkMin: [3, 5], darkMax: [6, 10], str: 3, hitHeal: 1 },
       fx: ['Each hit heals 1% of your life'] },
     // Mage: three for the Lightbinder, three for the Voidcaller, two for either.
-    { id: 'starfall_rod', name: 'Starfall Rod', base: 'battle_staff', cls: 'mage', mods: { dmgPct: [60, 80], lightMin: [4, 6], lightMax: [8, 12], ene: 8, sparkSpeed: 30, node_prism: 1 },
-      fx: ['Spark flies 30% faster', '+1 to Prism (Lightbinder)'] },
+    { id: 'starfall_rod', name: 'Starfall Rod', base: 'battle_staff', cls: 'mage', mods: { dmgPct: [60, 80], lightMin: [4, 6], lightMax: [8, 12], ene: 8, sparkSpeed: 30, prism: 1 },
+      fx: ['Spark flies 30% faster', 'Spark splits into two more sparks when it hits, each dealing 50%'] },
     { id: 'blinkstep', name: 'Blinkstep Sandals', base: 'boots', cls: 'mage', mods: { run: [15, 20], mana: 15, blinkRange: 2, node_blink: 1 },
       fx: ['Blink reaches 2 tiles further', '+1 to Blink (Lightbinder)'] },
     { id: 'bright_ward', name: 'Band of the Bright Ward', base: 'ring', cls: 'mage', mods: { lightMin: [2, 4], lightMax: [5, 8], mana: 15, novaShield: 20, node_radiant_shield: 1 },
       fx: ['Nova shields absorb 20% more', '+1 to Radiant Shield (Lightbinder)'] },
     { id: 'voidwoven', name: 'Voidwoven Shroud', base: 'leather_coat', cls: 'mage', mods: { armorPct: [40, 60], life: [20, 30], darkMin: [3, 5], darkMax: [6, 9], node_contagion: 1 },
       fx: ['+1 to Contagion (Voidcaller)'] },
-    { id: 'grasp_of_the_void', name: 'Grasp of the Void', base: 'gloves', cls: 'mage', mods: { ias: 15, ene: [5, 8], decayDur: 1, node_event_horizon: 1 },
-      fx: ['Decay lasts 1s longer (Voidcaller)', '+1 to Event Horizon (Voidcaller)'] },
+    { id: 'grasp_of_the_void', name: 'Grasp of the Void', base: 'gloves', cls: 'mage', mods: { ias: 15, ene: [5, 8], decayDur: 1, node_repulsion: 1 },
+      fx: ['Decay lasts 1s longer (Voidcaller)', '+1 to Repulsion (Voidcaller)'] },
     { id: 'eye_of_the_abyss', name: 'Eye of the Abyss', base: 'amulet', cls: 'mage', mods: { ene: [10, 15], darkMin: [5, 8], darkMax: [9, 14], decayKillMana: 2 },
       fx: ['Enemies killed by Decay restore 2% of your mana'] },
     { id: 'quiet_mind', name: 'Circlet of the Quiet Mind', base: 'hood', cls: 'mage', mods: { ene: [10, 15], mana: [20, 30], ward: 10 },

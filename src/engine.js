@@ -557,7 +557,7 @@ var Engine = (function () {
       dr: (m.dr || 0) / 100, pierce: m.pierce || 0, multiArrows: m.multiArrows || 0, rainDur: m.rainDur || 0,
       zealDur: m.zealDur || 0, ripPct: m.ripPct || 0, chainPct: m.chainPct || 0, cleaveArea: m.cleaveArea || 0, rendMax: m.rendMax || 0,
       darkDur: m.darkFast ? 2 : R.darkDuration, darkKillMana: m.darkKillMana || 0,
-      sparkSpeed: (m.sparkSpeed || 0) / 100, blinkRange: m.blinkRange || 0, novaShield: (m.novaShield || 0) / 100, decayDur: m.decayDur || 0,
+      sparkSpeed: (m.sparkSpeed || 0) / 100, prism: !!m.prism, blinkRange: m.blinkRange || 0, novaShield: (m.novaShield || 0) / 100, decayDur: m.decayDur || 0,
       decayKillMana: (m.decayKillMana || 0) / 100, ward: (m.ward || 0) / 100, echoEvery: m.echoEvery || 0,
       cleaveBlades: m.cleaveBlades || 0, mantleEvery: m.mantleEvery || 0, novaBlades: m.novaBlades || 0,
       boneWard: !!m.boneWard, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
@@ -1328,9 +1328,9 @@ var Engine = (function () {
       emit(S, { t: 'pblink', pid: p.id, x0: p.x, y0: p.y, x: bx, y: by });
       p.x = bx; p.y = by; p.path = null;
     }
-    var rad = sk.radius * (1 + (nodeVal(p, 'wide_nova') + nodeVal(p, 'event_horizon')) / 100), pull = !!core.pull;
+    var rad = sk.radius * (1 + nodeVal(p, 'wide_nova') / 100), pull = !!core.pull, push = sk.push * (1 + nodeVal(p, 'repulsion') / 100);
     p.novaN = (p.novaN || 0) + 1;
-    var crush = hasNode(p, 'collapse') && p.novaN % 2 === 0, struck = [];
+    var crush = hasNode(p, 'sunfall') && p.novaN % 2 === 0, struck = [];
     S.monsters.slice().forEach(function (m) {
       var mdx = m.x - p.x, mdy = m.y - p.y, md = Math.hypot(mdx, mdy);
       if (md > rad + m.r || !los(S.map, p, m)) return;
@@ -1343,7 +1343,14 @@ var Engine = (function () {
         var to = Math.max(0, md - (p.r + m.r + 0.15)) * heavy;
         for (var k = 0; k < 8; k++) moveEntity(S, m, -ux * to / 8, -uy * to / 8);
       } else {
-        for (var k2 = 0; k2 < 8; k2++) moveEntity(S, m, ux * sk.push * heavy / 8, uy * sk.push * heavy / 8);
+        // Voidcaller: thrown back; Crushing Dark crushes those that hit a wall on the way
+        var thrown = 0;
+        for (var k2 = 0; k2 < 8; k2++) thrown += moveEntity(S, m, ux * push * heavy / 8, uy * push * heavy / 8);
+        if (thrown < push * heavy * 0.6 && hasNode(p, 'crushing_dark')) {
+          var hc = rollHit(S, p, nodeDef('crushing_dark').mult); hurtMonster(S, m, hc.dmg, hc.light, p, 'nova', hc.dark);
+          emit(S, { t: 'crush', x: m.x, y: m.y });
+          if (m.dead) return;
+        }
       }
       if (hasNode(p, 'dazzle') && !ccImmune(m)) { m.state = 'idle'; m.path = null; m.atk = 0; m.wx = null; m.blindUntil = S.time + nodeVal(p, 'dazzle'); }
       if (core.stun && pull && !ccImmune(m)) { m.stunUntil = S.time + core.stun; m.atk = 0; }
@@ -1351,7 +1358,7 @@ var Engine = (function () {
       struck.push(m);
     });
     if (crush) {
-      var C = nodeDef('collapse');
+      var C = nodeDef('sunfall');
       struck.forEach(function (m) { if (!m.dead) { var h2 = rollHit(S, p, C.mult); hurtMonster(S, m, h2.dmg, h2.light, p, 'nova', h2.dark); } });
     }
     if (core.shield) {
@@ -1385,7 +1392,9 @@ var Engine = (function () {
       if (p && hasNode(p, 'withering')) { m.slowUntil = S.time + 0.2; m.slowPct = Math.max(m.slowPct && m.slowUntil > S.time ? m.slowPct : 0, nodeVal(p, 'withering') / 100); }
       dc.t += dt; if (dc.t < 0.5) return;
       var step = dc.t; dc.t = 0;
-      m.byDecay = true; dealRaw(S, m, dc.dps * step, p, 'dark'); m.byDecay = false;
+      var rw = p && hasNode(p, 'rot_wave') ? nodeDef('rot_wave') : null;   // Rot Wave: more at a distance
+      var dmul = rw && Math.hypot(m.x - p.x, m.y - p.y) > rw.dist ? 1 + rw.pct : 1;
+      m.byDecay = true; dealRaw(S, m, dc.dps * step * dmul, p, 'dark'); m.byDecay = false;
     });
   }
   function spreadDecay(S, m) {
@@ -1438,7 +1447,7 @@ var Engine = (function () {
     var a = Math.atan2(ty - p.y, tx - p.x), h = rollHit(S, p, echo ? 1.5 : 1), spd = R.sparkSpeed * (1 + (p.st.sparkSpeed || 0));
     S.projs.push({ id: S.nextId++, kind: 'spark', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35, echo: echo || undefined,
       vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, life: p.st.range / spd + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
-      pierce: 0, keep: 0, hitIds: [], home: true, prism: hasNode(p, 'prism') });
+      pierce: 0, keep: 0, hitIds: [], home: true, prism: !!p.st.prism });
   }
   function shoot(S, p, tx, ty) {
     if (p.cd > 0) return false;
@@ -2064,9 +2073,8 @@ var Engine = (function () {
   }
   function sparkHit(S, pr, m) {
     var p = S.players[pr.owner]; if (!p) return;
-    if (hasNode(p, 'siphon')) p.mana = Math.min(p.st.maxMana, p.mana + nodeDef('siphon').mana);
     if (pr.prism) {
-      var a = Math.atan2(pr.vy, pr.vx), sp = Math.hypot(pr.vx, pr.vy), k = nodeDef('prism').pct;
+      var a = Math.atan2(pr.vy, pr.vx), sp = Math.hypot(pr.vx, pr.vy), k = 0.5;   // Starfall Rod
       [-0.6, 0.6].forEach(function (o) {
         S.projs.push({ id: S.nextId++, kind: 'spark', from: 'p', owner: pr.owner, x: m.x, y: m.y, vx: Math.cos(a + o) * sp, vy: Math.sin(a + o) * sp,
           life: 0.45, dmg: pr.dmg * k, light: (pr.light || 0) * k, dark: (pr.dark || 0) * k, pierce: 0, keep: 0, hitIds: [m.id], home: true, prism: false, small: true });

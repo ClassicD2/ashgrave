@@ -502,7 +502,8 @@
           chains.push({ x: e.x, y: e.y, x2: e.x2, y2: e.y2, t: 0 });
           spray(e.x2, e.y2, 8, { colors: ['#ffffff', '#fff1b0', '#ffe08a'], speed: 1.2, up: 120, life: 0.4, size: 1.8, glow: true, grav: -10 }); break;
         case 'nova': novas.push({ x: e.x, y: e.y, r: e.r, pull: !!e.pull, crush: !!e.crush, side: e.side, t: 0 }); sfx('nova');
-          spray(e.x, e.y, 18, { colors: e.pull ? ['#2a1840', '#7a4ad0', '#b48cff'] : ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: e.pull ? -1.5 : 2.2, up: 60, life: 0.5, size: 2.2, glow: true, h: 16 }); break;
+          spray(e.x, e.y, 18, { colors: e.side === 'dark' ? ['#2a1840', '#7a4ad0', '#b48cff'] : e.side === 'light' ? ['#ffffff', '#fff1b8', '#f0d06a'] : ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: e.pull ? -1.5 : 2.2, up: 60, life: 0.5, size: 2.2, glow: true, h: 16 }); break;
+        case 'crush': spray(e.x, e.y, 12, { colors: ['#2a1840', '#7a4ad0', '#5a5048'], speed: 1.6, up: 90, life: 0.5, size: 2.4 }); sfx('boom'); break;
         case 'pblink': spray(e.x0, e.y0, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); spray(e.x, e.y, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); break;
         case 'absorb': spray(e.x, e.y, 6, { colors: ['#fff1b0', '#ffe08a'], speed: 1, up: 80, life: 0.35, size: 2, glow: true, h: 22 }); break;
         case 'decaySpread': for (var dsi = 1; dsi <= 4; dsi++) spray(e.x0 + (e.x - e.x0) * dsi / 4, e.y0 + (e.y - e.y0) * dsi / 4, 2, { colors: ['#6a8a3a', '#b48cff'], speed: 0.4, up: 40, life: 0.6, size: 2.2, glow: true, h: 14 }); break;
@@ -1478,10 +1479,10 @@
       ctx.restore();
     });
     novas.forEach(function (w) {
-      // an expanding (or, for the Voidcaller, collapsing) ring on the ground
+      // an expanding ring on the ground, or a collapsing one when Nova draws enemies in (Lightbinder)
       var k = w.t / 0.35, rr = w.pull ? w.r * (1 - k * 0.85) : w.r * (0.25 + 0.75 * k), cx = sx(w.x, w.y), cy = sy(w.x, w.y);
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
-      ctx.strokeStyle = w.pull ? 'rgba(170,120,255,' + (0.8 * (1 - k)) + ')' : w.side === 'light' ? 'rgba(255,236,170,' + (0.85 * (1 - k)) + ')' : 'rgba(170,205,255,' + (0.85 * (1 - k)) + ')';
+      ctx.strokeStyle = w.side === 'dark' ? 'rgba(170,120,255,' + (0.8 * (1 - k)) + ')' : w.side === 'light' ? 'rgba(255,236,170,' + (0.85 * (1 - k)) + ')' : 'rgba(170,205,255,' + (0.85 * (1 - k)) + ')';
       ctx.lineWidth = (w.crush ? 7 : 4) * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rr * HW * 1.414, rr * HH * 1.414, 0, 0, 6.283); ctx.stroke();
       ctx.restore();
     });
