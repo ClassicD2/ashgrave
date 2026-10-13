@@ -1610,7 +1610,7 @@ var Engine = (function () {
       }
       else if (o.t === 'pickup') {
         var g = findGround(S, o.id);
-        if (!g) p.order = null;
+        if (!g || (g.owner && g.owner !== p.id)) p.order = null;   // someone else's loot
         else if (Math.hypot(g.x - p.x, g.y - p.y) < 1.1) { pickUp(S, p, g); p.order = null; p.path = null; }
         else { pathTo(S, p, g.x, g.y, dt, 3000); if (!followPath(S, p, pSpeed(p), dt) && !p.path) p.order = null; }
       }
@@ -1967,12 +1967,14 @@ var Engine = (function () {
       for (var tid in S.players) gainXp(S, S.players[tid], m.xp);
       if (m.boss === 'trial') {
         var RW = D.trial.reward, rr = S.rng;
-        for (var g3 = 0; g3 < 3; g3++) S.ground.push({ id: S.nextId++, x: m.x + (rnd(rr) - 0.5) * 1.6, y: m.y + (rnd(rr) - 0.5) * 1.6, kind: 'gold', amount: rint(rr, RW.gold[0], RW.gold[1]) });
-        for (var k3 = 0; k3 < RW.items; k3++) {
-          var it3 = (k3 === 0 && maybeUnique(S, RW.ilvl, D.uniqueRules.trial)) || genItem(S, RW.ilvl, null, RW.rarity);
-          S.ground.push({ id: S.nextId++, x: m.x + (rnd(rr) - 0.5) * 1.6, y: m.y + (rnd(rr) - 0.5) * 1.6, kind: 'item', item: it3 });
-          emit(S, { t: 'itemdrop', rarity: it3.rarity, x: m.x, y: m.y });
-        }
+        Object.keys(S.players).forEach(function (oid) {   // each hero gets their own reward
+          for (var g3 = 0; g3 < 3; g3++) S.ground.push({ id: S.nextId++, owner: oid, x: m.x + (rnd(rr) - 0.5) * 1.6, y: m.y + (rnd(rr) - 0.5) * 1.6, kind: 'gold', amount: rint(rr, RW.gold[0], RW.gold[1]) });
+          for (var k3 = 0; k3 < RW.items; k3++) {
+            var it3 = (k3 === 0 && maybeUnique(S, RW.ilvl, D.uniqueRules.trial)) || genItem(S, RW.ilvl, null, RW.rarity);
+            S.ground.push({ id: S.nextId++, owner: oid, x: m.x + (rnd(rr) - 0.5) * 1.6, y: m.y + (rnd(rr) - 0.5) * 1.6, kind: 'item', item: it3 });
+            emit(S, { t: 'itemdrop', rarity: it3.rarity, x: m.x, y: m.y, owner: oid });
+          }
+        });
       }
       return;
     }
@@ -1985,37 +1987,39 @@ var Engine = (function () {
       }
       return [m.x, m.y];
     }
-    var s;
-    if (rnd(r) < 0.45) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, 2, 7) * S.depth * (m.champ ? 3 : 1) }); }
-    if (rnd(r) < 0.13) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'potion', pot: rnd(r) < 0.68 ? 'hp' : 'mp' }); }
-    var n = rnd(r) < (m.champ ? 0.9 : 0.15) ? 1 : 0, minR = 0, ib = m.champ ? 2 : 0;
-    if (m.champ && rnd(r) < 0.45) n++;
-    if (m.boss === 'mini') { n = 2; minR = 1; ib = 3; }
     if (m.boss === 'warden' || m.boss === 'king') {
-      var WR = D.bosses[m.boss].reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
       if (S.ossuary) S.ossuary.done = true;
       emit(S, { t: 'wardenDown', kind: m.boss, name: m.name });
-      var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib;
-      // First kill per character and difficulty: that hero's own weapon is guaranteed (when this boss has one here).
-      var firsts = 0;
-      for (var fid in S.players) {
-        var fq = S.players[fid], fpr = fq.progress[S.difficulty], fk = fpr.firstKills || (fpr.firstKills = {});
-        if (fq.dead || fk[m.boss]) continue;
-        var fw = bossWeapon(S, m.boss, ilw, fq.cls); if (!fw) continue;
-        fk[m.boss] = true; fq.ver++; firsts++; s = spot();
-        S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: fw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] });
-        emit(S, { t: 'msg', pid: fid, text: 'First victory over ' + m.name + ': a weapon made for you.' });
-      }
-      if (!firsts && rnd(r) < WR.unique) { n--; s = spot(); var uw = bossWeapon(S, m.boss, ilw) || genUnique(S, ilw); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: uw }); emit(S, { t: 'itemdrop', rarity: 3, x: s[0], y: s[1] }); }
-      for (var gw = 0; gw < 3; gw++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, WR.gold[0], WR.gold[1]) * S.depth }); }
     }
-    if (m.boss === 'true') { n = 4; minR = 2; ib = 4; }
-    if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
-    for (var i = 0; i < n; i++) {
-      var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
-      var it = maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR);
-      s = spot(); S.ground.push({ id: S.nextId++, x: s[0], y: s[1], kind: 'item', item: it });
-      emit(S, { t: 'itemdrop', rarity: it.rarity, x: s[0], y: s[1] });
+    // Personal loot: every hero in the game gets a drop roll of their own, which only they can see and pick up.
+    Object.keys(S.players).forEach(function (oid) { personalDrops(oid); });
+    function personalDrops(oid) {
+      var q = S.players[oid], s;
+      function put(x, y, g) { g.id = S.nextId++; g.x = x; g.y = y; g.owner = oid; S.ground.push(g); }
+      function putItem(it) { var sp = spot(); put(sp[0], sp[1], { kind: 'item', item: it }); emit(S, { t: 'itemdrop', rarity: it.rarity, x: sp[0], y: sp[1], owner: oid }); }
+      if (rnd(r) < 0.45) { s = spot(); put(s[0], s[1], { kind: 'gold', amount: rint(r, 2, 7) * S.depth * (m.champ ? 3 : 1) }); }
+      if (rnd(r) < 0.13) { s = spot(); put(s[0], s[1], { kind: 'potion', pot: rnd(r) < 0.68 ? 'hp' : 'mp' }); }
+      var n = rnd(r) < (m.champ ? 0.9 : 0.15) ? 1 : 0, minR = 0, ib = m.champ ? 2 : 0;
+      if (m.champ && rnd(r) < 0.45) n++;
+      if (m.boss === 'mini') { n = 2; minR = 1; ib = 3; }
+      if (m.boss === 'warden' || m.boss === 'king') {
+        var WR = D.bosses[m.boss].reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
+        var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib, got = false;
+        // First kill per character and difficulty: that hero's own weapon is guaranteed (when this boss has one here).
+        var fpr = q.progress[S.difficulty], fk = fpr.firstKills || (fpr.firstKills = {});
+        if (!q.dead && !fk[m.boss]) {
+          var fw = bossWeapon(S, m.boss, ilw, q.cls);
+          if (fw) { fk[m.boss] = true; q.ver++; got = true; putItem(fw); emit(S, { t: 'msg', pid: oid, text: 'First victory over ' + m.name + ': a weapon made for you.' }); }
+        }
+        if (!got && rnd(r) < WR.unique) { n--; putItem(bossWeapon(S, m.boss, ilw, q.cls) || genUnique(S, ilw)); }
+        for (var gw = 0; gw < 3; gw++) { s = spot(); put(s[0], s[1], { kind: 'gold', amount: rint(r, WR.gold[0], WR.gold[1]) * S.depth }); }
+      }
+      if (m.boss === 'true') { n = 4; minR = 2; ib = 4; }
+      if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); put(s[0], s[1], { kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
+      for (var i = 0; i < n; i++) {
+        var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
+        putItem(maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR));
+      }
     }
   }
   // The Abbot on the last level ends the difficulty for everyone in the game.

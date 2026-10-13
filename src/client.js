@@ -670,6 +670,7 @@
           else { addLog('Picked up: ' + e.text, e.rarity === 3 ? 'unique' : e.rarity === 2 ? 'rare' : e.rarity === 1 ? 'magic' : ''); sfx(e.rarity >= 2 ? 'rare' : 'pick'); }
           break;
         case 'itemdrop':
+          if (e.owner && e.owner !== PID) break;   // another hero's loot
           if (e.rarity === 3) { sfx('rare'); addLog('A unique item drops!', 'unique'); spray(e.x, e.y, 28, { colors: ['#c070ff', '#e8c8ff', '#8a3ad0'], speed: 0.8, up: 320, life: 1.5, glow: true, grav: 150, size: 2.4 }); }
           else if (e.rarity === 2) { sfx('rare'); spray(e.x, e.y, 16, { colors: ['#f0d06a', '#fff2c0'], speed: 0.6, up: 260, life: 1.2, glow: true, grav: 150, size: 2 }); }
           break;
@@ -1635,7 +1636,7 @@
       if (id !== PID) deadHits.push({ id: id, sx: sx(q.x, q.y), sy: sy(q.x, q.y) - 6 * Z, r: 22 * Z });
     });
     var vis = p.st.light + 0.6;
-    S.ground.forEach(function (g) { if (Math.hypot(g.x - pp.x, g.y - pp.y) < vis) drawGroundGlyph(g); });
+    S.ground.forEach(function (g) { if (mine(g) && Math.hypot(g.x - pp.x, g.y - pp.y) < vis) drawGroundGlyph(g); });
     // depth-sorted
     var list = [];
     walls.forEach(function (w) { list.push({ d: w[0] + w[1] + 1, k: 'w', tx: w[0], ty: w[1] }); });
@@ -1822,10 +1823,12 @@
     }
     ctx.globalAlpha = 1; if (glow) ctx.restore();
   }
+  // Personal loot: you only see what dropped for you (and what anyone dropped on purpose)
+  function mine(g) { return !g.owner || g.owner === PID; }
   function drawLabels(pp, vis, psx, psy) {
     var pr = { x: psx - 14 * Z, y: psy - 44 * Z, w: 28 * Z, h: 46 * Z };
     labels = []; ctx.font = "500 " + Math.round(13 * UI) + "px 'Alegreya Sans', sans-serif"; ctx.textAlign = 'left';
-    var items = S.ground.filter(function (g) { return Math.hypot(g.x - pp.x, g.y - pp.y) < vis; });
+    var items = S.ground.filter(function (g) { return mine(g) && Math.hypot(g.x - pp.x, g.y - pp.y) < vis; });
     if (!S.map.final && explored[Math.floor(S.map.stairs.y) * S.map.W + Math.floor(S.map.stairs.x)] && Math.hypot(S.map.stairs.x - pp.x, S.map.stairs.y - pp.y) < vis + 2) items.push({ stairs: true, x: S.map.stairs.x, y: S.map.stairs.y });
     (S.npcs || []).forEach(function (n) { if (Math.hypot(n.x - pp.x, n.y - pp.y) < vis + 4) items.push({ npc: n, x: n.x, y: n.y, id: n.id }); });
     var oss = S.ossuary;
