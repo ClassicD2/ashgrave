@@ -144,7 +144,6 @@
   // melody, the crypts low drones and dripping water, the Burning Deep a rumble and struck metal.
   // Drums come in on top while a boss is in sight.
   var MUS = { scene: null, cur: null, boss: null, bossSeen: -99, verb: null };
-  var SCALE = [293.66, 329.63, 349.23, 392, 440, 466.16, 523.25, 587.33];   // D minor, D4..D5
   function musicReverb() {
     if (MUS.verb) return MUS.verb;
     var len = Math.floor(AC.sampleRate * 3.2), b = AC.createBuffer(2, len, AC.sampleRate);
@@ -207,19 +206,94 @@
     };
     return L;
   }
-  var SCENES = {
-    fields: function () {
-      var L = musicLayer(0.55);
-      L.bed('bandpass', 520, 0.7, 0.07, 320, 0.07);                       // wind
-      L.drone('sine', 73.42, 0.022, 400); L.drone('sine', 110, 0.016, 400);  // a faint open fifth
-      L.every(4, 9, function (t) {                                         // the lone melody
-        var i = Math.floor(Math.random() * 5), n = 3 + Math.floor(Math.random() * 4);
-        for (var k = 0; k < n; k++) {
-          var d = 0.5 + Math.random() * 0.6;
-          L.note('triangle', SCALE[i], t, d * 1.8, 0.05, 0.07); t += d;
-          i = Math.max(0, Math.min(SCALE.length - 1, i + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
+  // ---- The guitar: a plucked 12-string (Karplus-Strong), rendered once per note and cached ----
+  var GTR = { cache: {}, bus: null };
+  var NOTE = { D2: 73.42, G2: 98, A2: 110, Bb2: 116.54, C3: 130.81, D3: 146.83, Eb3: 155.56, E3: 164.81, F3: 174.61, G3: 196, A3: 220, Bb3: 233.08, C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392, A4: 440, Bb4: 466.16, C5: 523.25, D5: 587.33, E5: 659.26, F5: 698.46 };
+  function ksString(out, freq, amp, offset, damp) {
+    var sr = AC.sampleRate, n = Math.max(2, Math.round(sr / freq)), b = new Float32Array(n), lp = 0;
+    for (var i = 0; i < n; i++) { lp = lp * 0.55 + (Math.random() * 2 - 1) * 0.45; b[i] = lp; }   // a soft pick
+    for (var j = 0, k = 0; j + offset < out.length; j++) {
+      var v = b[k], nx = b[(k + 1) % n];
+      out[j + offset] += v * amp; b[k] = damp * 0.5 * (v + nx); k = (k + 1) % n;
+    }
+  }
+  function pluckBuf(name) {
+    if (GTR.cache[name]) return GTR.cache[name];
+    var f = NOTE[name], sr = AC.sampleRate, len = Math.floor(sr * 4.5), out = new Float32Array(len);
+    // 12-string: low courses get an octave string, high ones a slightly detuned twin, struck a hair later
+    ksString(out, f, 0.6, 0, 0.9985);
+    if (f < 200) ksString(out, f * 2, 0.35, Math.floor(sr * 0.012), 0.998);
+    else ksString(out, f * 1.0025, 0.4, Math.floor(sr * 0.009), 0.9985);
+    var fade = Math.floor(sr * 0.4); for (var q = 0; q < fade; q++) out[len - 1 - q] *= q / fade;
+    var buf = AC.createBuffer(1, len, sr); buf.getChannelData(0).set(out);
+    return (GTR.cache[name] = buf);
+  }
+  // guitar tone: a little body, the top rounded off, and the long echo that makes it Tristram-like
+  function guitarBus(L) {
+    var body = AC.createBiquadFilter(), top = AC.createBiquadFilter(), dly = AC.createDelay(2), fb = AC.createGain(), dlp = AC.createBiquadFilter(), wet = AC.createGain(), dry = AC.createGain();
+    body.type = 'peaking'; body.frequency.value = 180; body.Q.value = 1; body.gain.value = 4;
+    top.type = 'lowpass'; top.frequency.value = 3600;
+    dly.delayTime.value = 0.455; fb.gain.value = 0.38; dlp.type = 'lowpass'; dlp.frequency.value = 2200; wet.gain.value = 0.35; dry.gain.value = 1;
+    body.connect(top); top.connect(dry); dry.connect(L.out);
+    top.connect(dly); dly.connect(dlp); dlp.connect(fb); fb.connect(dly); dlp.connect(wet); wet.connect(L.out);
+    return body;
+  }
+  function pluck(L, bus, name, t, vol) {
+    if (!NOTE[name]) return;
+    var s2 = AC.createBufferSource(), g = AC.createGain();
+    s2.buffer = pluckBuf(name); g.gain.value = vol;
+    s2.connect(g); g.connect(bus); s2.start(t + (Math.random() - 0.5) * 0.02);
+  }
+  // Chords held over an open D string, played as slow arpeggios. Original phrases in a Tristram-like mood.
+  var CHORDS = {
+    Dm: ['D2', 'A2', 'D3', 'F3', 'A3', 'E4'], Bb: ['D2', 'Bb2', 'D3', 'F3', 'Bb3', 'D4'], C: ['D2', 'C3', 'E3', 'G3', 'C4', 'E4'],
+    Am: ['D2', 'A2', 'E3', 'A3', 'C4', 'E4'], Gm: ['D2', 'G2', 'D3', 'G3', 'Bb3', 'D4'], Dph: ['D2', 'A2', 'D3', 'Eb3', 'A3', 'D4']
+  };
+  var PROGS = [['Dm', 'Dm', 'Bb', 'C'], ['Dm', 'Gm', 'Bb', 'Dm'], ['Dm', 'Am', 'C', 'Dm'], ['Gm', 'Bb', 'C', 'Dm'], ['Dm', 'C', 'Bb', 'Am']];
+  var ARPS = [[0, 2, 3, 4, 5, 4, 3, 2], [0, 3, 4, 5, 3, 4, 2, 4], [0, 2, 4, 5, 4, 2, 3, 4], [0, 4, 3, 5, 2, 4, 3, 1]];
+  var TOP = ['D4', 'E4', 'F4', 'G4', 'A4', 'Bb4', 'C5', 'D5', 'E5', 'F5'];
+  // plays phrase after phrase with breathing room between; dark = the sparse, slower crypt version
+  function guitarLoop(L, vol, dark) {
+    var bus = guitarBus(L), beat = dark ? 0.62 : 0.455, nextT = AC.currentTime + 1.5;
+    function phrase(t) {
+      var prog = dark ? (Math.random() < 0.5 ? ['Dm', 'Dph'] : ['Dph', 'Dm']) : PROGS[Math.floor(Math.random() * PROGS.length)];
+      var arp = ARPS[Math.floor(Math.random() * ARPS.length)], mi = 3 + Math.floor(Math.random() * 3);
+      prog.forEach(function (ch, bar) {
+        var notes = CHORDS[ch];
+        for (var e = 0; e < 8; e++) {
+          if (dark && e % 2 === 1 && Math.random() < 0.6) continue;             // the crypt leaves gaps
+          var at = t + (bar * 8 + e) * beat, nm = notes[arp[e]];
+          pluck(L, bus, nm, at, vol * (e === 0 ? 1 : 0.62 + Math.random() * 0.2));
+        }
+        // a slow melody on top in the lighter places: a held note every half bar
+        if (!dark) for (var h = 0; h < 2; h++) if (Math.random() < 0.7) {
+          mi = Math.max(0, Math.min(TOP.length - 1, mi + [-2, -1, 0, 1, 1, 2][Math.floor(Math.random() * 6)]));
+          pluck(L, bus, TOP[mi], t + (bar * 8 + h * 4 + 0.5) * beat, vol * 0.75);
         }
       });
+      return prog.length * 8 * beat;
+    }
+    (function sched() {
+      if (!L.alive) return;
+      if (nextT < AC.currentTime + 0.5) {
+        var len = muted || document.hidden ? 4 : phrase(Math.max(nextT, AC.currentTime + 0.1));
+        nextT = Math.max(nextT, AC.currentTime + 0.1) + len + (dark ? 8 + Math.random() * 14 : 1.5 + Math.random() * 4);
+      }
+      L.timers.push(setTimeout(sched, 200));
+    })();
+  }
+  var SCENES = {
+    // the title screen: the guitar alone, with a faint wind
+    title: function () {
+      var L = musicLayer(0.5);
+      L.bed('bandpass', 520, 0.7, 0.025, 320, 0.07);
+      guitarLoop(L, 0.2, false);
+      return L;
+    },
+    fields: function () {
+      var L = musicLayer(0.55);
+      L.bed('bandpass', 520, 0.7, 0.04, 320, 0.07);                       // wind
+      guitarLoop(L, 0.19, false);                                          // the guitar
       return L;
     },
     crypt: function () {
@@ -234,6 +308,7 @@
       L.every(0.8, 4, function (t) {                                       // dripping water
         var f = 1300 + Math.random() * 900; L.note('sine', f, t, 0.14, 0.05, 0.002, f * 0.55);
       });
+      guitarLoop(L, 0.22, true);                                           // now and then, a few dark notes
       return L;
     },
     deep: function () {
@@ -266,9 +341,9 @@
     }
   };
   // evens out how loud the moods are against each other (measured)
-  var SCENE_LEVEL = { fields: 1.3, crypt: 1, deep: 1.6, boss: 0.6 };
+  var SCENE_LEVEL = { title: 1, fields: 1, crypt: 1, deep: 1.6, boss: 0.6 };
   function musicScene() {
-    if (!S || !running) return 'crypt';
+    if (!S || !running) return 'title';
     if (S.trial) return 'crypt';
     var th = S.map && S.map.theme;
     return th === 'forest' ? 'fields' : th === 'monastery' ? 'deep' : 'crypt';
