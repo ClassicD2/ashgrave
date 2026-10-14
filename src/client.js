@@ -1644,10 +1644,11 @@
     updateVeilLight(1 / 60); var myLight = lightOf(p);
     var light = myLight * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));
     // explored tiles
-    var sight = myLight * 1.2 + 0.3, L = Math.ceil(sight) + 1;
+    // Floor is remembered a little past the edge of sight, so the ragged edge of what you have seen always lies in full dark.
+    var sight = myLight * 1.2 + 0.3, seen = myLight * 1.3 + 2, L = Math.ceil(seen) + 1;
     for (var ey = Math.floor(pp.y) - L; ey <= Math.floor(pp.y) + L; ey++) for (var ex = Math.floor(pp.x) - L; ex <= Math.floor(pp.x) + L; ex++) {
       if (ex < 0 || ey < 0 || ex >= W || ey >= H) continue;
-      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= sight) explored[ey * W + ex] = 1;
+      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= seen) explored[ey * W + ex] = 1;
     }
     var marg = 80 * Z;
     function onScreen(tx, ty) { var x = sx(tx + 0.5, ty + 0.5), y = sy(tx + 0.5, ty + 0.5); return x > -marg && x < vw + marg && y > -marg && y < vh + marg * 2; }
