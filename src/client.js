@@ -1119,7 +1119,7 @@
     if (!L && !Rr) return bank ? 'snw-bank-straight' : 'snw-rock-straight';
     var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r';
     if (bank) return k < 200 ? 'snw-bank-drift' + side : k < 270 ? 'snw-bank-bones' + side : 'snw-bank-straight';
-    return k < 220 ? 'snw-rock-icicles' + side : k < 380 ? 'snw-rock-cracked' + side : 'snw-rock-straight';
+    return k < 220 ? 'snw-rock-icicles' + side : k < 380 ? 'snw-rock-cracked' + side : k < 440 ? 'snw-rock-lantern' + side : 'snw-rock-straight';
   }
   function envWall(tx, ty, h) {
     if (theme().snow) return snowWall(tx, ty, h);
@@ -1249,6 +1249,7 @@
         gg.addColorStop(0, 'rgba(255,70,30,1)'); gg.addColorStop(1, 'rgba(255,40,10,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(gx, gy, 46 * sw, 0, 6.283); ctx.fill(); ctx.restore();
       }
       if (wn.indexOf('hl-hell-wall-brazier') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'hl-hell-wall-brazier-l' ? 28 : 100) * sw, y: ay - 64 * sw + 70 * sw, r: 72 * Z, warm: 1 });
+      if (wn.indexOf('snw-rock-lantern') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'snw-rock-lantern-l' ? 20 : 113) * sw, y: ay - 64 * sw + (wn === 'snw-rock-lantern-l' ? 76 : 86) * sw, r: 64 * Z, warm: 1 });
       if (wn.indexOf('fo-ruinwall-lantern') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'fo-ruinwall-lantern-l' ? 20 : 108) * sw, y: ay - 64 * sw + 74 * sw, r: 64 * Z, warm: 1 });
       if (wn.indexOf('wall-torch') === 0) lamps.push({ x: ax - 64 * sw + (wn === 'wall-torch-l' ? 15 : 112) * sw, y: ay - 64 * sw + 64 * sw, r: 70 * Z, warm: 1 });
       ctx.globalAlpha = 1;
