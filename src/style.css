@@ -113,6 +113,13 @@ button:focus-visible { outline: 2px solid var(--bronze); outline-offset: 2px; }
 .pts { color: var(--rare); font-weight: 700; }
 
 .eqgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+/* On wide screens the selected item's details sit beside the inventory, so the equipment never scrolls away. */
+@media (min-width: 900px) {
+  .eqgrid { grid-template-columns: repeat(4, minmax(0, 66px)); justify-content: space-between; }
+  #invPanel .detail { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(16px + min(352px, calc(100vw - 32px)) + 34px + 10px); width: 300px;
+    max-height: calc(100vh - 152px); overflow: auto; background: linear-gradient(var(--stone-2), var(--stone)); border-color: var(--edge);
+    box-shadow: 0 0 0 1px #000, 0 10px 40px rgba(0,0,0,.8); padding: 14px 16px; z-index: 5; }
+}
 .invgrid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
 .cell { aspect-ratio: 1; max-width: 100%; background: rgba(0,0,0,.35); border: 1px solid #2f2620; border-radius: 2px; cursor: pointer; position: relative; display: grid; place-items: center; padding: 0; }
 .cell:hover { border-color: var(--bronze); }

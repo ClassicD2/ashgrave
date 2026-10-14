@@ -13,7 +13,7 @@ var DATA = {
                   abilities: ['Fireball Volley', 'Withering Curse'] },
     gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
                   abilities: ['Bone Spikes', 'Raise the Dead'] },
-    seer: { name: 'The Pale Seer', hp: 480, dmg: [9, 14], speed: 2.3, range: 7, atkTime: 0.6, atkCd: 1.4, xp: 1100, r: 0.42, ai: 'seer', aggro: 9,
+    seer: { name: 'The Pale Seer', hp: 560, dmg: [9, 14], speed: 2.3, range: 7, atkTime: 0.6, atkCd: 1.4, xp: 1100, r: 0.42, ai: 'seer', aggro: 9,
                   abilities: ['Soul Lances', "Seer's Ward", 'Veil Step', 'Mirror Veil', 'Starfall', 'Blinding Veil'] },
     king: { name: 'The Hollowed King', hp: 430, dmg: [9, 14], speed: 2.0, range: 1.0, atkTime: 0.55, atkCd: 1.4, xp: 600, r: 0.45, ai: 'king', aggro: 8,
                   abilities: ['Blade Tempest', 'Kingsfall Charge', 'Shed the Mantle'] },
@@ -600,13 +600,13 @@ var DATA = {
     // teleports on a timer; far from her the world goes dark and the cold sets in, so the fight is fought up close.
     seer: {
       depths: [14, 16], difficulties: ['hell'], scale: 1.8,
-      keep: [4.5, 8],                                                      // the distance she likes to keep
-      lance: { every: 2.8, cast: 0.6, count: 5, spread: 0.26, speed: 6.5, life: 2.6, turn: 0.7, dmg: [1, 3] },
+      keep: [3.5, 6.5],                                                      // the distance she likes to keep
+      lance: { every: 2.4, cast: 0.6, count: 5, late: 2, spread: 0.26, speed: 7.5, life: 2.4, turn: 0.9, dmg: [2, 3] },   // late: extra lances below half health
       ward: { every: 8, cast: 0.7, radius: 1.5, dur: 6, manaDrain: 0.04, chill: 0.6 },
-      veil: { every: 12, cast: 0.8, minJump: 5 },
+      veil: { every: 9, cast: 0.8, minJump: 5 },
       mirror: { at: [0.66, 0.33], copies: 2, hp: 0.06, dmg: 0.4, life: 15 },
       star: { at: 0.25, every: 12, cast: 3, interval: 0.22, fuse: 1.0, radius: 1.1, dmg: [7, 11] },
-      dark: { near: 5, far: 9, minLight: 2, chillMin: 0.005, chillMax: 0.02, ramp: 3 },
+      dark: { near: 3, far: 6, minLight: 2, chillMin: 0.005, chillMax: 0.02, ramp: 3 },
       reward: { items: 6, minRarity: 2, ilvlBonus: 6, unique: 0.4, gold: [40, 80] }
     },
     abbot: {

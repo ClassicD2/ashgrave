@@ -2297,8 +2297,12 @@
     if (!t || !p) { hideTip(); return; }
     var it = t.dataset.eq ? p.eq[t.dataset.eq] : p.inv[+t.dataset.inv];
     if (!it) { hideTip(); return; }
+    var det = $('detail'), side = !det.hidden && getComputedStyle(det).position === 'fixed';
+    // the selected item is already shown in the box beside the inventory
+    if (side && sel && (t.dataset.eq ? sel.from === 'eq' && sel.key === t.dataset.eq : sel.from === 'inv' && sel.key === +t.dataset.inv)) { hideTip(); return; }
     tipEl.innerHTML = itemHtml(it, t.dataset.inv ? p : null); tipEl.hidden = false;
     var r = t.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+    if (side) r = { left: det.getBoundingClientRect().left, right: r.right, top: r.top };   // keep clear of the detail box
     var x = r.left - tw - 10; if (x < 8) x = Math.min(vw - tw - 8, r.right + 10);
     var y = Math.max(8, Math.min(vh - th - 8, r.top));
     tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px';

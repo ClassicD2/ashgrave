@@ -920,8 +920,8 @@ var Engine = (function () {
       }
       if (m.atk > 0) return;
       if (m.cast === 'lance') {
-        var L = V.lance, a0 = Math.atan2(p.y - m.y, p.x - m.x), half = (L.count - 1) / 2;
-        for (var i = 0; i < L.count; i++) {
+        var L = V.lance, a0 = Math.atan2(p.y - m.y, p.x - m.x), cnt = L.count + (!m.mirror && m.hp < m.max * 0.5 ? (L.late || 0) : 0), half = (cnt - 1) / 2;
+        for (var i = 0; i < cnt; i++) {
           var a = a0 + (i - half) * L.spread;
           S.projs.push({ id: S.nextId++, kind: 'lance', from: 'm', owner: m.id, homeP: L.turn, x: m.x + Math.cos(a) * 0.5, y: m.y + Math.sin(a) * 0.5,
             vx: Math.cos(a) * L.speed, vy: Math.sin(a) * L.speed, life: L.life, dmg: rint(S.rng, L.dmg[0], L.dmg[1]) * m.dmgMul, lvl: m.lvl });
