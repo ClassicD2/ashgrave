@@ -425,10 +425,13 @@
     if (veilLight == null) veilLight = want;
     else veilLight += (want - veilLight) * Math.min(1, dt * 2.5);
   }
+  // How far you actually see: the edge where the darkness overlay turns (almost) black. The overlay's radius is
+  // 1.75 x light in screen units, about 1.24 x light in tiles, so floor, monsters and items all stop at the same line.
+  function sightOf(p) { return lightOf(p) * 1.2 + 0.3; }
   function lightOf(p) { return p && p.id === PID && veilLight != null ? veilLight : p.st.light; }
   function nearestVisibleMonster() {
     var p = me(), best = null, bd = 1e9; if (!p) return null;
-    S.monsters.forEach(function (m) { var d = Math.hypot(m.x - p.x, m.y - p.y); if (d < lightOf(p) + 1 && d < bd) { bd = d; best = m; } });
+    S.monsters.forEach(function (m) { var d = Math.hypot(m.x - p.x, m.y - p.y); if (d < sightOf(p) + 0.4 && d < bd) { bd = d; best = m; } });
     return best;
   }
   function castSkillAuto() {
@@ -1641,10 +1644,10 @@
     updateVeilLight(1 / 60); var myLight = lightOf(p);
     var light = myLight * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));
     // explored tiles
-    var L = Math.ceil(myLight) + 1;
+    var sight = myLight * 1.2 + 0.3, L = Math.ceil(sight) + 1;
     for (var ey = Math.floor(pp.y) - L; ey <= Math.floor(pp.y) + L; ey++) for (var ex = Math.floor(pp.x) - L; ex <= Math.floor(pp.x) + L; ex++) {
       if (ex < 0 || ey < 0 || ex >= W || ey >= H) continue;
-      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= myLight + 0.5) explored[ey * W + ex] = 1;
+      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= sight) explored[ey * W + ex] = 1;
     }
     var marg = 80 * Z;
     function onScreen(tx, ty) { var x = sx(tx + 0.5, ty + 0.5), y = sy(tx + 0.5, ty + 0.5); return x > -marg && x < vw + marg && y > -marg && y < vh + marg * 2; }
@@ -1717,7 +1720,7 @@
       drawFallen(q, t);
       if (id !== PID) deadHits.push({ id: id, sx: sx(q.x, q.y), sy: sy(q.x, q.y) - 6 * Z, r: 22 * Z });
     });
-    var vis = myLight + 0.6;
+    var vis = sight;
     S.ground.forEach(function (g) { if (mine(g) && Math.hypot(g.x - pp.x, g.y - pp.y) < vis) drawGroundGlyph(g); });
     // depth-sorted
     var list = [];
@@ -1839,7 +1842,7 @@
     // light
     ctx.save(); ctx.translate(psx, psy - 12 * Z); ctx.scale(1, 0.5);
     var R0 = light * HW * 1.75, g = ctx.createRadialGradient(0, 0, R0 * 0.1, 0, 0, R0);
-    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.45, 'rgba(0,0,0,0.12)'); g.addColorStop(0.75, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0.95)');
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.45, 'rgba(0,0,0,0.12)'); g.addColorStop(0.75, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0.975)');
     ctx.fillStyle = g; ctx.fillRect(-vw * 2, -vh * 4, vw * 4, vh * 8); ctx.restore();
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.translate(psx, psy - 12 * Z); ctx.scale(1, 0.5);
     var g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, R0 * 0.7); g2.addColorStop(0, 'rgba(255,150,70,0.10)'); g2.addColorStop(1, 'rgba(255,150,70,0)');
