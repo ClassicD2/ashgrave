@@ -651,6 +651,7 @@
           spray(e.x, e.y, 22, { colors: ['#0c0810', '#2a1838', '#4a3060'], speed: 1.6, up: 60, life: 0.9, size: 3.5, grav: -20 });
           if (e.pid === PID) floatText(e.x, e.y, 'Fade', '#a890c8'); break;
         case 'death':
+          if (e.mirror) { spray(e.x, e.y, 26, { colors: ['#ffffff', '#dfe8ff', '#8aa0d0'], speed: 1.4, up: 180, life: 0.9, glow: true, grav: -40, size: 2.4, h: 30 }); sfx('spark'); break; }   // a Mirror Veil copy shatters
           corpses.push({ x: e.x, y: e.y, type: e.mtype, champ: e.champ, boss: e.boss, scale: e.scale, t: gameTime, seed: Math.random() * 1000 | 0, face: e.face });
           spray(e.x, e.y, e.champ ? 26 : 14, { colors: MCOL[e.mtype], speed: 2.2, up: 140, life: 0.8, size: 2.5 });
           if (e.mtype === 'ashpriest') spray(e.x, e.y, 10, { colors: ['#ff7a2a', '#ffcf80'], speed: 1, up: 160, life: 0.9, glow: true, grav: -60, size: 2 });
@@ -979,7 +980,7 @@
     var own = hasSprite0(m.type), actor = own ? m.type : (SPR_ALIAS[m.type] || m.type), dir = dirIndex(m.face || 0), off = (m.id || 0) % 7, extra = 1;
     if (m.leapFly > 0) ctx.translate(0, -10);          // a hound in mid-leap
     var tint = !own && SPR_TINT[m.type];
-    if (m.type === 'seer') { ctx.translate(0, -5 - 2.5 * Math.sin(gameTime * 2.2 + (m.id || 0))); if (m.mirror) ctx.globalAlpha *= 0.55 + 0.15 * Math.sin(gameTime * 6 + m.id); }
+    if (m.type === 'seer') { ctx.translate(0, (own ? 0 : -5) - 2.5 * Math.sin(gameTime * 2.2 + (m.id || 0))); if (m.mirror) ctx.globalAlpha *= 0.55 + 0.15 * Math.sin(gameTime * 6 + m.id); }
     if (own && m.type === 'seer') return drawSeer(m, dir, off);
     if (tint) { ctx.filter = tint[0]; try { return drawMonsterSprite0(m, actor, dir, off, tint[1]); } finally { ctx.filter = 'none'; } }
     return drawMonsterSprite0(m, actor, dir, off, extra);
@@ -1012,8 +1013,7 @@
   }
   // The Pale Seer (own sheets, when painted): each cast has its own animation.
   function drawSeer(m, dir, off) {
-    var V = DATA.bosses.seer, A = SPR.meta.actors.seer.animations, extra = m.scale ? 1 / m.scale : 1, fs = SPR.meta.actors.seer.frameSize;
-    if (!fs || fs < 160) extra = 1;
+    var V = DATA.bosses.seer, A = SPR.meta.actors.seer.animations, extra = m.scale ? 1 / m.scale : 1;   // the big sheet is already boss-sized
     var casts = { lance: ['cast', V.lance.cast], ward: ['ward', V.ward.cast], veil: ['veilstep', V.veil.cast], channel: ['channel', V.star.cast] };
     if (m.atk > 0 && casts[m.cast]) {
       var an = A[casts[m.cast][0]] ? casts[m.cast][0] : 'cast';
@@ -1150,9 +1150,10 @@
   }
   function drawProp(pr) {
     var name = 'prop-' + pr.kind; if (!sprOk(name)) return;
-    var s = 2 * HW / 128 * pr.scale, x = sx(pr.x, pr.y), y = sy(pr.x, pr.y);
+    var s = 2 * HW / 128 * pr.scale, x = sx(pr.x, pr.y), y = sy(pr.x, pr.y), tall = sprImg[name].naturalHeight > 128;
     ctx.save(); ctx.translate(x, y); if (pr.flip && pr.kind !== 'brazier') ctx.scale(-1, 1);
-    ctx.drawImage(sprImg[name], -64 * s, -120 * s, 128 * s, 128 * s);
+    if (tall) ctx.drawImage(sprImg[name], -64 * s, -240 * s, 128 * s, 256 * s);   // tall props (the Seer's pillars): foot at (64,240)
+    else ctx.drawImage(sprImg[name], -64 * s, -120 * s, 128 * s, 128 * s);
     ctx.restore();
     if (pr.kind === 'brazier' || pr.kind === 'hell-brazier' || pr.kind === 'hell-vent') {
       lamps.push({ x: x, y: y - 70 * s, r: 60 * Z, warm: 1 });
@@ -1635,13 +1636,17 @@
     if (os2 && pm && explored[Math.floor(os2.cy) * W + Math.floor(os2.cx)]) {
       [[os2.x + 0.7, os2.y + 0.7], [os2.x + os2.w - 0.7, os2.y + 0.7], [os2.x + 0.7, os2.y + os2.h - 0.7], [os2.x + os2.w - 0.7, os2.y + os2.h - 0.7]].forEach(function (c) { props.push({ kind: 'brazier', scale: 0.62, x: c[0], y: c[1] }); });
       if (os2.kind === 'king') props.push({ kind: 'throne', scale: 2.0, x: os2.cx - 0.6, y: os2.cy - 0.6 });
+      else if (os2.kind === 'seer') (os2.pillars || []).forEach(function (pc) { props.push({ kind: 'seer-pillar', scale: 0.85, x: pc[0] + 0.5, y: pc[1] + 0.5 }); });
       else props.push({ kind: 'skeleton-remains', scale: 0.6, x: os2.cx - 1.4, y: os2.cy + 0.8, flip: 1 });
     }
     lamps = [];
+    var pillarAt = null;
+    if (os2 && os2.kind === 'seer' && os2.pillars && sprOk('prop-seer-pillar')) { pillarAt = {}; os2.pillars.forEach(function (pc) { pillarAt[pc[1] * W + pc[0]] = 1; }); }
     for (var ty = 0; ty < H; ty++) for (var tx = 0; tx < W; tx++) {
       var i = ty * W + tx; if (!explored[i] || !onScreen(tx, ty)) continue;
       var tl = map.t[i];
       if (tl) { drawFloor(tx, ty, tl); if (pm && pm[i] && pm[i].kind !== 'floor-grate') props.push(pm[i]); }
+      else if (pillarAt && pillarAt[i]) drawFloor(tx, ty, map.t[i + 1] || map.t[i - 1] || 1);   // the pillar itself is drawn as a prop, not a wall block
       else if (isFloor(tx + 1, ty) || isFloor(tx - 1, ty) || isFloor(tx, ty + 1) || isFloor(tx, ty - 1) || isFloor(tx + 1, ty + 1) || isFloor(tx - 1, ty - 1) || isFloor(tx + 1, ty - 1) || isFloor(tx - 1, ty + 1)) walls.push([tx, ty]);
     }
     corpses.forEach(drawCorpse);
@@ -1777,7 +1782,16 @@
       });
       ctx.restore();
     }
+    pillars.forEach(function (w) {
+      // the Pale Seer's falling star strikes: its own six-frame burst
+      if (!w.pale || !sprOk('seer-fx-starfall')) return;
+      var f = Math.min(5, Math.floor(w.t / 0.5 * 6)), ps = 2 * HW / 128 * 0.9, px = sx(w.x, w.y), py = sy(w.x, w.y);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.drawImage(sprImg['seer-fx-starfall'], f * 128, 0, 128, 256, px - 64 * ps, py - 232 * ps, 128 * ps, 256 * ps);
+      ctx.restore();
+    });
     if (sprOk('judgement-pillar')) pillars.forEach(function (w) {
+      if (w.pale && sprOk('seer-fx-starfall')) return;
       // the Judge's verdict: a column of light strikes where a mark explodes
       var f = Math.min(5, Math.floor(w.t / 0.5 * 6)), ps = 2 * HW / 128, px = sx(w.x, w.y), py = sy(w.x, w.y);
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
@@ -1845,7 +1859,10 @@
       ctx.save(); ctx.translate(cx, cy); ctx.scale(1, ry / rx); ctx.translate(-cx, -cy);
       ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(cx, cy, rx, 0, 6.283); ctx.fill(); ctx.restore();
       ctx.strokeStyle = 'rgba(170,210,255,' + ((0.45 + 0.35 * pu) * a) + ')'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
-      ctx.strokeStyle = 'rgba(220,235,255,' + (0.3 * a) + ')'; ctx.lineWidth = 1 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.6, ry * 0.6, gameTime * 0.8, 0, 6.283); ctx.stroke();
+      if (sprOk('seer-fx-ward')) {
+        var wel = (1 - left) * (z.dur || 6), wf = wel < 0.6 ? Math.floor(wel / 0.2) : 3 - Math.floor(gameTime * 4 + z.id) % 2, ww = rx * 2.24;
+        ctx.globalAlpha = a * 0.7; ctx.drawImage(sprImg['seer-fx-ward'], wf * 128, 0, 128, 128, cx - ww / 2, cy - ww / 2, ww, ww); ctx.globalAlpha = 1;
+      } else { ctx.strokeStyle = 'rgba(220,235,255,' + (0.3 * a) + ')'; ctx.lineWidth = 1 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.6, ry * 0.6, gameTime * 0.8, 0, 6.283); ctx.stroke(); }
       if (Math.random() < 0.3 * a) { var wa = Math.random() * 6.283; spray(z.x + Math.cos(wa) * z.r, z.y + Math.sin(wa) * z.r, 1, { colors: ['#cfe0ff', '#8ab0ff'], speed: 0.1, up: 40, life: 0.8, glow: true, grav: -20, size: 1.6 }); }
     });
     (S.hazards || []).forEach(function (h) {
@@ -1863,6 +1880,11 @@
       if (pr.kind !== 'lance') return;
       var ll = lerpE(pr), lx = sx(ll.x, ll.y), ly = sy(ll.x, ll.y) - 18 * Z, lsp = Math.hypot(pr.vx, pr.vy) || 1;
       var tx2 = sx(ll.x - pr.vx / lsp * 0.7, ll.y - pr.vy / lsp * 0.7), ty2 = sy(ll.x - pr.vx / lsp * 0.7, ll.y - pr.vy / lsp * 0.7) - 18 * Z;
+      if (sprOk('seer-fx-lance')) {
+        var la = Math.atan2(ly - ty2, lx - tx2), lf = Math.floor(gameTime * 14 + pr.id) % 4;
+        ctx.save(); ctx.translate(lx, ly); ctx.rotate(la); ctx.drawImage(sprImg['seer-fx-lance'], lf * 32, 0, 32, 32, -40 * Z, -12 * Z, 48 * Z, 24 * Z); ctx.restore();
+        return;
+      }
       ctx.lineCap = 'round';
       ctx.strokeStyle = 'rgba(140,180,255,0.35)'; ctx.lineWidth = 7 * Z; ctx.beginPath(); ctx.moveTo(tx2, ty2); ctx.lineTo(lx, ly); ctx.stroke();
       ctx.strokeStyle = 'rgba(235,245,255,0.95)'; ctx.lineWidth = 2.2 * Z; ctx.beginPath(); ctx.moveTo(tx2, ty2); ctx.lineTo(lx, ly); ctx.stroke();
