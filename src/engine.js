@@ -1462,7 +1462,8 @@ var Engine = (function () {
     // (about twice the damage per second of plain Multishot at full draw).
     if (C && draw > 0) { mult *= (1 + draw * draw * C.dmg) * (1 + draw * draw * nodeVal(p, 'focused_draw') / 100); extra = Math.round(draw * C.pierce); }
     var n = (hasNode(p, 'radiant_volley') ? nodeDef('radiant_volley').arrows : ms.arrows) + (p.st.multiArrows || 0), half = (n - 1) / 2;
-    for (var i = 0; i < n; i++) fireArrow(S, p, tx, ty, (i - half) * ms.spread, mult, extra);
+    var vol = S.nextId++;   // arrows of one volley: only the first to strike an enemy does full damage to it
+    for (var i = 0; i < n; i++) fireArrow(S, p, tx, ty, (i - half) * ms.spread, mult, extra).vol = vol;
     p.cd = atkCd(p); p.anim = 0.25; p.face = Math.atan2(ty - p.y, tx - p.x);
     emit(S, { t: 'shoot', pid: p.id, multi: true, draw: draw || 0 });
   }
@@ -2219,7 +2220,9 @@ var Engine = (function () {
                 var inc = Math.atan2(-pr.vy, -pr.vx), da = Math.abs(((inc - m.face + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
                 if (da < gdef.shield.arc) { emit(S, { t: 'shieldBlock', id: m.id, x: pr.x, y: pr.y }); dead = true; break; }
               }
-              hurtMonster(S, m, pr.dmg, pr.light || 0, S.players[pr.owner], pr.kind, pr.dark || 0);
+              var vk = 1;
+              if (pr.vol) { if (m.volId === pr.vol) vk = D.skills.multishot.sameTarget; else m.volId = pr.vol; }
+              hurtMonster(S, m, pr.dmg * vk, (pr.light || 0) * vk, S.players[pr.owner], pr.kind, (pr.dark || 0) * vk);
               if (m.dead && pr.kind === 'arrow' && !pr.shard) boneShards(S, pr, m);
               if (pr.kind === 'spark') sparkHit(S, pr, m);
               if (pr.pierce > 0) { pr.pierce--; pr.hitIds.push(m.id); pr.dmg *= pr.keep; pr.light *= pr.keep; pr.dark *= pr.keep; } else dead = true;

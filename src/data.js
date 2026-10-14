@@ -82,7 +82,7 @@ var DATA = {
   },
   attrNames: { str: 'Strength', dex: 'Dexterity', vit: 'Vitality', ene: 'Energy' },
   skills: {
-    multishot: { name: 'Multishot', mana: 5, arrows: 5, spread: 0.16, mult: 0.7, desc: 'Five arrows in a fan.' },
+    multishot: { name: 'Multishot', mana: 5, arrows: 5, spread: 0.16, mult: 0.7, sameTarget: 0.35, desc: 'Five arrows in a fan. Each arrow after the first to hit the same enemy deals 35% damage.' },
     cleave:    { name: 'Cleave',    mana: 4, arc: 2.1, reach: 1.9, mult: 1.15, desc: 'Strike every enemy in an arc in front of you.' },
     nova:      { name: 'Nova', manaPct: 0.10, radius: 3, mult: 0.9, push: 1.3, desc: 'A ring of force around you that strikes every enemy within 3 tiles and throws them back. Costs 10% of your mana.' },
     // Nightstalker only: a patch of falling arrows at the cursor. Damage per half second = pct x your average hit.
