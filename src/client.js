@@ -346,7 +346,7 @@
     if (!S || !running) return 'title';
     if (S.trial) return 'crypt';
     var th = S.map && S.map.theme;
-    return th === 'forest' ? 'fields' : th === 'monastery' ? 'deep' : 'crypt';
+    return th === 'forest' || th === 'snow' ? 'fields' : th === 'monastery' ? 'deep' : 'crypt';
   }
   // Called every frame: crossfades to the place's mood, brings the drums in while a boss is near.
   function musicTick(bossInSight) {
@@ -1075,6 +1075,10 @@
     forest:    { name: 'The Barrow Fields', floors: ['fo-grass-a', 'fo-grass-b', 'fo-grass-tall', 'fo-grass-dirt', 'fo-grass-mud', 'fo-grass-flowers', 'fo-grass-stones', 'fo-grass-bones', 'fo-grass-rune'],
                  floor: [400, 300, 120, 70, 40, 30, 25, 12, 3], outdoor: true, stairs: 'stairs-down-grass',
                  props: [['dead-tree', 30], ['bush', 30], ['gravestone', 18], ['gravestone-b', 12], ['mushrooms', 14], ['stone-circle', 6], ['crows', 8], ['barrow-mound', 6], ['cart', 4], ['well', 3]], propChance: 140, openProps: 22 },
+    // Test only (the test menu's snow preview): frozen fields, laid out like the Barrow Fields.
+    snow:      { name: 'The Frozen Fields', snow: true, floors: ['sn-a', 'sn-b', 'sn-drift', 'sn-rocks', 'sn-grass', 'sn-steps', 'sn-ice', 'sn-blood', 'sn-rune'],
+                 floor: [400, 300, 180, 30, 35, 25, 18, 6, 3],
+                 props: [['sn-dead-tree', 34], ['sn-rubble-pile', 20], ['sn-broken-pillar', 14], ['sn-gravestone', 16], ['sn-gravestone-b', 10], ['sn-skeleton-remains', 10], ['sn-stone-circle', 5]], propChance: 140, openProps: 22 },
     // The last level of every difficulty: the Burning Deep, with lava pools (tile 3) around the halls.
     monastery: { name: 'The Burning Deep', hell: true, stairs: 'stairs-down-hell', portal: 'portal-hell',
                  floors: ['hl-hell-basalt-a', 'hl-hell-basalt-b', 'hl-hell-ash', 'hl-hell-cracks', 'hl-hell-scorched', 'hl-hell-tiles', 'hl-hell-bones', 'hl-hell-blood', 'hl-hell-rune'],
@@ -1107,7 +1111,14 @@
     var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
     return k < 220 ? 'hl-hell-wall-veins' + side : k < 340 ? 'hl-hell-wall-spikes' + side : k < 430 ? 'hl-hell-wall-brazier' + side : 'hl-hell-wall-straight';
   }
+  function snowWall(tx, ty, h) {
+    var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
+    if (!L && !Rr) return 'sn-wall-straight';
+    var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
+    return k < 260 ? 'sn-wall-cracked' + side : k < 380 ? 'sn-wall-moss' + side : 'sn-wall-straight';
+  }
   function envWall(tx, ty, h) {
+    if (theme().snow) return snowWall(tx, ty, h);
     if (theme().outdoor) return forestWall(tx, ty, h);
     if (theme().hell) return hellWall(tx, ty, h);
     var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
@@ -1121,6 +1132,7 @@
   // Props are decoration only: they never block movement, so they sit along the walls, out of the way.
   var PROP_SCALE = { brazier: 0.62, urn: 0.5, 'skeleton-remains': 0.6, 'rubble-pile': 0.6, 'broken-pillar': 0.72, 'floor-grate': 0.62,
     'hell-brazier': 0.62, 'hell-bones': 0.6, 'hell-rocks': 0.65, 'hell-skulls': 0.6, 'hell-spikes': 0.62, 'hell-chains': 0.7, 'hell-vent': 0.6, 'hell-cage': 0.7, 'hell-obelisk': 0.72, 'hell-altar': 0.7,
+    'sn-dead-tree': 0.95, 'sn-rubble-pile': 0.6, 'sn-broken-pillar': 0.72, 'sn-gravestone': 0.55, 'sn-gravestone-b': 0.55, 'sn-skeleton-remains': 0.6, 'sn-stone-circle': 0.85,
     'dead-tree': 0.95, bush: 0.6, gravestone: 0.55, 'gravestone-b': 0.55, mushrooms: 0.5, 'stone-circle': 0.85, crows: 0.55, 'barrow-mound': 0.8, cart: 0.7, well: 0.7 };
   var propMap = null, propKey = '';
   function buildProps() {
@@ -2856,13 +2868,15 @@
       var th = E.themeFor(d, fd); notes.push(THEMES[th] ? THEMES[th].name : th);
       h += '<option value="' + d + '">' + d + (notes.filter(Boolean).length ? ' · ' + notes.filter(Boolean).join(', ') : '') + '</option>';
     }
+    h += '<option value="snow">Snow preview · The Frozen Fields (test only)</option>';
     $('tDepth').innerHTML = h; $('tDepth').value = Math.min(cur, fd);
-    $('tLvl').value = testSuggestLevel(diff, +$('tDepth').value);
+    $('tLvl').value = testSuggestLevel(diff, testDepthVal());
   }
   function testShow() { $('testBox').hidden = !TEST.on; if (TEST.on) testFill(); }
   $('tCls').addEventListener('change', testFill);
   $('tDiff').addEventListener('change', testDepths);
-  $('tDepth').addEventListener('change', function () { $('tLvl').value = testSuggestLevel($('tDiff').value, +$('tDepth').value); });
+  function testDepthVal() { var v = $('tDepth').value; return v === 'snow' ? Math.min(6, DATA.difficulties[$('tDiff').value].finalDepth - 1) : +v; }
+  $('tDepth').addEventListener('change', function () { $('tLvl').value = testSuggestLevel($('tDiff').value, testDepthVal()); });
   function testHero() {
     var cls = $('tCls').value, L = Math.max(1, Math.min(60, +$('tLvl').value || 1)), path = $('tPath').value;
     var c = E.newCharacter('Tester', cls), cd = DATA.classes[cls];
@@ -2885,7 +2899,7 @@
       }
     });
   }
-  function testStart(depth, diff, hero) {
+  function testStart(depth, diff, hero, look) {
     $('title').hidden = true; document.body.classList.remove('at-title');
     MODE = 'solo'; PID = 'p1'; activeSlot = -1;
     // The Hollowed King's level comes from the seed: pick a seed that puts him on this level.
@@ -2895,7 +2909,7 @@
     var SB = DATA.bosses.seer;
     if (SB && SB.difficulties.indexOf(diff) >= 0 && depth >= SB.depths[0] && depth <= SB.depths[1])
       for (var ss = 0; ss < 200 && E.seerDepthFor(seed, diff) !== depth; ss++) seed = (Math.random() * 2147483647) | 0;
-    S = E.createSim(seed, depth, diff);
+    S = E.createSim(seed, depth, diff, look ? { look: look } : null);
     S.testGod = TEST.god;
     E.addPlayer(S, PID, hero);
     explored = new Uint8Array(S.map.W * S.map.H); corpses = [];
@@ -2911,8 +2925,8 @@
   $('bTest').addEventListener('click', function () {
     ensureAudio(); netStatus('', false);
     TEST.god = $('tGod').checked;
-    var hero = testHero(), diff = $('tDiff').value, depth = +$('tDepth').value;
-    testStart(depth, diff, hero);
+    var hero = testHero(), diff = $('tDiff').value, depth = testDepthVal(), look = $('tDepth').value === 'snow' ? 'snow' : null;
+    testStart(depth, diff, hero, look);
     var p = S.players[PID];
     testGear(S, p);
     E.refresh(p);

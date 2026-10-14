@@ -44,8 +44,9 @@ var Engine = (function () {
     var f = (depth - 4) / Math.max(1, finalDepth - 4);
     return f < 1 / 3 ? 'crypt' : f < 2 / 3 ? 'catacombs' : 'caves';
   }
-  function genLevel(seed, depth, finalDepth) {
-    var theme = themeFor(depth, finalDepth);
+  function genLevel(seed, depth, finalDepth, look) {
+    // look: a test-only override ('snow' = the frozen fields, laid out like the open fields)
+    var theme = look === 'snow' ? 'forest' : themeFor(depth, finalDepth);
     var r = { s: (seed * 7919 + depth * 104729) | 0 };
     var W = theme === 'crypt' || theme === 'monastery' ? 60 : theme === 'forest' ? 66 : 64, H = W, t = new Array(W * H).fill(0), rooms = [], i, x, y;
     function free(x, y, w, h, gap) { return !rooms.some(function (o) { return x < o.x + o.w + gap && x + w + gap > o.x && y < o.y + o.h + gap && y + h + gap > o.y; }); }
@@ -210,7 +211,7 @@ var Engine = (function () {
     if (hall) far = hall;
     t[far.cy * W + far.cx] = 2;
     return {
-      W: W, H: H, t: t, rooms: rooms, depth: depth, theme: theme,
+      W: W, H: H, t: t, rooms: rooms, depth: depth, theme: look || theme,
       start: { x: start.cx + 0.5, y: start.cy + 0.5 },
       stairs: { x: far.cx + 0.5, y: far.cy + 0.5 },
       startRoom: 0, stairsRoom: rooms.indexOf(far)
@@ -608,6 +609,7 @@ var Engine = (function () {
       seed: seed, depth: depth, rng: { s: seed ^ 0x5bd1e995 }, tick: 0, time: 0, nextId: 1000,
       players: {}, monsters: [], projs: [], ground: [], npcs: [], events: [], queue: [], map: null, merchantNext: null, bossNext: null, seal: null
     };
+    if (opts.look) S.look = opts.look;
     if (opts.trial) { S.trial = true; loadTrial(S); } else loadLevel(S, depth);
     return S;
   }
@@ -741,7 +743,7 @@ var Engine = (function () {
 
   function loadLevel(S, depth) {
     S.depth = depth;
-    S.map = genLevel(S.seed, depth, D.difficulties[S.difficulty].finalDepth);
+    S.map = genLevel(S.seed, depth, D.difficulties[S.difficulty].finalDepth, S.look);
     var DF = D.difficulties[S.difficulty];
     if (depth >= DF.finalDepth) applyFinal(S.map);
     S.monsters = []; S.projs = []; S.ground = []; S.npcs = []; S.zones = []; S.hazards = []; S.echoes = [];

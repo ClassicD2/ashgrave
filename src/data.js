@@ -40,9 +40,9 @@ var DATA = {
     { w: 4, minDepth: 1, themes: ['forest'], units: [['grave_hound', 3, 5]] },
     { w: 3, minDepth: 1, themes: ['forest'], units: [['barrow_guard', 1, 2], ['grave_hound', 1, 2]] },
     { w: 2, minDepth: 2, themes: ['forest', 'crypt'], units: [['barrow_guard', 1, 1], ['ashpriest', 1, 1]] },
-    { w: 3, minDepth: 1, themes: ['caves'], units: [['frost_wraith', 2, 3]] },
-    { w: 3, minDepth: 1, themes: ['caves'], units: [['rime_burrower', 2, 3]] },
-    { w: 2, minDepth: 1, themes: ['caves', 'monastery'], units: [['frost_wraith', 1, 1], ['rime_burrower', 1, 2], ['bonewalker', 1, 1]] }
+    { w: 3, minDepth: 1, themes: ['caves', 'snow'], units: [['frost_wraith', 2, 3]] },
+    { w: 3, minDepth: 1, themes: ['caves', 'snow'], units: [['rime_burrower', 2, 3]] },
+    { w: 2, minDepth: 1, themes: ['caves', 'monastery', 'snow'], units: [['frost_wraith', 1, 1], ['rime_burrower', 1, 2], ['bonewalker', 1, 1]] }
   ],
 
   // Difficulty by dungeon level d: multiplier = (1 + linear*(d-1)) * growth^(d-1)
