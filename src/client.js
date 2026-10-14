@@ -781,6 +781,7 @@
         case 'nova': novas.push({ x: e.x, y: e.y, r: e.r, pull: !!e.pull, crush: !!e.crush, side: e.side, t: 0 }); sfx('nova');
           spray(e.x, e.y, 18, { colors: e.side === 'dark' ? ['#2a1840', '#7a4ad0', '#b48cff'] : e.side === 'light' ? ['#ffffff', '#fff1b8', '#f0d06a'] : ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: e.pull ? -1.5 : 2.2, up: 60, life: 0.5, size: 2.2, glow: true, h: 16 }); break;
         case 'echo': spray(e.x, e.y, 8, { colors: ['#ffffff', '#fff1b8', '#f0d06a'], speed: 1.2, up: 140, life: 0.35, glow: true, size: 2, h: 26 }); sfx('spark'); break;
+        case 'rendJump': chains.push({ x: e.x, y: e.y, x2: e.x2, y2: e.y2, t: 0, rend: true }); spray(e.x2, e.y2, 8, { colors: ['#7a1010', '#a3191f', '#3a0a0a'], speed: 1.2, up: 90, life: 0.4, size: 2 }); break;
         case 'crush': spray(e.x, e.y, 12, { colors: ['#2a1840', '#7a4ad0', '#5a5048'], speed: 1.6, up: 90, life: 0.5, size: 2.4 }); sfx('boom'); break;
         case 'pblink': spray(e.x0, e.y0, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); spray(e.x, e.y, 14, { colors: ['#ffffff', '#cfe4ff', '#8fb8ff'], speed: 1.2, up: 120, life: 0.5, size: 2, glow: true, h: 20 }); break;
         case 'absorb': spray(e.x, e.y, 6, { colors: ['#fff1b0', '#ffe08a'], speed: 1, up: 80, life: 0.35, size: 2, glow: true, h: 22 }); break;
@@ -1776,7 +1777,7 @@
         var a = 1 - c.t / 0.28, x1 = sx(c.x, c.y), y1 = sy(c.x, c.y) - 16 * Z, x2 = sx(c.x2, c.y2), y2 = sy(c.x2, c.y2) - 16 * Z;
         var dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len, segs = 6, pts = [];
         for (var q = 0; q <= segs; q++) { var f = q / segs, j = q === 0 || q === segs ? 0 : (Math.sin(q * 12.9898 + c.x * 78.233) * 43758.5453 % 1) * 9 * Z; pts.push([x1 + dx * f + nx * j, y1 + dy * f + ny * j]); }
-        [[6 * Z, 'rgba(255,220,120,' + (0.25 * a) + ')'], [2.2 * Z, 'rgba(255,250,220,' + (0.9 * a) + ')']].forEach(function (st2) {
+        (c.rend ? [[5 * Z, 'rgba(140,20,20,' + (0.35 * a) + ')'], [2 * Z, 'rgba(220,60,50,' + (0.85 * a) + ')']] : [[6 * Z, 'rgba(255,220,120,' + (0.25 * a) + ')'], [2.2 * Z, 'rgba(255,250,220,' + (0.9 * a) + ')']]).forEach(function (st2) {
           ctx.strokeStyle = st2[1]; ctx.lineWidth = st2[0]; ctx.beginPath(); pts.forEach(function (pt, i2) { if (i2) ctx.lineTo(pt[0], pt[1]); else ctx.moveTo(pt[0], pt[1]); }); ctx.stroke();
         });
       });

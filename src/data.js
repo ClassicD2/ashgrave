@@ -120,8 +120,8 @@ var DATA = {
       name: 'Reaver', cls: 'warrior', side: 'dark', skill: 'cleave',
       lore: 'Opens wounds and lets them work. Cleave tears them wide in one bloody stroke.',
       core: { name: 'Rend',
-        desc: 'Each attack adds a Rend stack that deals 40% of the hit as dark damage over 4 seconds, up to 5 stacks. Cleave rips Rends open: their remaining damage lands at once, plus 50%.',
-        rend: { pct: 0.4, dur: 4, max: 5 }, rip: 1.5 },
+        desc: 'Each attack adds a Rend stack that deals 40% of the hit as dark damage over 4 seconds, up to 5 stacks. Cleave rips Rends open: their remaining damage lands at once, plus 50%. Enemies Cleave strikes that carry no Rend get two stacks instead, and Cleave deals 30% more damage. When an enemy dies, its Rends jump to the nearest enemy within 4 tiles.',
+        rend: { pct: 0.4, dur: 4, max: 5, jump: 4 }, rip: 1.5, cleaveRend: 2, cleaveMult: 1.3 },
       nodes: [
         { id: 'reaping_arc', name: 'Reaping Arc', max: 5, per: 10, desc: 'Cleave covers +{v}% more area.' },
         { id: 'executioner', name: 'Executioner', max: 6, per: 5, desc: 'Your attacks deal +{v}% damage.' },
@@ -137,8 +137,8 @@ var DATA = {
       name: 'Sunwarden', cls: 'archer', side: 'light', skill: 'multishot',
       lore: 'Carries the dawn into the deep. Draws the bow long and lets the light go through everything.',
       core: { name: 'Lantern Soul',
-        desc: '+2 light radius. Your arrows pierce one enemy, losing 50% damage per pierce. Hold Multishot to draw it: the longer you draw, the harder it hits, and at full draw (2 seconds) every arrow deals more than six times its damage and pierces 2 more enemies.',
-        light: 2, pierce: 1, pierceKeep: 0.5, charge: { min: 0, full: 2, dmg: 5.4, pierce: 2 } },
+        desc: '+2 light radius. Your arrows pierce one enemy, losing 50% damage per pierce. Hold Multishot to draw it: the longer you draw, the harder it hits, and at full draw (2 seconds) every arrow deals three and a half times its damage and pierces 2 more enemies.',
+        light: 2, pierce: 1, pierceKeep: 0.5, charge: { min: 0, full: 2, dmg: 2.5, pierce: 2 } },
       nodes: [
         { id: 'focused_draw', name: 'Focused Draw', max: 7, per: 6, desc: 'A full draw deals +{v}% more damage.' },
         { id: 'quick_draw', name: 'Quick Draw', max: 6, per: 0.1, desc: 'A full draw takes {v}s less.' },
@@ -185,14 +185,14 @@ var DATA = {
       name: 'Voidcaller', cls: 'mage', side: 'dark', skill: 'nova',
       lore: 'Casts the world away and lets it rot at a distance. What dies in the Decay passes it on.',
       core: { name: 'Decay',
-        desc: 'Nova throws enemies back and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 15% less damage. When an enemy dies in Decay, it passes to an enemy nearby. Void Spark: each Spark leaves a stack of rot dealing 45% of the hit as dark damage over 3 seconds, up to 5 stacks on one enemy.',
-        decay: { pct: 0.6, dur: 4, spread: 4.5, weaken: 0.15 }, voidSpark: { pct: 0.45, dur: 3, max: 5 } },
+        desc: 'Nova throws enemies back and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 25% less damage. When an enemy dies in Decay, it passes to an enemy nearby. Nova costs 5% less of your mana. Void Spark: each Spark leaves a stack of rot dealing 45% of the hit as dark damage over 3 seconds, up to 5 stacks on one enemy.',
+        decay: { pct: 0.6, dur: 4, spread: 4.5, weaken: 0.25 }, novaCost: 0.05, voidSpark: { pct: 0.45, dur: 3, max: 5 } },
       nodes: [
         { id: 'virulence', name: 'Virulence', max: 7, per: 8, desc: 'Decay deals +{v}% damage.' },
         { id: 'lingering', name: 'Lingering Rot', max: 6, per: 0.5, desc: 'Decay lasts {v}s longer.' },
         { id: 'repulsion', name: 'Repulsion', max: 7, per: 10, desc: 'Nova throws enemies +{v}% further.' },
         { id: 'withering', name: 'Withering', max: 6, per: 5, desc: 'Enemies in Decay are slowed by {v}%.' },
-        { id: 'rot_wave', name: 'Rot Wave', max: 1, per: 1, req: 4, desc: 'Decay deals 30% more damage to enemies more than 3 tiles away from you.', pct: 0.3, dist: 3 },
+        { id: 'rot_wave', name: 'Rot Wave', max: 1, per: 1, req: 4, desc: 'Decay deals 30% more damage to enemies more than 2.5 tiles away from you.', pct: 0.3, dist: 2.5 },
         { id: 'contagion', name: 'Contagion', max: 1, per: 1, req: 8, desc: 'Decay passes on to two enemies at full strength when its host dies.' },
         { id: 'crushing_dark', name: 'Crushing Dark', max: 1, per: 1, req: 16, desc: 'Enemies that Nova throws into a wall are crushed for 150% of your hit.', mult: 1.5 }
       ]

@@ -1359,6 +1359,18 @@ var Engine = (function () {
     });
     if (sum > 0) dealRaw(S, m, sum, S.players[by] || null, 'dark');
   }
+  // Reaver: the Rends on an enemy that dies jump to the nearest enemy, so wounds carry through a pack.
+  function spreadRend(S, m) {
+    var live = m.rend.filter(function (r) { return r.end > S.time && r.pool > 0.5; }); if (!live.length) return;
+    var p = S.players[live[0].by], C = p && coreOf(p).rend; if (!C || !C.jump) return;
+    var best = null, bd = C.jump;
+    S.monsters.forEach(function (o) { if (o === m || o.dead) return; var d = Math.hypot(o.x - m.x, o.y - m.y); if (d < bd) { bd = d; best = o; } });
+    if (!best) return;
+    var max = C.max + nodeVal(p, 'deep_wounds') + (p.st.rendMax || 0);
+    best.rend = (best.rend || []).concat(live.map(function (r) { return { pool: r.pool, end: S.time + C.dur, by: r.by }; }));
+    while (best.rend.length > max) best.rend.shift();
+    emit(S, { t: 'rendJump', x: m.x, y: m.y, x2: best.x, y2: best.y });
+  }
   function ripOpen(S, m, p) {
     var sum = 0; (m.rend || []).forEach(function (r) { sum += r.pool; }); m.rend = [];
     if (sum <= 0) return;
@@ -1416,7 +1428,7 @@ var Engine = (function () {
   // Skills keep an attack order going, so you go back to hitting your target afterwards.
   function skillOrder(p) { p.path = null; if (p.order && p.order.t !== 'attack') p.order = null; }
   function castCleave(S, p, tx, ty) {
-    var sk = D.skills.cleave, bp = hasNode(p, 'blood_price') ? nodeDef('blood_price') : null, mult = sk.mult;
+    var sk = D.skills.cleave, bp = hasNode(p, 'blood_price') ? nodeDef('blood_price') : null, mult = sk.mult * (coreOf(p).cleaveMult || 1);
     // Reaping Arc: same arc, longer reach, so the area grows by the node's factor.
     var reach = sk.reach * Math.sqrt(1 + (nodeVal(p, 'reaping_arc') + (p.st.cleaveArea || 0)) / 100);
     if (bp) {
@@ -1444,8 +1456,12 @@ var Engine = (function () {
       var da = Math.abs(((Math.atan2(m.y - p.y, m.x - p.x) - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
       if (da > sk.arc / 2 && d > p.r + m.r + 0.1) return;
       var h = rollHit(S, p, mult);
-      hurtMonster(S, m, h.dmg, h.light, p, 'melee', h.dark);
-      if (p.ascendancy === 'reaver' && !m.dead && m.rend && m.rend.length) ripOpen(S, m, p);
+      var ctot = hurtMonster(S, m, h.dmg, h.light, p, 'melee', h.dark);
+      // Reaver: Cleave rips open Rends that are there, and leaves fresh wounds on everything else it strikes
+      if (p.ascendancy === 'reaver' && !m.dead) {
+        if (m.rend && m.rend.length) ripOpen(S, m, p);
+        else for (var rs = 0; rs < (coreOf(p).cleaveRend || 0); rs++) addRend(S, m, p, ctot);
+      }
     });
     if (p.st.cleaveBlades) {   // Kingsfall, Crownbreaker: a fan of blades forward
       var cb = p.st.cleaveBlades, ca = []; for (var ci = 0; ci < cb; ci++) ca.push(a + (ci - (cb - 1) / 2) * 0.25);
@@ -1472,7 +1488,7 @@ var Engine = (function () {
   function ccImmune(m) { return !!m.boss || !!m.under || !!m.mirror; }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
-    var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100 - (p.st.novaCost || 0));
+    var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100 - (p.st.novaCost || 0) - (coreOf(p).novaCost || 0));
     if (p.cd > 0 || p.mana < cost) { if (p.mana < cost) emit(S, { t: 'msg', pid: p.id, text: 'Not enough mana.', quiet: true }); return; }
     p.mana -= cost; skillOrder(p);
     var core = coreOf(p);
@@ -2105,6 +2121,7 @@ var Engine = (function () {
     var idx = S.monsters.indexOf(m); if (idx >= 0) S.monsters.splice(idx, 1);
     emit(S, { t: 'death', x: m.x, y: m.y, mtype: m.type, champ: m.champ, face: m.face, boss: m.boss || null, scale: m.scale || undefined, mirror: m.mirror || undefined });
     if (m.decay) spreadDecay(S, m);
+    if (m.rend && m.rend.length) spreadRend(S, m);
     onKill(S, m, by);
     if (m.mirror) return;   // the Seer's copies give nothing
     if (m.boss) {
