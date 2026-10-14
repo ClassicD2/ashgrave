@@ -577,6 +577,7 @@ var Engine = (function () {
       sparkSpeed: (m.sparkSpeed || 0) / 100, prism: !!m.prism, blinkRange: m.blinkRange || 0, novaShield: (m.novaShield || 0) / 100, decayDur: m.decayDur || 0,
       decayKillMana: (m.decayKillMana || 0) / 100, ward: (m.ward || 0) / 100, echoEvery: m.echoEvery || 0,
       cleaveBlades: m.cleaveBlades || 0, mantleEvery: m.mantleEvery || 0, novaBlades: m.novaBlades || 0,
+      tearVeil: (m.tearVeil || 0) / 100, homing: !!m.homing, novaLances: m.novaLances || 0,
       boneWard: (m.boneWard || 0) / 100, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
       leechRaw: m.leech || 0,
       speed: 4.2 * (1 + (m.run || 0) / 100),
@@ -754,6 +755,7 @@ var Engine = (function () {
     S.ossuary = null;
     if (depth === D.bosses.warden.depth && depth < DF.finalDepth) placeWarden(S);
     else if (depth === kingDepth(S) && depth < DF.finalDepth) placeWarden(S, 'king');
+    else if (depth === seerDepthFor(S.seed, S.difficulty) && depth < DF.finalDepth) placeWarden(S, 'seer');
     var i = 0;
     Object.keys(S.players).forEach(function (id) {
       var q = S.players[id];
@@ -788,11 +790,23 @@ var Engine = (function () {
     var h = Math.imul((seed >>> 0) ^ (diff === 'hell' ? 0x2c1b3c6d : 0x297a2d39), 0x9e3779b1) >>> 0;
     return K.depths[0] + (h >>> 7) % (K.depths[1] - K.depths[0] + 1);
   }
+  // The Pale Seer's level: 14-16 on Hell, from the seed.
+  function seerDepthFor(seed, diff) {
+    var V = D.bosses.seer; if (V.difficulties.indexOf(diff) < 0) return -1;
+    var h = Math.imul((seed >>> 0) ^ 0x5eedface, 0x85ebca6b) >>> 0;
+    return V.depths[0] + (h >>> 9) % (V.depths[1] - V.depths[0] + 1);
+  }
+  // Stone pillars in the Seer's chamber: walls that block sight and missiles. Clients rebuild them from the ossuary.
+  function applyPillars(map, os) {
+    if (!os || !os.pillars) return;
+    os.pillars.forEach(function (c) { map.t[c[1] * map.W + c[0]] = 0; });
+  }
   // The Gravewarden (and the Hollowed King) takes the largest room that is neither start nor stairs, as far from the start as possible.
   function placeWarden(S, kind) {
     var map = S.map, W = D.bosses[kind || 'warden'], best = -1, bs = -1;
     map.rooms.forEach(function (rm, i) {
       if (i === map.startRoom || i === map.stairsRoom) return;
+      if (kind === 'seer' && (rm.w < 9 || rm.h < 9) && map.rooms.some(function (o, j) { return j !== map.startRoom && j !== map.stairsRoom && o.w >= 9 && o.h >= 9; })) return;
       var cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2, sc = rm.w * rm.h + Math.hypot(cx - map.start.x, cy - map.start.y) * 2;
       if (rm.w >= 5 && rm.h >= 5 && sc > bs) { bs = sc; best = i; }
     });
@@ -800,6 +814,20 @@ var Engine = (function () {
     var rm = map.rooms[best], cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2;
     S.monsters = S.monsters.filter(function (m) { return !(m.x > rm.x - 1 && m.x < rm.x + rm.w + 1 && m.y > rm.y - 1 && m.y < rm.y + rm.h + 1); });
     S.npcs = S.npcs.filter(function (n) { return !(n.x > rm.x - 1 && n.x < rm.x + rm.w + 1 && n.y > rm.y - 1 && n.y < rm.y + rm.h + 1); });
+    if (kind === 'seer') {
+      var sv = addMonster(S, 'seer', cx, cy, false);
+      sv.boss = 'seer'; sv.name = D.monsters.seer.name; sv.traits = D.monsters.seer.abilities.slice();
+      sv.scale = W.scale; sv.lance = 1.5; sv.ward = 5; sv.veil = W.veil.every; sv.star = 0; sv.split = 0; sv.cast = null; sv.noLeech = true;
+      var pil = [];
+      if (rm.w >= 9 && rm.h >= 9) [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (o) {
+        var px = Math.floor(cx + o[0] * (rm.w / 2 - 2.5)), py = Math.floor(cy + o[1] * (rm.h / 2 - 2.5));
+        if (Math.hypot(px + 0.5 - cx, py + 0.5 - cy) > 1.5) pil.push([px, py]);
+      });
+      S.ossuary = { kind: 'seer', x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: sv.id, pillars: pil };
+      applyPillars(map, S.ossuary);
+      emit(S, { t: 'ossuary', kind: 'seer', name: sv.name });
+      return;
+    }
     if (kind === 'king') {
       var k = addMonster(S, 'king', cx, cy + 0.6, false);
       k.boss = 'king'; k.name = D.monsters.king.name; k.traits = D.monsters.king.abilities.slice();
@@ -845,6 +873,113 @@ var Engine = (function () {
     if (m.spikes <= 0 && seen && d < 6) { m.cast = 'spikes'; m.atk = W.spikes.cast; m.spikes = W.spikes.every; emit(S, { t: 'bossCast', id: m.id, name: 'Bone Spikes', x: m.x, y: m.y }); return; }
     if (d <= def.range + m.r + p.r && m.cd <= 0) { m.cast = 'melee'; m.atk = def.atkTime; m.cd = def.atkCd; return; }
     if (d > def.range + m.r + p.r - 0.05) chase(S, m, p, dt, seen);
+  }
+  // ---------- The Pale Seer ----------
+  function seerSpot(S, m, near, minD, maxD) {
+    var os = S.ossuary;
+    for (var k = 0; k < 40; k++) {
+      var x, y;
+      if (os) { x = os.x + 1 + rnd(S.rng) * (os.w - 2); y = os.y + 1 + rnd(S.rng) * (os.h - 2); }
+      else { var a = rnd(S.rng) * 6.283, rr = minD + rnd(S.rng) * (maxD - minD); x = near.x + Math.cos(a) * rr; y = near.y + Math.sin(a) * rr; }
+      var dd = Math.hypot(x - near.x, y - near.y);
+      if (dd >= minD && dd <= maxD && canStand(S.map, x, y, m.r)) return [x, y];
+    }
+    return null;
+  }
+  function seerAI(S, m, p, d, dt) {
+    var V = D.bosses.seer, def = D.monsters.seer, seen = los(S.map, m, p);
+    m.veilOn = true;
+    m.lance -= dt; m.ward -= dt; m.veil -= dt; m.star -= dt;
+    if (m.mirror && S.time > m.mirrorEnd) { m.hp = 0; killMonster(S, m, null); return; }
+    // Mirror Veil: at each threshold she splits; the copies shoot weaker lances and fade after a while.
+    if (!m.mirror && m.split < V.mirror.at.length && m.hp < m.max * V.mirror.at[m.split]) {
+      m.split++;
+      emit(S, { t: 'bossCast', id: m.id, name: 'Mirror Veil', x: m.x, y: m.y });
+      for (var c = 0; c < V.mirror.copies; c++) {
+        var sp = seerSpot(S, m, m, 2.5, 7); if (!sp) continue;
+        var cp = addMonster(S, 'seer', sp[0], sp[1], false);
+        cp.mirror = true; cp.mirrorEnd = S.time + V.mirror.life; cp.hp = cp.max = Math.max(1, Math.round(m.max * V.mirror.hp));
+        cp.dmgMul = m.dmgMul * V.mirror.dmg; cp.xp = 0; cp.scale = m.scale; cp.lance = 0.6 + c * 0.5; cp.ward = 99; cp.veil = 99; cp.star = 99; cp.split = 9;
+        cp.state = 'hunt'; cp.name = m.name; cp.noLeech = true;
+        emit(S, { t: 'mirror', x: sp[0], y: sp[1] });
+      }
+    }
+    if (m.atk > 0) {
+      m.atk -= dt; m.moving = false; m.face = Math.atan2(p.y - m.y, p.x - m.x);
+      if (m.cast === 'channel') {
+        // Starfall: shards rain over the chamber, half of them aimed at the heroes
+        m.starT -= dt;
+        while (m.starT <= 0) {
+          m.starT += V.star.interval;
+          var ids = Object.keys(S.players), tq = S.players[ids[Math.floor(rnd(S.rng) * ids.length)]], spot;
+          if (tq && !tq.dead && rnd(S.rng) < 0.5) spot = [tq.x + (rnd(S.rng) - 0.5) * 1.6, tq.y + (rnd(S.rng) - 0.5) * 1.6];
+          else spot = seerSpot(S, m, m, 0, 9);
+          if (spot && walkable(S.map, spot[0], spot[1]))
+            S.hazards.push({ id: S.nextId++, kind: 'star', x: spot[0], y: spot[1], r: V.star.radius, t: V.star.fuse, fuse: V.star.fuse, dmg: rint(S.rng, V.star.dmg[0], V.star.dmg[1]) * m.dmgMul, lvl: m.lvl });
+        }
+      }
+      if (m.atk > 0) return;
+      if (m.cast === 'lance') {
+        var L = V.lance, a0 = Math.atan2(p.y - m.y, p.x - m.x), half = (L.count - 1) / 2;
+        for (var i = 0; i < L.count; i++) {
+          var a = a0 + (i - half) * L.spread;
+          S.projs.push({ id: S.nextId++, kind: 'lance', from: 'm', owner: m.id, homeP: L.turn, x: m.x + Math.cos(a) * 0.5, y: m.y + Math.sin(a) * 0.5,
+            vx: Math.cos(a) * L.speed, vy: Math.sin(a) * L.speed, life: L.life, dmg: rint(S.rng, L.dmg[0], L.dmg[1]) * m.dmgMul, lvl: m.lvl });
+        }
+        emit(S, { t: 'lances', x: m.x, y: m.y });
+      } else if (m.cast === 'ward') {
+        var n = 0;
+        for (var id in S.players) {
+          var q = S.players[id]; if (q.dead || n >= 2) continue; n++;
+          S.zones.push({ id: S.nextId++, kind: 'ward', x: q.x, y: q.y, r: V.ward.radius, end: S.time + V.ward.dur, dur: V.ward.dur });
+        }
+      } else if (m.cast === 'veil') {
+        var to = seerSpot(S, m, m, V.veil.minJump, 14);
+        if (to) { emit(S, { t: 'veilstep', x0: m.x, y0: m.y, x: to[0], y: to[1] }); m.x = to[0]; m.y = to[1]; m.path = null; }
+      }
+      m.cast = null;
+      return;
+    }
+    if (!m.mirror) {
+      if (m.hp < m.max * V.star.at && m.star <= 0) { m.cast = 'channel'; m.atk = V.star.cast; m.star = V.star.every; m.starT = 0; emit(S, { t: 'bossCast', id: m.id, name: 'Starfall', x: m.x, y: m.y }); return; }
+      if (m.veil <= 0) { m.cast = 'veil'; m.atk = V.veil.cast; m.veil = V.veil.every; return; }
+      if (m.ward <= 0 && seen) { m.cast = 'ward'; m.atk = V.ward.cast; m.ward = V.ward.every; emit(S, { t: 'bossCast', id: m.id, name: "Seer's Ward", x: m.x, y: m.y }); return; }
+    }
+    if (m.lance <= 0 && seen && d < 13) { m.cast = 'lance'; m.atk = V.lance.cast; m.lance = V.lance.every * (m.mirror ? 1.5 : 1); return; }
+    // keep her distance: glide away from whoever is close, come closer if nobody is in reach
+    if (d < V.keep[0]) {
+      var ax = m.x - p.x, ay = m.y - p.y, al = Math.hypot(ax, ay) || 1, stp = mSpeed(S, m) * dt;
+      var mv = moveEntity(S, m, ax / al * stp, ay / al * stp);
+      if (mv < stp * 0.3) moveEntity(S, m, -ay / al * stp, ax / al * stp);   // cornered: slide along the wall
+      m.face = Math.atan2(p.y - m.y, p.x - m.x); m.moving = true;
+    } else if (d > V.keep[1] || !seen) chase(S, m, p, dt, seen);
+  }
+  // Blinding Veil and the Seer's wards, applied to the heroes every tick while she is fighting.
+  function updateSeer(S, dt) {
+    var seer = null;
+    for (var i = 0; i < S.monsters.length; i++) { var m = S.monsters[i]; if (m.boss === 'seer' && !m.mirror && m.veilOn) { seer = m; break; } }
+    var V = D.bosses.seer;
+    for (var id in S.players) {
+      var p = S.players[id]; if (p.dead) { p.veilT = 0; continue; }
+      if (!seer) { if (p.veilT) { p.veilT = 0; p.ver++; } continue; }
+      var dd = Math.hypot(p.x - seer.x, p.y - seer.y), DK = V.dark;
+      if (dd > DK.far) {
+        // Veil's Chill: starts soft and grows over a few seconds, so a sudden teleport is not punished at once
+        p.veilT = (p.veilT || 0) + dt;
+        var k = Math.min(1, p.veilT / DK.ramp), pct = DK.chillMin + (DK.chillMax - DK.chillMin) * k;
+        p.veilAcc = (p.veilAcc || 0) + p.st.maxHp * pct * dt;
+        if (p.veilAcc >= 1 && !S.testGod) { var w = Math.floor(p.veilAcc); p.veilAcc -= w; p.hp -= w; if (p.hp <= 0) { p.hp = 1; hurtPlayer(S, p, 999999, seer.lvl, null); } }
+      } else if (p.veilT) p.veilT = 0;
+    }
+  }
+  // Soul lances bend toward the nearest hero.
+  function steerLance(S, pr, dt) {
+    var best = null, bd = 9;
+    for (var id in S.players) { var q = S.players[id]; if (q.dead) continue; var d = Math.hypot(q.x - pr.x, q.y - pr.y); if (d < bd) { bd = d; best = q; } }
+    if (!best) return;
+    var sp = Math.hypot(pr.vx, pr.vy), want = Math.atan2(best.y - pr.y, best.x - pr.x), cur = Math.atan2(pr.vy, pr.vx);
+    var diff = ((want - cur + Math.PI * 3) % (Math.PI * 2)) - Math.PI, turn = Math.max(-pr.homeP * dt, Math.min(pr.homeP * dt, diff));
+    pr.vx = Math.cos(cur + turn) * sp; pr.vy = Math.sin(cur + turn) * sp;
   }
   // ---------- The Hollowed King ----------
   function kingBlades(S, m, n, a0) {
@@ -1333,7 +1468,7 @@ var Engine = (function () {
   }
   // Bosses of every kind (mini bosses, the Gravewarden, the Judge, the Abbot, the King) ignore crowd control:
   // no knockback, pull, stun, slow or loss of target. Champions (blue) are not bosses and are affected.
-  function ccImmune(m) { return !!m.boss || !!m.under; }
+  function ccImmune(m) { return !!m.boss || !!m.under || !!m.mirror; }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
     var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100 - (p.st.novaCost || 0));
@@ -1394,6 +1529,14 @@ var Engine = (function () {
     if (hasNode(p, 'sanctuary')) {
       var SN = nodeDef('sanctuary');
       S.zones.push({ id: S.nextId++, kind: 'holy', x: p.x, y: p.y, r: SN.radius, end: S.time + SN.dur, dur: SN.dur, owner: p.id, pct: SN.pct });
+    }
+    if (p.st.novaLances) {   // Crystal of the Blind: pale lances that seek out enemies
+      var nl = p.st.novaLances, ls = R.sparkSpeed * 0.8;
+      for (var li = 0; li < nl; li++) {
+        var la = li * 6.283 / nl + 0.3, lh = rollHit(S, p, 0.4);
+        S.projs.push({ id: S.nextId++, kind: 'spark', pale: true, from: 'p', owner: p.id, x: p.x + Math.cos(la) * 0.4, y: p.y + Math.sin(la) * 0.4, vx: Math.cos(la) * ls, vy: Math.sin(la) * ls,
+          life: 0.9, dmg: lh.dmg, light: lh.light, dark: lh.dark, pierce: 0, keep: 0, hitIds: [], home: true, prism: false, small: true });
+      }
     }
     if (p.st.novaBlades) { var nb = p.st.novaBlades, na = []; for (var bi = 0; bi < nb; bi++) na.push(bi * 6.283 / nb + 0.2); playerBlades(S, p, p.x, p.y, na, 0.35, 0); }
     p.cd = atkCd(p); p.anim = 0.3; p.animK = 'cast';
@@ -1482,6 +1625,7 @@ var Engine = (function () {
     S.projs.push(pr = { id: S.nextId++, kind: 'arrow', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35,
       vx: Math.cos(a) * R.arrowSpeed, vy: Math.sin(a) * R.arrowSpeed, life: st.range / R.arrowSpeed + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
       pierce: (coreOf(p).pierce || 0) + (extraPierce || 0) + (st.pierce || 0), keep: (coreOf(p).pierceKeep || 0.5) + nodeVal(p, 'piercing_light') / 100, hitIds: [] });
+    if (st.homing) pr.home = true;   // Seer's Gaze
     return pr;
   }
   // Mage: a bolt of force that bends a little toward the nearest enemy in its path.
@@ -1564,7 +1708,7 @@ var Engine = (function () {
   // Damage with no hit roll: auras and bleeding. No leech, no ambush, no number popping up.
   function dealRaw(S, m, amt, by, kind) {
     if (m.under) return;
-    m.hpFrac = (m.hpFrac || 0) + amt * (1 - (m.dr || 0));
+    m.hpFrac = (m.hpFrac || 0) + amt * (1 - (m.dr || 0)) * (m.tornT > S.time ? 1 + m.tornPct : 1);
     var whole = Math.floor(m.hpFrac); if (whole <= 0) return;
     m.hpFrac -= whole; m.hp -= whole; m.lastKind = kind; wake(S, m);
     if (kind === 'dark' || kind === 'rip') emit(S, { t: 'dot', id: m.id, v: whole, x: m.x, y: m.y, big: kind === 'rip' || undefined });
@@ -1747,6 +1891,7 @@ var Engine = (function () {
     if (def.ai === 'judge') { judgeAI(S, m, p, d, dt); return; }
     if (def.ai === 'warden') { wardenAI(S, m, p, d, dt); return; }
     if (def.ai === 'king') { kingAI(S, m, p, d, dt); return; }
+    if (def.ai === 'seer') { seerAI(S, m, p, d, dt); return; }
     if (def.ai === 'hound' && houndAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'wraith' && wraithAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'burrower' && burrowAI(S, m, p, d, dt, def)) return;
@@ -1910,6 +2055,7 @@ var Engine = (function () {
       if (p.blN && p.blT > S.time) mult *= 1 + p.blN * nodeDef('bloodlust').pct;
       if (m.markT > S.time && m.markBy !== p.id) mult *= 1 + nodeDef('mark_for_death').pct;
     }
+    if (m.tornT > S.time) mult *= 1 + m.tornPct;   // Veilsplitter: torn enemies take more damage from everyone
     var total = Math.max(1, Math.round((dmg + light) * mult * (1 - (m.dr || 0))));
     m.hp -= total; m.hitT = 0.14; m.blindUntil = 0; m.lastKind = kind; wake(S, m);
     emit(S, { t: 'hit', id: m.id, v: total, light: light > 0, dark: dark > 0, x: m.x, y: m.y, mtype: m.type, ambush: ambush || undefined });
@@ -1920,6 +2066,7 @@ var Engine = (function () {
       if (kind === 'arrow' && coreOf(p).blackPct) dk += total * coreOf(p).blackPct * p.st.darkMul;
       if (dk > 0 && m.hp > 0) { m.darkPool = (m.darkPool || 0) + dk; m.darkEnd = S.time + (p.st.darkDur || R.darkDuration); m.darkBy = p.id; }
       if (p.st.hitHeal) p.hp = Math.min(p.st.maxHp, p.hp + p.st.maxHp * p.st.hitHeal);
+      if (p.st.tearVeil) { m.tornT = S.time + 3; m.tornPct = p.st.tearVeil; }
     }
     if (m.hp <= 0) killMonster(S, m, p);
     return total;
@@ -1958,6 +2105,7 @@ var Engine = (function () {
     emit(S, { t: 'death', x: m.x, y: m.y, mtype: m.type, champ: m.champ, face: m.face, boss: m.boss || null, scale: m.scale || undefined });
     if (m.decay) spreadDecay(S, m);
     onKill(S, m, by);
+    if (m.mirror) return;   // the Seer's copies give nothing
     if (m.boss) {
       emit(S, { t: 'bossDeath', name: m.name, isTrue: m.boss === 'true', x: m.x, y: m.y });
       if (S.seal === m.id) { S.seal = null; if (!S.map.final) emit(S, { t: 'sealBroken' }); }
@@ -1989,7 +2137,7 @@ var Engine = (function () {
       }
       return [m.x, m.y];
     }
-    if (m.boss === 'warden' || m.boss === 'king') {
+    if (m.boss === 'warden' || m.boss === 'king' || m.boss === 'seer') {
       if (S.ossuary) S.ossuary.done = true;
       emit(S, { t: 'wardenDown', kind: m.boss, name: m.name });
     }
@@ -2004,7 +2152,7 @@ var Engine = (function () {
       var n = rnd(r) < (m.champ ? 0.9 : 0.15) ? 1 : 0, minR = 0, ib = m.champ ? 2 : 0;
       if (m.champ && rnd(r) < 0.45) n++;
       if (m.boss === 'mini') { n = 2; minR = 1; ib = 3; }
-      if (m.boss === 'warden' || m.boss === 'king') {
+      if (m.boss === 'warden' || m.boss === 'king' || m.boss === 'seer') {
         var WR = D.bosses[m.boss].reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
         var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib, got = false;
         // First kill per character and difficulty: that hero's own weapon is guaranteed (when this boss has one here).
@@ -2020,7 +2168,7 @@ var Engine = (function () {
       if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); put(s[0], s[1], { kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
       for (var i = 0; i < n; i++) {
         var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
-        putItem(maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR));
+        putItem(maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' || m.boss === 'seer' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR));
       }
     }
   }
@@ -2056,6 +2204,7 @@ var Engine = (function () {
       var pr = S.projs[i], sp = Math.hypot(pr.vx, pr.vy), n = Math.max(1, Math.ceil(sp * dt / 0.25)), dead = false;
       for (var k = 0; k < n && !dead; k++) {
         if (pr.home) steerSpark(S, pr, dt / n);
+        if (pr.homeP) steerLance(S, pr, dt / n);
         pr.x += pr.vx * dt / n; pr.y += pr.vy * dt / n;
         if (!sightable(S.map, pr.x, pr.y)) { dead = true; emit(S, { t: 'wall', kind: pr.kind, x: pr.x - pr.vx * dt / n, y: pr.y - pr.vy * dt / n }); break; }
         if (pr.from === 'p') {
@@ -2172,7 +2321,7 @@ var Engine = (function () {
     updateProjectiles(S, dt);
     updateHazards(S, dt);
     updateZones(S, dt);
-    updateDecay(S, dt); updateSparkFx(S, dt);
+    updateDecay(S, dt); updateSparkFx(S, dt); updateSeer(S, dt);
   }
   // Holy ground from Consecrate: heals everyone standing on it.
   function updateZones(S, dt) {
@@ -2181,6 +2330,15 @@ var Engine = (function () {
     for (var i = S.zones.length - 1; i >= 0; i--) {
       var z = S.zones[i];
       if (S.time >= z.end) { S.zones.splice(i, 1); continue; }
+      if (z.kind === 'ward') {   // Seer's Ward: drains mana and chills whoever stands in it
+        for (var wid in S.players) {
+          var wq = S.players[wid];
+          if (wq.dead || Math.hypot(wq.x - z.x, wq.y - z.y) > z.r) continue;
+          wq.mana = Math.max(0, wq.mana - wq.st.maxMana * D.bosses.seer.ward.manaDrain * dt);
+          chill(S, wq, D.bosses.seer.ward.chill);
+        }
+        continue;
+      }
       if (z.kind === 'rain') {
         z.tickT += dt; if (z.tickT < RN.tick) continue; z.tickT -= RN.tick;
         var owner = S.players[z.owner] || null;
@@ -2202,7 +2360,7 @@ var Engine = (function () {
     classOf: classOf, canWield: canWield, targetSlot: targetSlot,
     genUnique: genUnique, uniqueDef: uniqueDef, ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
     SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, refresh: refresh, applyFinal: applyFinal, themeFor: themeFor,
-    createSim: createSim, kingDepthFor: kingDepthFor, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
+    createSim: createSim, kingDepthFor: kingDepthFor, seerDepthFor: seerDepthFor, applyPillars: applyPillars, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,
     itemName: itemName, baseOf: baseOf, genItem: genItem, findPath: findPath,
     walkable: walkable, sightable: sightable, tileAt: tileAt, damageReduction: damageReduction

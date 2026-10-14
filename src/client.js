@@ -409,9 +409,26 @@
     if (S) E.command(S, PID, c);
   }
   function me() { return S && S.players[PID]; }
+  // Blinding Veil: while the Pale Seer fights, your light shrinks the further you stand from her.
+  var veilLight = null;
+  function seerOf() { for (var i = 0; S && i < S.monsters.length; i++) { var m = S.monsters[i]; if (m.type === 'seer' && m.boss === 'seer' && m.veilOn) return m; } return null; }
+  function lightTarget(p) {
+    var base = p.st.light, sm = seerOf(); if (!sm) return base;
+    var DK = DATA.bosses.seer.dark, d = Math.hypot(sm.x - p.x, sm.y - p.y);
+    if (d <= DK.near) return base;
+    if (d <= DK.far) return base * (1 - 0.5 * (d - DK.near) / (DK.far - DK.near));
+    return Math.max(DK.minLight, base * 0.5 - (base * 0.5 - DK.minLight) * Math.min(1, (d - DK.far) / 2));
+  }
+  function updateVeilLight(dt) {
+    var p = me(); if (!p || !p.st) return;
+    var want = lightTarget(p);
+    if (veilLight == null) veilLight = want;
+    else veilLight += (want - veilLight) * Math.min(1, dt * 2.5);
+  }
+  function lightOf(p) { return p && p.id === PID && veilLight != null ? veilLight : p.st.light; }
   function nearestVisibleMonster() {
     var p = me(), best = null, bd = 1e9; if (!p) return null;
-    S.monsters.forEach(function (m) { var d = Math.hypot(m.x - p.x, m.y - p.y); if (d < p.st.light + 1 && d < bd) { bd = d; best = m; } });
+    S.monsters.forEach(function (m) { var d = Math.hypot(m.x - p.x, m.y - p.y); if (d < lightOf(p) + 1 && d < bd) { bd = d; best = m; } });
     return best;
   }
   function castSkillAuto() {
@@ -688,12 +705,13 @@
         case 'cast': sfx('cast'); break;
         case 'ossuary':
           if (e.kind === 'king') addLog('Rust and old iron hang in the air. A king still holds court on this level.', 'rare');
+          else if (e.kind === 'seer') addLog('The dark here watches back. Someone pale waits among the pillars.', 'rare');
           else addLog('A cold draft rises from the ossuary. Something old keeps watch.', 'rare');
           sfx('stairs'); break;
         case 'raise':
           spray(e.x, e.y, 16, { colors: ['#efe6d2', '#9a8f7a', '#3a3530'], speed: 1.2, up: 140, life: 0.7, size: 2.4, grav: 120 }); break;
         case 'wardenDown':
-          addLog(e.kind === 'king' ? e.name + ' falls. The throne stands empty.' : e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
+          addLog(e.kind === 'king' ? e.name + ' falls. The throne stands empty.' : e.kind === 'seer' ? e.name + ' is blind at last. The veil lifts.' : e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
         case 'shards': spray(e.x, e.y, 10, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 2, up: 120, life: 0.4, grav: 300, size: 2 }); sfx('bone'); break;
         case 'tempest':
           swings.push({ x: e.x, y: e.y, face: 0, arc: 6.283, big: true, reach: e.r, t: 0 }); sfx('cleave');
@@ -724,7 +742,8 @@
           spray(e.x, e.y, 30, { colors: ['#ff7a5a', '#ffd0a0', '#b02a1a'], speed: 1.4, up: 220, life: 1.1, glow: true, grav: 60, size: 2.5 });
           addLog('A seal breaks. The ash gives back some of your strength.', 'gold'); sfx('stairs'); setDepthLabel(); break;
         case 'hazardBoom':
-          if (e.kind === 'bone') spray(e.x, e.y, 18, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 1.6, up: 220, life: 0.5, grav: 320, size: 2.6 });
+          if (e.kind === 'star') { spray(e.x, e.y, 20, { colors: ['#ffffff', '#cfe8ff', '#8ab8ff'], speed: 2, up: 180, life: 0.6, glow: true, grav: 200, size: 2.4 }); pillars.push({ x: e.x, y: e.y, t: 0, pale: true }); }
+          else if (e.kind === 'bone') spray(e.x, e.y, 18, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 1.6, up: 220, life: 0.5, grav: 320, size: 2.6 });
           else { spray(e.x, e.y, 22, { colors: ['#ffffff', '#d8c8ff', '#9a7aff'], speed: 2.2, up: 160, life: 0.6, glow: true, grav: 200, size: 2.5 }); pillars.push({ x: e.x, y: e.y, t: 0 }); }
           sfx('boom'); break;
         case 'frenzy': floatText(e.x, e.y, 'Frenzied!', '#ff6a4a', true); spray(e.x, e.y, 20, { colors: ['#ff3a2a', '#ff9a6a'], speed: 1.4, up: 160, life: 0.7, glow: true, size: 2.5 }); break;
@@ -733,6 +752,11 @@
           spray(e.x, e.y, 16, { colors: bc, speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
           spray(e.x2, e.y2, 16, { colors: bc, speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
           sfx('cast'); break;
+        case 'veilstep':
+          [[e.x0, e.y0], [e.x, e.y]].forEach(function (pt) { spray(pt[0], pt[1], 22, { colors: ['#ffffff', '#dfe8ff', '#8aa0d0', '#1a1830'], speed: 1.2, up: 160, life: 0.8, glow: true, grav: -40, size: 2.6, h: 20 }); });
+          sfx('cast'); break;
+        case 'mirror': spray(e.x, e.y, 18, { colors: ['#ffffff', '#dfe8ff', '#8aa0d0'], speed: 1, up: 140, life: 0.7, glow: true, grav: -30, size: 2.2, h: 20 }); break;
+        case 'lances': sfx('spark'); break;
         case 'leap': spray(e.x, e.y, 8, { colors: ['#5a5048', '#3a332c'], speed: 1, up: 50, life: 0.4, size: 2 }); sfx('swing'); break;
         case 'land': spray(e.x, e.y, 10, { colors: ['#5a5048', '#3a332c'], speed: 1.4, up: 40, life: 0.4, size: 2.2 }); break;
         case 'shieldBlock': spray(e.x, e.y, 7, { colors: ['#ffffff', '#ffe08a', '#c8b89a'], speed: 1.8, up: 120, life: 0.3, glow: true, size: 1.6 }); sfx('bone'); floatText(e.x, e.y, 'Blocked', '#c8b89a'); break;
@@ -820,11 +844,11 @@
     var i = Math.round((screenAngle(face) - Math.PI / 2) / (Math.PI / 4));
     return ((i % 8) + 8) % 8;
   }
-  var SPR_ALIAS = { gravewarden: 'bonewalker', grave_hound: 'gnawer', barrow_guard: 'bonewalker', frost_wraith: 'ashpriest', rime_burrower: 'gnawer' };
+  var SPR_ALIAS = { gravewarden: 'bonewalker', grave_hound: 'gnawer', barrow_guard: 'bonewalker', frost_wraith: 'ashpriest', rime_burrower: 'gnawer', seer: 'ashpriest' };
   // Stand-in looks until the painted sheets arrive: [css filter, size]
   var SPR_TINT = { gravewarden: ['brightness(1.35) saturate(0.55) sepia(0.15)', 1], grave_hound: ['grayscale(0.85) brightness(0.75) contrast(1.2)', 1.35],
     barrow_guard: ['sepia(0.7) brightness(0.7) contrast(1.25)', 1.15], frost_wraith: ['hue-rotate(185deg) saturate(0.7) brightness(1.5)', 1],
-    rime_burrower: ['hue-rotate(175deg) saturate(1.6) brightness(1.35)', 1.25] };
+    rime_burrower: ['hue-rotate(175deg) saturate(1.6) brightness(1.35)', 1.25], seer: ['grayscale(0.7) brightness(1.9) sepia(0.2) hue-rotate(170deg)', 1] };
   // Rows in the generated hero sheets that face the wrong way: draw the mirrored opposite row instead.
   // Archer SW is painted facing SE; warrior SE is painted facing SW. (rows: S SW W NW N NE E SE)
   // Mage SE (idle and walk) is painted facing SW, so walking diagonally flipped her back and forth.
@@ -955,6 +979,8 @@
     var own = hasSprite0(m.type), actor = own ? m.type : (SPR_ALIAS[m.type] || m.type), dir = dirIndex(m.face || 0), off = (m.id || 0) % 7, extra = 1;
     if (m.leapFly > 0) ctx.translate(0, -10);          // a hound in mid-leap
     var tint = !own && SPR_TINT[m.type];
+    if (m.type === 'seer') { ctx.translate(0, -5 - 2.5 * Math.sin(gameTime * 2.2 + (m.id || 0))); if (m.mirror) ctx.globalAlpha *= 0.55 + 0.15 * Math.sin(gameTime * 6 + m.id); }
+    if (own && m.type === 'seer') return drawSeer(m, dir, off);
     if (tint) { ctx.filter = tint[0]; try { return drawMonsterSprite0(m, actor, dir, off, tint[1]); } finally { ctx.filter = 'none'; } }
     return drawMonsterSprite0(m, actor, dir, off, extra);
   }
@@ -983,6 +1009,20 @@
     if (m.hitT > 0) return drawSprite(actor, 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
     if (m.moving) return drawWalk(actor, dir, extra, actor === 'gnawer' ? 12 : 8, off);
     return drawIdle(actor, dir, extra, off);
+  }
+  // The Pale Seer (own sheets, when painted): each cast has its own animation.
+  function drawSeer(m, dir, off) {
+    var V = DATA.bosses.seer, A = SPR.meta.actors.seer.animations, extra = m.scale ? 1 / m.scale : 1, fs = SPR.meta.actors.seer.frameSize;
+    if (!fs || fs < 160) extra = 1;
+    var casts = { lance: ['cast', V.lance.cast], ward: ['ward', V.ward.cast], veil: ['veilstep', V.veil.cast], channel: ['channel', V.star.cast] };
+    if (m.atk > 0 && casts[m.cast]) {
+      var an = A[casts[m.cast][0]] ? casts[m.cast][0] : 'cast';
+      if (an === 'channel') return drawSprite('seer', an, dir, Math.floor(gameTime * 8) % (A.channel.frames || 6), extra);
+      return drawSprite('seer', an, dir, onceFrame('seer', an, 1 - m.atk / casts[m.cast][1]), extra);
+    }
+    if (m.hitT > 0 && A.hit) return drawSprite('seer', 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
+    if (m.moving && A.move) return drawSprite('seer', 'move', dir, Math.floor(gameTime * 8 + off) % (A.move.frames || 8), extra);
+    return drawIdle('seer', dir, extra, off);
   }
   // The Hollowed King: Blade Tempest spins, Kingsfall Charge winds up and runs, Shed the Mantle bursts.
   function drawKing(m, dir, extra, off) {
@@ -1133,6 +1173,7 @@
       var os = S.ossuary, fl = envFloor(hash(tx, ty));
       if (os && tx >= os.x && tx < os.x + os.w && ty >= os.y && ty < os.y + os.h) {
         if (os.kind === 'king') fl = hash(tx, ty) % 6 < 4 ? 'floor-stone-b' : 'floor-cracked';
+        else if (os.kind === 'seer') fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 7 < 5 ? 'floor-stone-b' : 'floor-cracked');
         else fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
       }
       ctx.drawImage(sprImg[fl], fx, fy, 128 * se, 64 * se);
@@ -1578,12 +1619,13 @@
     var p = me(), pp = lerpE(p), map = S.map, W = map.W, H = map.H, t = gameTime;
     var camY = vh * 0.44;
     oxC = vw / 2 - (pp.x - pp.y) * HW; oyC = camY - (pp.x + pp.y) * HH;
-    var light = p.st.light * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));
+    updateVeilLight(1 / 60); var myLight = lightOf(p);
+    var light = myLight * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));
     // explored tiles
-    var L = Math.ceil(p.st.light) + 1;
+    var L = Math.ceil(myLight) + 1;
     for (var ey = Math.floor(pp.y) - L; ey <= Math.floor(pp.y) + L; ey++) for (var ex = Math.floor(pp.x) - L; ex <= Math.floor(pp.x) + L; ex++) {
       if (ex < 0 || ey < 0 || ex >= W || ey >= H) continue;
-      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= p.st.light + 0.5) explored[ey * W + ex] = 1;
+      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= myLight + 0.5) explored[ey * W + ex] = 1;
     }
     var marg = 80 * Z;
     function onScreen(tx, ty) { var x = sx(tx + 0.5, ty + 0.5), y = sy(tx + 0.5, ty + 0.5); return x > -marg && x < vw + marg && y > -marg && y < vh + marg * 2; }
@@ -1604,6 +1646,7 @@
     }
     corpses.forEach(drawCorpse);
     (S.hazards || []).forEach(function (h) {
+      if (h.kind === 'star') return;   // drawn in the glow pass, so it shows through the Seer's darkness
       var cx = sx(h.x, h.y), cy = sy(h.x, h.y), rx = h.r * HW * 1.414, ry = h.r * HH * 1.414, k = 1 - Math.max(0, h.t) / h.fuse;
       ctx.save();
       var bone = h.kind === 'bone';
@@ -1634,6 +1677,7 @@
       var cx = sx(z.x, z.y), cy = sy(z.x, z.y), rx = z.r * HW * 1.414, ry = z.r * HH * 1.414;
       var left = Math.max(0, (z.end - (S.time || 0)) / (z.dur || 3)), a = Math.min(1, left * 3);
       if (z.kind === 'rain') { drawRain(z, cx, cy, rx, ry, a); return; }
+      if (z.kind === 'ward') return;   // glow pass
       ctx.save();
       var zg = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx);
       zg.addColorStop(0, 'rgba(255,230,150,' + (0.32 * a) + ')'); zg.addColorStop(0.7, 'rgba(240,200,100,' + (0.16 * a) + ')'); zg.addColorStop(1, 'rgba(240,200,100,0)');
@@ -1650,7 +1694,7 @@
       drawFallen(q, t);
       if (id !== PID) deadHits.push({ id: id, sx: sx(q.x, q.y), sy: sy(q.x, q.y) - 6 * Z, r: 22 * Z });
     });
-    var vis = p.st.light + 0.6;
+    var vis = myLight + 0.6;
     S.ground.forEach(function (g) { if (mine(g) && Math.hypot(g.x - pp.x, g.y - pp.y) < vis) drawGroundGlyph(g); });
     // depth-sorted
     var list = [];
@@ -1700,6 +1744,7 @@
           ctx.strokeStyle = 'rgba(230,70,40,' + (0.55 + 0.25 * Math.sin(t * 3)) + ')'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(0, 0, 18 * (e.scale || 1), 8 * (e.scale || 1), 0, 0, 6.283); ctx.stroke();
           ctx.scale(e.scale || 1, e.scale || 1);
         }
+        if (it.k === 'm' && e.mirror) ctx.scale(e.scale || 1, e.scale || 1);
         if (it.k === 'm' && e.champ) { ctx.strokeStyle = 'rgba(142,168,255,' + (0.5 + 0.25 * Math.sin(t * 4)) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, 0, 14, 6, 0, 0, 6.283); ctx.stroke(); }
         if (it.k === 'm' && e.id === hoverId) { ctx.strokeStyle = 'rgba(220,60,50,0.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(0, 0, 13, 5.5, 0, 0, 6.283); ctx.stroke(); }
         if (it.k === 'n') {
@@ -1789,13 +1834,49 @@
       });
       ctx.restore();
     }
+    // The Pale Seer's telegraphs glow through her darkness: wards, falling stars and soul lances.
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    (S.zones || []).forEach(function (z) {
+      if (z.kind !== 'ward') return;
+      var cx = sx(z.x, z.y), cy = sy(z.x, z.y), rx = z.r * HW * 1.414, ry = z.r * HH * 1.414;
+      var left = Math.max(0, (z.end - (S.time || 0)) / (z.dur || 3)), a = Math.min(1, left * 3), pu = 0.5 + 0.5 * Math.sin(gameTime * 5 + z.id);
+      var wg = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx);
+      wg.addColorStop(0, 'rgba(90,150,255,' + (0.10 * a) + ')'); wg.addColorStop(0.75, 'rgba(110,170,255,' + ((0.16 + 0.08 * pu) * a) + ')'); wg.addColorStop(1, 'rgba(110,170,255,0)');
+      ctx.save(); ctx.translate(cx, cy); ctx.scale(1, ry / rx); ctx.translate(-cx, -cy);
+      ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(cx, cy, rx, 0, 6.283); ctx.fill(); ctx.restore();
+      ctx.strokeStyle = 'rgba(170,210,255,' + ((0.45 + 0.35 * pu) * a) + ')'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
+      ctx.strokeStyle = 'rgba(220,235,255,' + (0.3 * a) + ')'; ctx.lineWidth = 1 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.6, ry * 0.6, gameTime * 0.8, 0, 6.283); ctx.stroke();
+      if (Math.random() < 0.3 * a) { var wa = Math.random() * 6.283; spray(z.x + Math.cos(wa) * z.r, z.y + Math.sin(wa) * z.r, 1, { colors: ['#cfe0ff', '#8ab0ff'], speed: 0.1, up: 40, life: 0.8, glow: true, grav: -20, size: 1.6 }); }
+    });
+    (S.hazards || []).forEach(function (h) {
+      if (h.kind !== 'star') return;
+      var cx = sx(h.x, h.y), cy = sy(h.x, h.y), rx = h.r * HW * 1.414, ry = h.r * HH * 1.414, k = 1 - Math.max(0, h.t) / h.fuse;
+      ctx.fillStyle = 'rgba(180,210,255,' + (0.10 + 0.25 * k) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy, rx * k, ry * k, 0, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = 'rgba(225,238,255,' + (0.55 + 0.4 * Math.sin(gameTime * 18) * k) + ')'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
+      // the star itself, falling toward its mark
+      var fy = cy - (1 - k) * 140 * Z, fg = ctx.createRadialGradient(cx, fy, 0, cx, fy, 9 * Z);
+      fg.addColorStop(0, 'rgba(255,255,255,0.95)'); fg.addColorStop(0.4, 'rgba(170,205,255,0.7)'); fg.addColorStop(1, 'rgba(120,160,255,0)');
+      ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, fy, 9 * Z, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = 'rgba(200,225,255,0.35)'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.moveTo(cx, fy - 30 * Z); ctx.lineTo(cx, fy); ctx.stroke();
+    });
+    S.projs.forEach(function (pr) {
+      if (pr.kind !== 'lance') return;
+      var ll = lerpE(pr), lx = sx(ll.x, ll.y), ly = sy(ll.x, ll.y) - 18 * Z, lsp = Math.hypot(pr.vx, pr.vy) || 1;
+      var tx2 = sx(ll.x - pr.vx / lsp * 0.7, ll.y - pr.vy / lsp * 0.7), ty2 = sy(ll.x - pr.vx / lsp * 0.7, ll.y - pr.vy / lsp * 0.7) - 18 * Z;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(140,180,255,0.35)'; ctx.lineWidth = 7 * Z; ctx.beginPath(); ctx.moveTo(tx2, ty2); ctx.lineTo(lx, ly); ctx.stroke();
+      ctx.strokeStyle = 'rgba(235,245,255,0.95)'; ctx.lineWidth = 2.2 * Z; ctx.beginPath(); ctx.moveTo(tx2, ty2); ctx.lineTo(lx, ly); ctx.stroke();
+      var lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, 8 * Z); lg.addColorStop(0, 'rgba(255,255,255,1)'); lg.addColorStop(1, 'rgba(140,180,255,0)');
+      ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(lx, ly, 8 * Z, 0, 6.283); ctx.fill();
+    });
+    ctx.restore();
     // fireballs and embers shine through the dark
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     S.projs.forEach(function (pr) {
       if (pr.kind === 'spark') {
         var sl = lerpE(pr), spx = sx(sl.x, sl.y), spy = sy(sl.x, sl.y) - 18 * Z, srr = (pr.small ? 7 : 10) * Z;
         var sg = ctx.createRadialGradient(spx, spy, 0, spx, spy, srr);
-        sg.addColorStop(0, 'rgba(255,255,255,1)'); sg.addColorStop(0.35, pr.dark ? 'rgba(170,120,255,0.9)' : pr.light ? 'rgba(255,230,150,0.9)' : 'rgba(140,190,255,0.9)'); sg.addColorStop(1, 'rgba(90,120,255,0)');
+        sg.addColorStop(0, 'rgba(255,255,255,1)'); sg.addColorStop(0.35, pr.pale ? 'rgba(200,225,255,0.9)' : pr.dark ? 'rgba(170,120,255,0.9)' : pr.light ? 'rgba(255,230,150,0.9)' : 'rgba(140,190,255,0.9)'); sg.addColorStop(1, 'rgba(90,120,255,0)');
         ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(spx, spy, srr, 0, 6.283); ctx.fill();
         if (Math.random() < 0.5) parts.push({ x: sl.x, y: sl.y, h: 18, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, vh: 10, life: 0.3, max: 0.3, c: '#aac8ff', s: 1.6, glow: true, grav: -10 });
         return;
@@ -1855,7 +1936,7 @@
     items.forEach(function (g) {
       var txt, col;
       if (g.stairs) { txt = S.seal ? 'Stairs down · sealed' : 'Stairs down'; col = S.seal ? '#ff8a6a' : '#e8dfcf'; }
-      else if (g.ossuary) { txt = S.ossuary && S.ossuary.kind === 'king' ? 'Throne Room · The Hollowed King' : 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
+      else if (g.ossuary) { txt = S.ossuary && S.ossuary.kind === 'king' ? 'Throne Room · The Hollowed King' : S.ossuary && S.ossuary.kind === 'seer' ? "Seer's Chamber · The Pale Seer" : 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
       else if (g.npc) { txt = g.npc.name; col = g.npc.kind === 'keeper' ? '#d8c2ff' : '#ffd98a'; }
       else if (g.fallen) {
         var left = Math.ceil(R.reviveDelay - ((S.time || 0) - (g.fallen.deadAt || 0)));
@@ -1983,7 +2064,7 @@
     cv.classList.toggle('hover-enemy', !!hoverId || (!mouse.touch && !!npcAt(mouse.x, mouse.y)));
     var tm = hm && !mouse.touch ? hm : (p.order && p.order.t === 'attack' ? S.monsters.filter(function (m) { return m.id === p.order.id; })[0] : null);
     var bossNear = null;
-    S.monsters.forEach(function (m) { if (m.boss && Math.hypot(m.x - p.x, m.y - p.y) < p.st.light + 4) bossNear = m; });
+    S.monsters.forEach(function (m) { if (m.boss && Math.hypot(m.x - p.x, m.y - p.y) < Math.max(lightOf(p), m.boss === 'seer' ? 12 : 0) + 4) bossNear = m; });
     musicBossNear = !!bossNear;
     if (bossNear) {
       $('bossBar').hidden = false; $('bossBar').classList.toggle('true', bossNear.boss === 'true' || bossNear.boss === 'trial');
@@ -2360,7 +2441,7 @@
       else { var lite = { id: id }; LITE.forEach(function (k) { lite[k] = p[k]; }); lite.x = r2(p.x); lite.y = r2(p.y); players[id] = lite; }
     });
     var cx = me2 ? me2.x : S.map.start.x, cy = me2 ? me2.y : S.map.start.y;
-    var mons = S.monsters.filter(function (m) { return Math.abs(m.x - cx) < 18 && Math.abs(m.y - cy) < 18; }).map(function (m) {
+    var mons = S.monsters.filter(function (m) { return (Math.abs(m.x - cx) < 18 && Math.abs(m.y - cy) < 18) || m.boss === 'seer'; }).map(function (m) {
       var o = { id: m.id, type: m.type, x: r2(m.x), y: r2(m.y), r: m.r, hp: m.hp, max: m.max, champ: m.champ, face: r2(m.face), moving: m.moving, atk: r2(m.atk), hitT: r2(m.hitT) };
       if (m.boss) { o.boss = m.boss; o.name = m.name; o.traits = m.traits; o.scale = m.scale; o.cast = m.cast; o.aura = m.aura; }
       if (m.markT > S.time) o.mark = 1;
@@ -2371,10 +2452,14 @@
       if (m.under) o.under = 1;
       if (m.leapFly > 0) o.leapFly = 1;
       if (m.shed) o.shed = 1;
+      if (m.veilOn) o.veilOn = 1;
+      if (m.mirror) { o.scale = m.scale; o.cast = m.cast; }
+      if (m.mirror) o.mirror = 1;
+      if (m.tornT > S.time) o.torn = 1;
       if (m.cast === 'chargeWind') { o.cdx = r2(m.cdx); o.cdy = r2(m.cdy); o.cleft = r2(m.cleft); }
       return o;
     });
-    var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner, mantle: pr.mantle }; });
+    var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner, mantle: pr.mantle, pale: pr.pale, small: pr.small }; });
     var msg = { t: 'snap', hazards: S.hazards || [], ossuary: S.ossuary || null, seed: S.seed, depth: S.depth, difficulty: S.difficulty, final: !!S.map.final, time: S.time, seal: S.seal, players: players, monsters: mons, projs: projs, npcs: S.npcs, zones: S.zones || [], ev: pendingEv };
     var gk = S.depth + ':' + S.ground.map(function (g) { return g.id; }).join(',');
     if (gk !== conn.groundKey) { conn.groundKey = gk; msg.ground = S.ground; }
@@ -2461,6 +2546,7 @@
     S.time = m.time || 0; S.seal = m.seal || null; S.players = np; S.monsters = m.monsters; S.projs = m.projs; S.npcs = m.npcs || []; S.zones = m.zones || [];
     if (m.ground) S.ground = m.ground;
     S.hazards = m.hazards || []; S.ossuary = m.ossuary || null;
+    if (S.ossuary && S.ossuary.pillars && !S.ossuary.pillarsSet) { E.applyPillars(S.map, S.ossuary); S.ossuary.pillarsSet = true; }
     snapAt = performance.now(); alpha = 0;
     if (!running && S.players[PID] && S.players[PID].st) running = true;
     handleEvents(m.ev || []);
@@ -2739,6 +2825,7 @@
       if (d === fd) notes.push('final boss');
       if (DATA.bosses.warden && DATA.bosses.warden.depth === d && d < fd) notes.push('Gravewarden');
       var KB = DATA.bosses.king; if (KB && KB.difficulties.indexOf(diff) >= 0 && d >= KB.depths[0] && d <= KB.depths[1] && d < fd) notes.push('Hollowed King');
+      var SB = DATA.bosses.seer; if (SB && SB.difficulties.indexOf(diff) >= 0 && d >= SB.depths[0] && d <= SB.depths[1] && d < fd) notes.push('Pale Seer');
       var th = E.themeFor(d, fd); notes.push(THEMES[th] ? THEMES[th].name : th);
       h += '<option value="' + d + '">' + d + (notes.filter(Boolean).length ? ' · ' + notes.filter(Boolean).join(', ') : '') + '</option>';
     }
@@ -2778,6 +2865,9 @@
     var seed = (Math.random() * 2147483647) | 0, KB = DATA.bosses.king;
     if (KB && KB.difficulties.indexOf(diff) >= 0 && depth >= KB.depths[0] && depth <= KB.depths[1])
       for (var ks = 0; ks < 200 && E.kingDepthFor(seed, diff) !== depth; ks++) seed = (Math.random() * 2147483647) | 0;
+    var SB = DATA.bosses.seer;
+    if (SB && SB.difficulties.indexOf(diff) >= 0 && depth >= SB.depths[0] && depth <= SB.depths[1])
+      for (var ss = 0; ss < 200 && E.seerDepthFor(seed, diff) !== depth; ss++) seed = (Math.random() * 2147483647) | 0;
     S = E.createSim(seed, depth, diff);
     S.testGod = TEST.god;
     E.addPlayer(S, PID, hero);

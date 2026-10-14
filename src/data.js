@@ -13,6 +13,8 @@ var DATA = {
                   abilities: ['Fireball Volley', 'Withering Curse'] },
     gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
                   abilities: ['Bone Spikes', 'Raise the Dead'] },
+    seer: { name: 'The Pale Seer', hp: 480, dmg: [9, 14], speed: 2.3, range: 7, atkTime: 0.6, atkCd: 1.4, xp: 1100, r: 0.42, ai: 'seer', aggro: 9,
+                  abilities: ['Soul Lances', "Seer's Ward", 'Veil Step', 'Mirror Veil', 'Starfall', 'Blinding Veil'] },
     king: { name: 'The Hollowed King', hp: 430, dmg: [9, 14], speed: 2.0, range: 1.0, atkTime: 0.55, atkCd: 1.4, xp: 600, r: 0.45, ai: 'king', aggro: 8,
                   abilities: ['Blade Tempest', 'Kingsfall Charge', 'Shed the Mantle'] },
     ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 },
@@ -306,7 +308,17 @@ var DATA = {
       fx: ['Every 3rd arrow is a spinning mantle blade that passes through every enemy'] },
     { id: 'fallen_throne', name: 'Scepter of the Fallen Throne', base: 'ember_staff', dmg: [24, 51], cls: 'mage', drop: 'king', diffs: ['hell'],
       mods: { dmgPct: [100, 130], ene: [22, 30], darkMin: [12, 16], darkMax: [20, 28], novaBlades: 12 },
-      fx: ['Nova hurls 12 rusted blades outward, each dealing 35% of your hit'] }
+      fx: ['Nova hurls 12 rusted blades outward, each dealing 35% of your hit'] },
+    // The Pale Seer (Hell, for a character around level 45).
+    { id: 'veilsplitter', name: 'Veilsplitter', base: 'executioner_sword', dmg: [33, 66], cls: 'warrior', drop: 'seer', diffs: ['hell'],
+      mods: { dmgPct: [120, 150], str: [22, 30], life: [60, 80], tearVeil: 15 },
+      fx: ['Enemies you hit take 15% more damage from everyone for 3s'] },
+    { id: 'seers_gaze', name: "Seer's Gaze", base: 'ember_longbow', dmg: [28, 60], cls: 'archer', drop: 'seer', diffs: ['hell'],
+      mods: { dmgPct: [110, 140], dex: [22, 30], pierce: 1, homing: 1 },
+      fx: ['Arrows pierce 1 more enemy', 'Arrows bend toward enemies in their path'] },
+    { id: 'blind_crystal', name: 'Crystal of the Blind', base: 'ember_staff', dmg: [27, 57], cls: 'mage', drop: 'seer', diffs: ['hell'],
+      mods: { dmgPct: [110, 140], ene: [24, 32], lightMin: [14, 18], lightMax: [26, 34], novaLances: 6 },
+      fx: ['Nova releases 6 soul lances that seek out enemies, each dealing 40% of your hit'] }
   ],
 
   // wclass: which class can wield a weapon
@@ -583,6 +595,19 @@ var DATA = {
       charge: { every: 6, windup: 0.7, min: 3, max: 9, speed: 13, mult: 2.6, width: 0.55, recover: 0.8 },
       shed: { at: 0.5, cast: 1.2, dr: 0.8, blades: 16, speed: 1.3, cd: 0.75, chargeEvery: 4.5, tempestEvery: 5.5 },
       reward: { items: 4, minRarity: 2, ilvlBonus: 5, unique: 0.3, gold: [20, 40] }
+    },
+    // Optional Hell boss on level 14-16: a ranged caster in a chamber with pillars. She keeps her distance and
+    // teleports on a timer; far from her the world goes dark and the cold sets in, so the fight is fought up close.
+    seer: {
+      depths: [14, 16], difficulties: ['hell'], scale: 1.8,
+      keep: [4.5, 8],                                                      // the distance she likes to keep
+      lance: { every: 2.8, cast: 0.6, count: 5, spread: 0.26, speed: 6.5, life: 2.6, turn: 0.7, dmg: [1, 3] },
+      ward: { every: 8, cast: 0.7, radius: 1.5, dur: 6, manaDrain: 0.04, chill: 0.6 },
+      veil: { every: 12, cast: 0.8, minJump: 5 },
+      mirror: { at: [0.66, 0.33], copies: 2, hp: 0.06, dmg: 0.4, life: 15 },
+      star: { at: 0.25, every: 12, cast: 3, interval: 0.22, fuse: 1.0, radius: 1.1, dmg: [7, 11] },
+      dark: { near: 5, far: 9, minLight: 2, chillMin: 0.005, chillMax: 0.02, ramp: 3 },
+      reward: { items: 6, minRarity: 2, ilvlBonus: 6, unique: 0.4, gold: [40, 80] }
     },
     abbot: {
       scale: 2.0, escorts: [['bonewalker', 2]],

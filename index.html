@@ -486,7 +486,7 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
     </div>
     </details>
     <label class="fs-pref"><input type="checkbox" id="fsPref"> Start games in fullscreen</label>
-    <p class="hint ver">Build 2026-10-13 20:59</p>
+    <p class="hint ver">Build 2026-10-14 20:26</p>
     <div class="tools"><button class="tb" id="bImport">Import character</button><button class="tb" id="tKeys">Settings</button></div>
   </div>
 </div>
@@ -535,7 +535,7 @@ body.at-title #hud, body.at-title #log, body.at-title #depth, body.at-title #top
   <p class="hint" id="imStatus" role="status"></p>
 </div></div>
 
-<script>var BUILD = "2026-10-13 20:59";</script>
+<script>var BUILD = "2026-10-14 20:26";</script>
 <script>var TILE_ATLAS = {"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"512\" height=\"224\" viewBox=\"0 0 512 224\"><defs>\n    <linearGradient id=\"stone\" x1=\"0\" y1=\"0\" x2=\"0.8\" y2=\"1\"><stop stop-color=\"#514238\"/><stop offset=\"1\" stop-color=\"#302720\"/></linearGradient>\n    <linearGradient id=\"stone2\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"><stop stop-color=\"#625044\"/><stop offset=\"1\" stop-color=\"#40342b\"/></linearGradient>\n    <pattern id=\"grain\" width=\"17\" height=\"13\" patternUnits=\"userSpaceOnUse\"><circle cx=\"3\" cy=\"4\" r=\".7\" fill=\"#c5a477\" opacity=\".12\"/><circle cx=\"13\" cy=\"9\" r=\".55\" fill=\"#0b0908\" opacity=\".42\"/></pattern>\n    <g id=\"floor-base\"><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#stone)\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#grain)\"/><path d=\"M64 2 124 32\" fill=\"none\" stroke=\"#89735a\" stroke-opacity=\".22\"/></g>\n    <g id=\"block-top\"><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#stone2)\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#grain)\"/><path d=\"M64 2 124 32\" fill=\"none\" stroke=\"#b08d64\" stroke-opacity=\".32\"/></g>\n    <g id=\"wall-face\">\n      <path d=\"M1 32 64 63 64 95 1 64Z\" fill=\"#2e251f\" stroke=\"#17120f\" stroke-width=\"1.5\"/>\n      <path d=\"M64 63 127 32 127 64 64 95Z\" fill=\"#241d18\" stroke=\"#17120f\" stroke-width=\"1.5\"/>\n      <path d=\"M5 43 64 72 64 79 5 50M64 80 123 51 123 58 64 87\" fill=\"none\" stroke=\"#4b3b2e\" stroke-width=\"1\" opacity=\".9\"/>\n      <path d=\"M5 55 64 84 64 91 5 62M64 88 123 59 123 66 64 95\" fill=\"none\" stroke=\"#433529\" stroke-width=\"1\" opacity=\".75\"/>\n      <path d=\"M1 32 64 63 127 32\" fill=\"none\" stroke=\"#92775b\" stroke-opacity=\".4\" stroke-width=\"1\"/>\n    </g>\n    <symbol id=\"floor-stone\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/></symbol>\n    <symbol id=\"floor-cracked\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"m44 23 7 5-4 5 10 3-3 7 8 5m-11-15-8 1m11 9 7-3\" fill=\"none\" stroke=\"#17120f\" stroke-width=\"1.6\"/><path d=\"m45 24 6 4m-4 5 9 3\" fill=\"none\" stroke=\"#8a7157\" stroke-opacity=\".45\"/></symbol>\n    <symbol id=\"floor-moss\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"M13 32q9-10 20-3t12 12q-12 8-24-1Z\" fill=\"#596044\" opacity=\".7\"/><path d=\"M89 24q12-6 23 3l-9 7-14-3Z\" fill=\"#64704a\" opacity=\".58\"/><path d=\"M20 34q9-5 17 2m57-9q8-3 14 2\" fill=\"none\" stroke=\"#879064\" opacity=\".55\"/></symbol>\n    <symbol id=\"floor-rune\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"m64 16 15 8v16l-15 8-15-8V24Zm0 5v22m-10-17 20 11m0-11L54 37\" fill=\"none\" stroke=\"#bd8b48\" stroke-width=\"1.5\" opacity=\".82\"/><circle cx=\"64\" cy=\"32\" r=\"2\" fill=\"#e6b363\"/></symbol>\n    <symbol id=\"floor-blood\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"M78 33q10-9 18 0t15 4q-1 9-14 9t-19-5Z\" fill=\"#6e2922\" opacity=\".86\"/><path d=\"M94 40q3 5 1 9\" stroke=\"#742a22\" stroke-width=\"2\"/></symbol>\n    <symbol id=\"floor-rubble\" viewBox=\"0 0 128 64\"><use href=\"#floor-base\" xlink:href=\"#floor-base\"/><path d=\"m40 37 8-6 7 4-4 7-8 1Zm18 6 6-7 7 4-3 7-8 1Zm-7-15 5-5 5 3-2 5-6 1Zm21 12 4-5 5 2-1 5-6 1Z\" fill=\"#796553\" stroke=\"#211a15\" stroke-width=\"1\"/></symbol>\n    <symbol id=\"floor-edge\" viewBox=\"0 0 128 64\"><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#stone)\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 1 127 32 64 63 1 32Z\" fill=\"url(#grain)\"/><path d=\"M64 1 127 32 64 63\" fill=\"none\" stroke=\"#947858\" stroke-opacity=\".32\" stroke-width=\"1.2\"/><path d=\"M1 32 64 63\" fill=\"none\" stroke=\"#0c0908\" stroke-opacity=\".65\" stroke-width=\"2\"/></symbol>\n    <symbol id=\"wall-straight\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/></symbol>\n    <symbol id=\"wall-moss\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/><path d=\"M5 40q10-8 18 1t18 5l5 8-18-4-19-4Zm75-1q12-8 19-3t22-2v8l-22 5-19 4Z\" fill=\"#596044\" opacity=\".75\"/><path d=\"m18 49 2 8m8-5 1 7m73-13 2 7\" stroke=\"#82905c\" opacity=\".55\"/></symbol>\n    <symbol id=\"wall-arch\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/><path d=\"M42 61V47a22 22 0 0 1 44 0v14l-9-4V47a13 13 0 0 0-26 0v14Z\" fill=\"#17120f\" stroke=\"#725b42\" stroke-width=\"2\"/><path d=\"M45 60V47a19 19 0 0 1 38 0\" fill=\"none\" stroke=\"#9a7a54\" stroke-opacity=\".55\"/></symbol>\n    <symbol id=\"wall-corner\" viewBox=\"0 0 128 96\"><use href=\"#wall-face\" xlink:href=\"#wall-face\"/><path d=\"M64 63 127 32V55L84 77 64 87Z\" fill=\"#302720\" stroke=\"#17120f\" stroke-width=\"1.5\"/><path d=\"M64 73 84 83 127 61M64 85 84 95 127 73\" fill=\"none\" stroke=\"#4b3b2e\" stroke-width=\"1\"/><use href=\"#block-top\" xlink:href=\"#block-top\"/></symbol>\n  </defs><use href=\"#floor-stone\" xlink:href=\"#floor-stone\" x=\"0\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-cracked\" xlink:href=\"#floor-cracked\" x=\"128\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-moss\" xlink:href=\"#floor-moss\" x=\"256\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-rune\" xlink:href=\"#floor-rune\" x=\"384\" y=\"0\" width=\"128\" height=\"64\"/><use href=\"#floor-blood\" xlink:href=\"#floor-blood\" x=\"0\" y=\"64\" width=\"128\" height=\"64\"/><use href=\"#floor-rubble\" xlink:href=\"#floor-rubble\" x=\"128\" y=\"64\" width=\"128\" height=\"64\"/><use href=\"#floor-edge\" xlink:href=\"#floor-edge\" x=\"256\" y=\"64\" width=\"128\" height=\"64\"/><use href=\"#wall-straight\" xlink:href=\"#wall-straight\" x=\"0\" y=\"128\" width=\"128\" height=\"96\"/><use href=\"#wall-moss\" xlink:href=\"#wall-moss\" x=\"128\" y=\"128\" width=\"128\" height=\"96\"/><use href=\"#wall-arch\" xlink:href=\"#wall-arch\" x=\"256\" y=\"128\" width=\"128\" height=\"96\"/><use href=\"#wall-corner\" xlink:href=\"#wall-corner\" x=\"384\" y=\"128\" width=\"128\" height=\"96\"/></svg>", "cells": {"floor-stone": [0, 0, 128, 64], "floor-cracked": [128, 0, 128, 64], "floor-moss": [256, 0, 128, 64], "floor-rune": [384, 0, 128, 64], "floor-blood": [0, 64, 128, 64], "floor-rubble": [128, 64, 128, 64], "floor-edge": [256, 64, 128, 64], "wall-straight": [0, 128, 128, 96], "wall-moss": [128, 128, 128, 96], "wall-arch": [256, 128, 128, 96], "wall-corner": [384, 128, 128, 96]}};</script>
 <script>var SPRITES = {"meta": {"cell": 128, "anchor": [64, 112], "directions": ["S", "SW", "W", "NW", "N", "NE", "E", "SE"], "actors": {"archer": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "archer-idle.png", "frames": 4, "columns": 4, "rows": 8}, "attack": {"file": "archer-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "archer-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "archer-death.png", "frames": 8, "columns": 8, "rows": 8}, "walk": {"file": "archer-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}}, "pxScale": 1}, "warrior": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "warrior-idle.png", "frames": 4, "columns": 4, "rows": 8}, "attack": {"file": "warrior-attack.png", "frames": 6, "columns": 6, "rows": 8, "frameSize": 192, "anchor": [96, 150]}, "hit": {"file": "warrior-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "warrior-death.png", "frames": 8, "columns": 8, "rows": 8}, "walk": {"file": "warrior-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}}, "pxScale": 1}, "gnawer": {"height": 32, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "gnawer-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "gnawer-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "gnawer-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "gnawer-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "gnawer-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "bonewalker": {"height": 82, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "bonewalker-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "bonewalker-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "bonewalker-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "bonewalker-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "bonewalker-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "ashpriest": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "ashpriest-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "ashpriest-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "ashpriest-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "ashpriest-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "ashpriest-death.png", "frames": 8, "columns": 8, "rows": 8}, "cast": {"file": "ashpriest-cast.png", "frames": 6, "columns": 6, "rows": 8}}, "pxScale": 1}, "abbot": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "abbot-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "abbot-walk.png", "frames": 8, "columns": 8, "rows": 8}, "attack": {"file": "abbot-attack.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "abbot-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "abbot-death.png", "frames": 8, "columns": 8, "rows": 8}, "withering-curse": {"file": "abbot-withering-curse.png", "frames": 6, "columns": 6, "rows": 8}, "fireball-volley": {"file": "abbot-fireball-volley.png", "frames": 6, "columns": 6, "rows": 8}}, "pxScale": 1.3333333333333333}, "corvin": {"height": 88, "frameSize": 128, "animations": {"idle": {"file": "corvin-idle.png", "frames": 4, "columns": 4, "rows": 8}}, "anchor": [64, 112], "pxScale": 1}, "keeper": {"height": 90, "frameSize": 128, "animations": {"idle": {"file": "keeper-idle.png", "frames": 4, "columns": 4, "rows": 8}}, "anchor": [64, 112], "pxScale": 1}, "mage": {"height": 88, "frameSize": 128, "anchor": [64, 112], "animations": {"idle": {"file": "mage-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "mage-walk.png", "frames": 8, "columns": 8, "rows": 8, "fps": 9}, "attack": {"file": "mage-attack.png", "frames": 6, "columns": 6, "rows": 8}, "cast": {"file": "mage-cast.png", "frames": 6, "columns": 6, "rows": 8}, "hit": {"file": "mage-hit.png", "frames": 2, "columns": 2, "rows": 8}, "death": {"file": "mage-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1}, "judge": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "judge-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "judge-walk.png", "frames": 8, "columns": 8, "rows": 8}, "hit": {"file": "judge-hit.png", "frames": 2, "columns": 2, "rows": 8}, "judgement": {"file": "judge-judgement.png", "frames": 6, "columns": 6, "rows": 8}, "step": {"file": "judge-step.png", "frames": 6, "columns": 6, "rows": 8}, "attack": {"file": "judge-attack.png", "frames": 6, "columns": 6, "rows": 8}, "death": {"file": "judge-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1.3333333333333333}, "king": {"height": 170, "frameSize": 192, "anchor": [96, 174], "animations": {"idle": {"file": "king-idle.png", "frames": 4, "columns": 4, "rows": 8}, "walk": {"file": "king-walk.png", "frames": 8, "columns": 8, "rows": 8}, "hit": {"file": "king-hit.png", "frames": 2, "columns": 2, "rows": 8}, "attack": {"file": "king-attack.png", "frames": 6, "columns": 6, "rows": 8}, "tempest": {"file": "king-tempest.png", "frames": 6, "columns": 6, "rows": 8}, "charge": {"file": "king-charge.png", "frames": 6, "columns": 6, "rows": 8}, "shed": {"file": "king-shed.png", "frames": 6, "columns": 6, "rows": 8}, "death": {"file": "king-death.png", "frames": 8, "columns": 8, "rows": 8}}, "pxScale": 1.3333333333333333}}, "icons": {"icon-short_bow": [0, 0, 64, 64], "icon-short_sword": [64, 0, 64, 64], "icon-helm": [128, 0, 64, 64], "icon-leather_coat": [192, 0, 64, 64], "icon-gloves": [0, 64, 64, 64], "icon-boots": [64, 64, 64, 64], "icon-ring": [128, 64, 64, 64], "icon-amulet": [192, 64, 64, 64]}, "ground": {"ground-bow": [0, 0, 48, 32], "ground-melee_weapon": [48, 0, 48, 32], "ground-helm": [96, 0, 48, 32], "ground-armor": [144, 0, 48, 32], "ground-gloves": [0, 32, 48, 32], "ground-boots": [48, 32, 48, 32], "ground-ring": [96, 32, 48, 32], "ground-amulet": [144, 32, 48, 32], "ground-gold": [0, 64, 48, 32], "ground-life_potion": [48, 64, 48, 32], "ground-mana_potion": [96, 64, 48, 32]}}, "img": {"abbot-attack": "img/abbot-attack.65e64e69.webp", "abbot-death": "img/abbot-death.002b15a6.webp", "abbot-fireball-volley": "img/abbot-fireball-volley.8f2c279a.webp", "abbot-hit": "img/abbot-hit.d05b2f59.webp", "abbot-idle": "img/abbot-idle.ed9b66a4.webp", "abbot-walk": "img/abbot-walk.f6edbf0c.webp", "abbot-withering-curse": "img/abbot-withering-curse.582b736d.webp", "archer-attack": "img/archer-attack.ab3dce0a.webp", "archer-death": "img/archer-death.e27fa07e.webp", "archer-hit": "img/archer-hit.d8295eac.webp", "archer-idle": "img/archer-idle.ea799daa.webp", "archer-walk": "img/archer-walk.7b6d0c9e.webp", "ashpriest-attack": "img/ashpriest-attack.09d73301.webp", "ashpriest-cast": "img/ashpriest-cast.09d73301.webp", "ashpriest-death": "img/ashpriest-death.9a364a41.webp", "ashpriest-hit": "img/ashpriest-hit.3129444a.webp", "ashpriest-idle": "img/ashpriest-idle.aad6abd1.webp", "ashpriest-walk": "img/ashpriest-walk.279b81c3.webp", "bonewalker-attack": "img/bonewalker-attack.271d1493.webp", "bonewalker-death": "img/bonewalker-death.77367e5c.webp", "bonewalker-hit": "img/bonewalker-hit.66f393b5.webp", "bonewalker-idle": "img/bonewalker-idle.a4871bcf.webp", "bonewalker-walk": "img/bonewalker-walk.6e5564c8.webp", "corvin-idle": "img/corvin-idle.5df605f4.webp", "floor-ash": "img/floor-ash.ecc6bd6a.webp", "floor-blood": "img/floor-blood.9c80fe1b.webp", "floor-cracked": "img/floor-cracked.07f30265.webp", "floor-moss": "img/floor-moss.c75eeaea.webp", "floor-rubble": "img/floor-rubble.d619676b.webp", "floor-rune": "img/floor-rune.3bae6715.webp", "floor-stone-b": "img/floor-stone-b.e42fd834.webp", "floor-stone": "img/floor-stone.95b88900.webp", "fo-grass-a": "img/fo-grass-a.2656714d.webp", "fo-grass-b": "img/fo-grass-b.61d71636.webp", "fo-grass-bones": "img/fo-grass-bones.f0a7bb96.webp", "fo-grass-dirt": "img/fo-grass-dirt.d29a1d85.webp", "fo-grass-flowers": "img/fo-grass-flowers.47c7c0d4.webp", "fo-grass-mud": "img/fo-grass-mud.03640e71.webp", "fo-grass-rune": "img/fo-grass-rune.5f89b225.webp", "fo-grass-stones": "img/fo-grass-stones.619a1c63.webp", "fo-grass-tall": "img/fo-grass-tall.c50ef450.webp", "fo-hedge-straight": "img/fo-hedge-straight.365f8b19.webp", "fo-hedge-thorn-l": "img/fo-hedge-thorn-l.97fabb29.webp", "fo-hedge-thorn-r": "img/fo-hedge-thorn-r.c067f2d1.webp", "fo-path-dirt": "img/fo-path-dirt.b0bcd5c9.webp", "fo-ruinwall-ivy-l": "img/fo-ruinwall-ivy-l.217186a1.webp", "fo-ruinwall-ivy-r": "img/fo-ruinwall-ivy-r.d098f30b.webp", "fo-ruinwall-lantern-l": "img/fo-ruinwall-lantern-l.710a860c.webp", "fo-ruinwall-lantern-r": "img/fo-ruinwall-lantern-r.a0e96808.webp", "fo-ruinwall-straight": "img/fo-ruinwall-straight.fcab829c.webp", "gate-sealed": "img/gate-sealed.ce7fa27b.webp", "gnawer-attack": "img/gnawer-attack.f6b8801a.webp", "gnawer-death": "img/gnawer-death.32856918.webp", "gnawer-hit": "img/gnawer-hit.a386f126.webp", "gnawer-idle": "img/gnawer-idle.1753e424.webp", "gnawer-walk": "img/gnawer-walk.d0d55dec.webp", "ground-amulet": "img/ground-amulet.142ec957.webp", "ground-armor": "img/ground-armor.ca59c3d6.webp", "ground-battle-axe": "img/ground-battle-axe.d78ab777.webp", "ground-boots": "img/ground-boots.4a7a4f57.webp", "ground-bow": "img/ground-bow.d19589dd.webp", "ground-gloves": "img/ground-gloves.d6505e47.webp", "ground-gold": "img/ground-gold.a2db1938.webp", "ground-hand-axe": "img/ground-hand-axe.0204b02f.webp", "ground-helm": "img/ground-helm.9e850fbf.webp", "ground-life_potion": "img/ground-life_potion.ba13f067.webp", "ground-mana_potion": "img/ground-mana_potion.95cbe604.webp", "ground-marrowcleaver": "img/ground-marrowcleaver.e3f57f50.webp", "ground-melee_weapon": "img/ground-melee_weapon.dc677a40.webp", "ground-ring": "img/ground-ring.e46327c3.webp", "ground-staff": "img/ground-staff.dab4d437.webp", "ground-war-axe": "img/ground-war-axe.ca8ef3be.webp", "hl-hell-ash": "img/hl-hell-ash.a73ed6d5.webp", "hl-hell-basalt-a": "img/hl-hell-basalt-a.5e0bb147.webp", "hl-hell-basalt-b": "img/hl-hell-basalt-b.0e2082ec.webp", "hl-hell-blood": "img/hl-hell-blood.6954a8e3.webp", "hl-hell-bones": "img/hl-hell-bones.004b697a.webp", "hl-hell-cracks": "img/hl-hell-cracks.73df4ed8.webp", "hl-hell-pillar": "img/hl-hell-pillar.43a2bc0f.webp", "hl-hell-rune": "img/hl-hell-rune.4967bdb0.webp", "hl-hell-scorched": "img/hl-hell-scorched.2463b302.webp", "hl-hell-tiles": "img/hl-hell-tiles.53593703.webp", "hl-hell-wall-brazier-l": "img/hl-hell-wall-brazier-l.ed14d3b0.webp", "hl-hell-wall-brazier-r": "img/hl-hell-wall-brazier-r.d0819ae0.webp", "hl-hell-wall-gate": "img/hl-hell-wall-gate.328ce3d9.webp", "hl-hell-wall-spikes-l": "img/hl-hell-wall-spikes-l.16f6c77c.webp", "hl-hell-wall-spikes-r": "img/hl-hell-wall-spikes-r.bd02b256.webp", "hl-hell-wall-straight": "img/hl-hell-wall-straight.43e9ed74.webp", "hl-hell-wall-veins-l": "img/hl-hell-wall-veins-l.d7a5a762.webp", "hl-hell-wall-veins-r": "img/hl-hell-wall-veins-r.065898e0.webp", "hl-lava-a": "img/hl-lava-a.02f2c8fc.webp", "hl-lava-anim-0": "img/hl-lava-anim-0.755a8d68.webp", "hl-lava-anim-1": "img/hl-lava-anim-1.eebefe62.webp", "hl-lava-anim-2": "img/hl-lava-anim-2.45151e3b.webp", "hl-lava-anim-3": "img/hl-lava-anim-3.7067d000.webp", "hl-lava-b": "img/hl-lava-b.0f438984.webp", "icon-amulet": "img/icon-amulet.75ccabe1.webp", "icon-battle-axe": "img/icon-battle-axe.34e2bbca.webp", "icon-boots": "img/icon-boots.60c38afc.webp", "icon-gloves": "img/icon-gloves.9c1b47fb.webp", "icon-hand-axe": "img/icon-hand-axe.575b8b5f.webp", "icon-helm": "img/icon-helm.d14f1acd.webp", "icon-leather_coat": "img/icon-leather_coat.de9dbc0b.webp", "icon-marrowcleaver": "img/icon-marrowcleaver.432bfb4e.webp", "icon-ring": "img/icon-ring.cfb7ec66.webp", "icon-short_bow": "img/icon-short_bow.8e8b0b15.webp", "icon-short_sword": "img/icon-short_sword.0c8e1084.webp", "icon-staff": "img/icon-staff.43e6eae1.webp", "icon-war-axe": "img/icon-war-axe.ee78caab.webp", "judge-attack": "img/judge-attack.11de536d.webp", "judge-death": "img/judge-death.0e2e0e5a.webp", "judge-hit": "img/judge-hit.d2b4c18f.webp", "judge-idle": "img/judge-idle.425be111.webp", "judge-judgement": "img/judge-judgement.9c9098c4.webp", "judge-step": "img/judge-step.778a114b.webp", "judge-walk": "img/judge-walk.875798d7.webp", "judgement-pillar": "img/judgement-pillar.114e0bef.webp", "keeper-idle": "img/keeper-idle.ad66c5b4.webp", "king-attack": "img/king-attack.a9c3f73e.webp", "king-blade": "img/king-blade.5c744c41.webp", "king-charge": "img/king-charge.cd8625ea.webp", "king-death": "img/king-death.843a8b75.webp", "king-hit": "img/king-hit.1016cbb9.webp", "king-idle": "img/king-idle.66500da8.webp", "king-shed": "img/king-shed.05772a04.webp", "king-tempest": "img/king-tempest.f5b9b296.webp", "king-walk": "img/king-walk.ca39652f.webp", "mage-attack": "img/mage-attack.61c27d4c.webp", "mage-cast": "img/mage-cast.c7a0f164.webp", "mage-death": "img/mage-death.08964b78.webp", "mage-hit": "img/mage-hit.3e7cc224.webp", "mage-idle": "img/mage-idle.2a7a5180.webp", "mage-walk": "img/mage-walk.f18d8785.webp", "portal-hell": "img/portal-hell.3795001b.webp", "portal": "img/portal.57b754d2.webp", "prop-barrow-mound": "img/prop-barrow-mound.e13d7a8e.webp", "prop-brazier": "img/prop-brazier.9b1d1a60.webp", "prop-broken-pillar": "img/prop-broken-pillar.7d4ddb2a.webp", "prop-bush": "img/prop-bush.e0971c57.webp", "prop-cart": "img/prop-cart.c4924f08.webp", "prop-chest": "img/prop-chest.32de77b8.webp", "prop-crows": "img/prop-crows.df784b6b.webp", "prop-dead-tree": "img/prop-dead-tree.aa561611.webp", "prop-floor-grate": "img/prop-floor-grate.a68677c7.webp", "prop-gravestone-b": "img/prop-gravestone-b.691e8306.webp", "prop-gravestone": "img/prop-gravestone.a8b770fb.webp", "prop-hell-altar": "img/prop-hell-altar.d99ced31.webp", "prop-hell-bones": "img/prop-hell-bones.449283ac.webp", "prop-hell-brazier": "img/prop-hell-brazier.cf78ff7d.webp", "prop-hell-cage": "img/prop-hell-cage.6382a9f8.webp", "prop-hell-chains": "img/prop-hell-chains.d6930d29.webp", "prop-hell-obelisk": "img/prop-hell-obelisk.c003a6d8.webp", "prop-hell-rocks": "img/prop-hell-rocks.e41a6217.webp", "prop-hell-skulls": "img/prop-hell-skulls.c947c566.webp", "prop-hell-spikes": "img/prop-hell-spikes.639c47ed.webp", "prop-hell-vent": "img/prop-hell-vent.5ea6e6d3.webp", "prop-mushrooms": "img/prop-mushrooms.9d5c14bb.webp", "prop-ritual-altar": "img/prop-ritual-altar.d1e619d9.webp", "prop-rubble-pile": "img/prop-rubble-pile.c19103fe.webp", "prop-skeleton-remains": "img/prop-skeleton-remains.a6b0ae90.webp", "prop-stone-circle": "img/prop-stone-circle.7c560b2a.webp", "prop-throne": "img/prop-throne.093b4440.webp", "prop-urn": "img/prop-urn.2c5f4e3a.webp", "prop-well": "img/prop-well.b0499a70.webp", "stairs-down-grass": "img/stairs-down-grass.97e5898f.webp", "stairs-down-hell": "img/stairs-down-hell.a6b3577b.webp", "stairs-down": "img/stairs-down.9f1f91aa.webp", "stairs-sealed": "img/stairs-sealed.209967f8.webp", "wall-banner-l": "img/wall-banner-l.0a80fbde.webp", "wall-banner-r": "img/wall-banner-r.f106b7e8.webp", "wall-cracked-l": "img/wall-cracked-l.87469f9c.webp", "wall-cracked-r": "img/wall-cracked-r.c145916d.webp", "wall-moss-l": "img/wall-moss-l.234a15aa.webp", "wall-moss-r": "img/wall-moss-r.e752ce90.webp", "wall-straight": "img/wall-straight.b4ea2313.webp", "wall-torch-l": "img/wall-torch-l.b02611a6.webp", "wall-torch-r": "img/wall-torch-r.1e045911.webp", "warrior-attack": "img/warrior-attack.4452b167.webp", "warrior-death": "img/warrior-death.144f40d5.webp", "warrior-hit": "img/warrior-hit.17aed8c6.webp", "warrior-idle": "img/warrior-idle.9bc8af49.webp", "warrior-walk": "img/warrior-walk.3a268ab0.webp"}};</script>
 <script>// ============================================================
@@ -553,6 +553,8 @@ var DATA = {
                   abilities: ['Fireball Volley', 'Withering Curse'] },
     gravewarden: { name: 'The Gravewarden', hp: 225, dmg: [5, 8], speed: 1.9, range: 0.95, atkTime: 0.5, atkCd: 1.5, xp: 320, r: 0.45, ai: 'warden', aggro: 7,
                   abilities: ['Bone Spikes', 'Raise the Dead'] },
+    seer: { name: 'The Pale Seer', hp: 480, dmg: [9, 14], speed: 2.3, range: 7, atkTime: 0.6, atkCd: 1.4, xp: 1100, r: 0.42, ai: 'seer', aggro: 9,
+                  abilities: ['Soul Lances', "Seer's Ward", 'Veil Step', 'Mirror Veil', 'Starfall', 'Blinding Veil'] },
     king: { name: 'The Hollowed King', hp: 430, dmg: [9, 14], speed: 2.0, range: 1.0, atkTime: 0.55, atkCd: 1.4, xp: 600, r: 0.45, ai: 'king', aggro: 8,
                   abilities: ['Blade Tempest', 'Kingsfall Charge', 'Shed the Mantle'] },
     ashpriest:  { name: 'Ash Priest', hp: 16, dmg: [4, 7], speed: 2.0, range: 7,    atkTime: 0.6,  atkCd: 2.3, xp: 20, r: 0.31, ai: 'caster', aggro: 9, boltSpeed: 7.5 },
@@ -846,7 +848,17 @@ var DATA = {
       fx: ['Every 3rd arrow is a spinning mantle blade that passes through every enemy'] },
     { id: 'fallen_throne', name: 'Scepter of the Fallen Throne', base: 'ember_staff', dmg: [24, 51], cls: 'mage', drop: 'king', diffs: ['hell'],
       mods: { dmgPct: [100, 130], ene: [22, 30], darkMin: [12, 16], darkMax: [20, 28], novaBlades: 12 },
-      fx: ['Nova hurls 12 rusted blades outward, each dealing 35% of your hit'] }
+      fx: ['Nova hurls 12 rusted blades outward, each dealing 35% of your hit'] },
+    // The Pale Seer (Hell, for a character around level 45).
+    { id: 'veilsplitter', name: 'Veilsplitter', base: 'executioner_sword', dmg: [33, 66], cls: 'warrior', drop: 'seer', diffs: ['hell'],
+      mods: { dmgPct: [120, 150], str: [22, 30], life: [60, 80], tearVeil: 15 },
+      fx: ['Enemies you hit take 15% more damage from everyone for 3s'] },
+    { id: 'seers_gaze', name: "Seer's Gaze", base: 'ember_longbow', dmg: [28, 60], cls: 'archer', drop: 'seer', diffs: ['hell'],
+      mods: { dmgPct: [110, 140], dex: [22, 30], pierce: 1, homing: 1 },
+      fx: ['Arrows pierce 1 more enemy', 'Arrows bend toward enemies in their path'] },
+    { id: 'blind_crystal', name: 'Crystal of the Blind', base: 'ember_staff', dmg: [27, 57], cls: 'mage', drop: 'seer', diffs: ['hell'],
+      mods: { dmgPct: [110, 140], ene: [24, 32], lightMin: [14, 18], lightMax: [26, 34], novaLances: 6 },
+      fx: ['Nova releases 6 soul lances that seek out enemies, each dealing 40% of your hit'] }
   ],
 
   // wclass: which class can wield a weapon
@@ -1123,6 +1135,19 @@ var DATA = {
       charge: { every: 6, windup: 0.7, min: 3, max: 9, speed: 13, mult: 2.6, width: 0.55, recover: 0.8 },
       shed: { at: 0.5, cast: 1.2, dr: 0.8, blades: 16, speed: 1.3, cd: 0.75, chargeEvery: 4.5, tempestEvery: 5.5 },
       reward: { items: 4, minRarity: 2, ilvlBonus: 5, unique: 0.3, gold: [20, 40] }
+    },
+    // Optional Hell boss on level 14-16: a ranged caster in a chamber with pillars. She keeps her distance and
+    // teleports on a timer; far from her the world goes dark and the cold sets in, so the fight is fought up close.
+    seer: {
+      depths: [14, 16], difficulties: ['hell'], scale: 1.8,
+      keep: [4.5, 8],                                                      // the distance she likes to keep
+      lance: { every: 2.8, cast: 0.6, count: 5, spread: 0.26, speed: 6.5, life: 2.6, turn: 0.7, dmg: [1, 3] },
+      ward: { every: 8, cast: 0.7, radius: 1.5, dur: 6, manaDrain: 0.04, chill: 0.6 },
+      veil: { every: 12, cast: 0.8, minJump: 5 },
+      mirror: { at: [0.66, 0.33], copies: 2, hp: 0.06, dmg: 0.4, life: 15 },
+      star: { at: 0.25, every: 12, cast: 3, interval: 0.22, fuse: 1.0, radius: 1.1, dmg: [7, 11] },
+      dark: { near: 5, far: 9, minLight: 2, chillMin: 0.005, chillMax: 0.02, ramp: 3 },
+      reward: { items: 6, minRarity: 2, ilvlBonus: 6, unique: 0.4, gold: [40, 80] }
     },
     abbot: {
       scale: 2.0, escorts: [['bonewalker', 2]],
@@ -1739,6 +1764,7 @@ var Engine = (function () {
       sparkSpeed: (m.sparkSpeed || 0) / 100, prism: !!m.prism, blinkRange: m.blinkRange || 0, novaShield: (m.novaShield || 0) / 100, decayDur: m.decayDur || 0,
       decayKillMana: (m.decayKillMana || 0) / 100, ward: (m.ward || 0) / 100, echoEvery: m.echoEvery || 0,
       cleaveBlades: m.cleaveBlades || 0, mantleEvery: m.mantleEvery || 0, novaBlades: m.novaBlades || 0,
+      tearVeil: (m.tearVeil || 0) / 100, homing: !!m.homing, novaLances: m.novaLances || 0,
       boneWard: (m.boneWard || 0) / 100, boneShards: m.boneShards || 0, killMana: (m.killMana || 0) / 100, novaCost: (m.novaCost || 0) / 100, hitHeal: (m.hitHeal || 0) / 100, noSlow: !!m.noSlow,
       leechRaw: m.leech || 0,
       speed: 4.2 * (1 + (m.run || 0) / 100),
@@ -1916,6 +1942,7 @@ var Engine = (function () {
     S.ossuary = null;
     if (depth === D.bosses.warden.depth && depth < DF.finalDepth) placeWarden(S);
     else if (depth === kingDepth(S) && depth < DF.finalDepth) placeWarden(S, 'king');
+    else if (depth === seerDepthFor(S.seed, S.difficulty) && depth < DF.finalDepth) placeWarden(S, 'seer');
     var i = 0;
     Object.keys(S.players).forEach(function (id) {
       var q = S.players[id];
@@ -1950,11 +1977,23 @@ var Engine = (function () {
     var h = Math.imul((seed >>> 0) ^ (diff === 'hell' ? 0x2c1b3c6d : 0x297a2d39), 0x9e3779b1) >>> 0;
     return K.depths[0] + (h >>> 7) % (K.depths[1] - K.depths[0] + 1);
   }
+  // The Pale Seer's level: 14-16 on Hell, from the seed.
+  function seerDepthFor(seed, diff) {
+    var V = D.bosses.seer; if (V.difficulties.indexOf(diff) < 0) return -1;
+    var h = Math.imul((seed >>> 0) ^ 0x5eedface, 0x85ebca6b) >>> 0;
+    return V.depths[0] + (h >>> 9) % (V.depths[1] - V.depths[0] + 1);
+  }
+  // Stone pillars in the Seer's chamber: walls that block sight and missiles. Clients rebuild them from the ossuary.
+  function applyPillars(map, os) {
+    if (!os || !os.pillars) return;
+    os.pillars.forEach(function (c) { map.t[c[1] * map.W + c[0]] = 0; });
+  }
   // The Gravewarden (and the Hollowed King) takes the largest room that is neither start nor stairs, as far from the start as possible.
   function placeWarden(S, kind) {
     var map = S.map, W = D.bosses[kind || 'warden'], best = -1, bs = -1;
     map.rooms.forEach(function (rm, i) {
       if (i === map.startRoom || i === map.stairsRoom) return;
+      if (kind === 'seer' && (rm.w < 9 || rm.h < 9) && map.rooms.some(function (o, j) { return j !== map.startRoom && j !== map.stairsRoom && o.w >= 9 && o.h >= 9; })) return;
       var cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2, sc = rm.w * rm.h + Math.hypot(cx - map.start.x, cy - map.start.y) * 2;
       if (rm.w >= 5 && rm.h >= 5 && sc > bs) { bs = sc; best = i; }
     });
@@ -1962,6 +2001,20 @@ var Engine = (function () {
     var rm = map.rooms[best], cx = rm.x + rm.w / 2, cy = rm.y + rm.h / 2;
     S.monsters = S.monsters.filter(function (m) { return !(m.x > rm.x - 1 && m.x < rm.x + rm.w + 1 && m.y > rm.y - 1 && m.y < rm.y + rm.h + 1); });
     S.npcs = S.npcs.filter(function (n) { return !(n.x > rm.x - 1 && n.x < rm.x + rm.w + 1 && n.y > rm.y - 1 && n.y < rm.y + rm.h + 1); });
+    if (kind === 'seer') {
+      var sv = addMonster(S, 'seer', cx, cy, false);
+      sv.boss = 'seer'; sv.name = D.monsters.seer.name; sv.traits = D.monsters.seer.abilities.slice();
+      sv.scale = W.scale; sv.lance = 1.5; sv.ward = 5; sv.veil = W.veil.every; sv.star = 0; sv.split = 0; sv.cast = null; sv.noLeech = true;
+      var pil = [];
+      if (rm.w >= 9 && rm.h >= 9) [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (o) {
+        var px = Math.floor(cx + o[0] * (rm.w / 2 - 2.5)), py = Math.floor(cy + o[1] * (rm.h / 2 - 2.5));
+        if (Math.hypot(px + 0.5 - cx, py + 0.5 - cy) > 1.5) pil.push([px, py]);
+      });
+      S.ossuary = { kind: 'seer', x: rm.x, y: rm.y, w: rm.w, h: rm.h, cx: cx, cy: cy, boss: sv.id, pillars: pil };
+      applyPillars(map, S.ossuary);
+      emit(S, { t: 'ossuary', kind: 'seer', name: sv.name });
+      return;
+    }
     if (kind === 'king') {
       var k = addMonster(S, 'king', cx, cy + 0.6, false);
       k.boss = 'king'; k.name = D.monsters.king.name; k.traits = D.monsters.king.abilities.slice();
@@ -2007,6 +2060,113 @@ var Engine = (function () {
     if (m.spikes <= 0 && seen && d < 6) { m.cast = 'spikes'; m.atk = W.spikes.cast; m.spikes = W.spikes.every; emit(S, { t: 'bossCast', id: m.id, name: 'Bone Spikes', x: m.x, y: m.y }); return; }
     if (d <= def.range + m.r + p.r && m.cd <= 0) { m.cast = 'melee'; m.atk = def.atkTime; m.cd = def.atkCd; return; }
     if (d > def.range + m.r + p.r - 0.05) chase(S, m, p, dt, seen);
+  }
+  // ---------- The Pale Seer ----------
+  function seerSpot(S, m, near, minD, maxD) {
+    var os = S.ossuary;
+    for (var k = 0; k < 40; k++) {
+      var x, y;
+      if (os) { x = os.x + 1 + rnd(S.rng) * (os.w - 2); y = os.y + 1 + rnd(S.rng) * (os.h - 2); }
+      else { var a = rnd(S.rng) * 6.283, rr = minD + rnd(S.rng) * (maxD - minD); x = near.x + Math.cos(a) * rr; y = near.y + Math.sin(a) * rr; }
+      var dd = Math.hypot(x - near.x, y - near.y);
+      if (dd >= minD && dd <= maxD && canStand(S.map, x, y, m.r)) return [x, y];
+    }
+    return null;
+  }
+  function seerAI(S, m, p, d, dt) {
+    var V = D.bosses.seer, def = D.monsters.seer, seen = los(S.map, m, p);
+    m.veilOn = true;
+    m.lance -= dt; m.ward -= dt; m.veil -= dt; m.star -= dt;
+    if (m.mirror && S.time > m.mirrorEnd) { m.hp = 0; killMonster(S, m, null); return; }
+    // Mirror Veil: at each threshold she splits; the copies shoot weaker lances and fade after a while.
+    if (!m.mirror && m.split < V.mirror.at.length && m.hp < m.max * V.mirror.at[m.split]) {
+      m.split++;
+      emit(S, { t: 'bossCast', id: m.id, name: 'Mirror Veil', x: m.x, y: m.y });
+      for (var c = 0; c < V.mirror.copies; c++) {
+        var sp = seerSpot(S, m, m, 2.5, 7); if (!sp) continue;
+        var cp = addMonster(S, 'seer', sp[0], sp[1], false);
+        cp.mirror = true; cp.mirrorEnd = S.time + V.mirror.life; cp.hp = cp.max = Math.max(1, Math.round(m.max * V.mirror.hp));
+        cp.dmgMul = m.dmgMul * V.mirror.dmg; cp.xp = 0; cp.scale = m.scale; cp.lance = 0.6 + c * 0.5; cp.ward = 99; cp.veil = 99; cp.star = 99; cp.split = 9;
+        cp.state = 'hunt'; cp.name = m.name; cp.noLeech = true;
+        emit(S, { t: 'mirror', x: sp[0], y: sp[1] });
+      }
+    }
+    if (m.atk > 0) {
+      m.atk -= dt; m.moving = false; m.face = Math.atan2(p.y - m.y, p.x - m.x);
+      if (m.cast === 'channel') {
+        // Starfall: shards rain over the chamber, half of them aimed at the heroes
+        m.starT -= dt;
+        while (m.starT <= 0) {
+          m.starT += V.star.interval;
+          var ids = Object.keys(S.players), tq = S.players[ids[Math.floor(rnd(S.rng) * ids.length)]], spot;
+          if (tq && !tq.dead && rnd(S.rng) < 0.5) spot = [tq.x + (rnd(S.rng) - 0.5) * 1.6, tq.y + (rnd(S.rng) - 0.5) * 1.6];
+          else spot = seerSpot(S, m, m, 0, 9);
+          if (spot && walkable(S.map, spot[0], spot[1]))
+            S.hazards.push({ id: S.nextId++, kind: 'star', x: spot[0], y: spot[1], r: V.star.radius, t: V.star.fuse, fuse: V.star.fuse, dmg: rint(S.rng, V.star.dmg[0], V.star.dmg[1]) * m.dmgMul, lvl: m.lvl });
+        }
+      }
+      if (m.atk > 0) return;
+      if (m.cast === 'lance') {
+        var L = V.lance, a0 = Math.atan2(p.y - m.y, p.x - m.x), half = (L.count - 1) / 2;
+        for (var i = 0; i < L.count; i++) {
+          var a = a0 + (i - half) * L.spread;
+          S.projs.push({ id: S.nextId++, kind: 'lance', from: 'm', owner: m.id, homeP: L.turn, x: m.x + Math.cos(a) * 0.5, y: m.y + Math.sin(a) * 0.5,
+            vx: Math.cos(a) * L.speed, vy: Math.sin(a) * L.speed, life: L.life, dmg: rint(S.rng, L.dmg[0], L.dmg[1]) * m.dmgMul, lvl: m.lvl });
+        }
+        emit(S, { t: 'lances', x: m.x, y: m.y });
+      } else if (m.cast === 'ward') {
+        var n = 0;
+        for (var id in S.players) {
+          var q = S.players[id]; if (q.dead || n >= 2) continue; n++;
+          S.zones.push({ id: S.nextId++, kind: 'ward', x: q.x, y: q.y, r: V.ward.radius, end: S.time + V.ward.dur, dur: V.ward.dur });
+        }
+      } else if (m.cast === 'veil') {
+        var to = seerSpot(S, m, m, V.veil.minJump, 14);
+        if (to) { emit(S, { t: 'veilstep', x0: m.x, y0: m.y, x: to[0], y: to[1] }); m.x = to[0]; m.y = to[1]; m.path = null; }
+      }
+      m.cast = null;
+      return;
+    }
+    if (!m.mirror) {
+      if (m.hp < m.max * V.star.at && m.star <= 0) { m.cast = 'channel'; m.atk = V.star.cast; m.star = V.star.every; m.starT = 0; emit(S, { t: 'bossCast', id: m.id, name: 'Starfall', x: m.x, y: m.y }); return; }
+      if (m.veil <= 0) { m.cast = 'veil'; m.atk = V.veil.cast; m.veil = V.veil.every; return; }
+      if (m.ward <= 0 && seen) { m.cast = 'ward'; m.atk = V.ward.cast; m.ward = V.ward.every; emit(S, { t: 'bossCast', id: m.id, name: "Seer's Ward", x: m.x, y: m.y }); return; }
+    }
+    if (m.lance <= 0 && seen && d < 13) { m.cast = 'lance'; m.atk = V.lance.cast; m.lance = V.lance.every * (m.mirror ? 1.5 : 1); return; }
+    // keep her distance: glide away from whoever is close, come closer if nobody is in reach
+    if (d < V.keep[0]) {
+      var ax = m.x - p.x, ay = m.y - p.y, al = Math.hypot(ax, ay) || 1, stp = mSpeed(S, m) * dt;
+      var mv = moveEntity(S, m, ax / al * stp, ay / al * stp);
+      if (mv < stp * 0.3) moveEntity(S, m, -ay / al * stp, ax / al * stp);   // cornered: slide along the wall
+      m.face = Math.atan2(p.y - m.y, p.x - m.x); m.moving = true;
+    } else if (d > V.keep[1] || !seen) chase(S, m, p, dt, seen);
+  }
+  // Blinding Veil and the Seer's wards, applied to the heroes every tick while she is fighting.
+  function updateSeer(S, dt) {
+    var seer = null;
+    for (var i = 0; i < S.monsters.length; i++) { var m = S.monsters[i]; if (m.boss === 'seer' && !m.mirror && m.veilOn) { seer = m; break; } }
+    var V = D.bosses.seer;
+    for (var id in S.players) {
+      var p = S.players[id]; if (p.dead) { p.veilT = 0; continue; }
+      if (!seer) { if (p.veilT) { p.veilT = 0; p.ver++; } continue; }
+      var dd = Math.hypot(p.x - seer.x, p.y - seer.y), DK = V.dark;
+      if (dd > DK.far) {
+        // Veil's Chill: starts soft and grows over a few seconds, so a sudden teleport is not punished at once
+        p.veilT = (p.veilT || 0) + dt;
+        var k = Math.min(1, p.veilT / DK.ramp), pct = DK.chillMin + (DK.chillMax - DK.chillMin) * k;
+        p.veilAcc = (p.veilAcc || 0) + p.st.maxHp * pct * dt;
+        if (p.veilAcc >= 1 && !S.testGod) { var w = Math.floor(p.veilAcc); p.veilAcc -= w; p.hp -= w; if (p.hp <= 0) { p.hp = 1; hurtPlayer(S, p, 999999, seer.lvl, null); } }
+      } else if (p.veilT) p.veilT = 0;
+    }
+  }
+  // Soul lances bend toward the nearest hero.
+  function steerLance(S, pr, dt) {
+    var best = null, bd = 9;
+    for (var id in S.players) { var q = S.players[id]; if (q.dead) continue; var d = Math.hypot(q.x - pr.x, q.y - pr.y); if (d < bd) { bd = d; best = q; } }
+    if (!best) return;
+    var sp = Math.hypot(pr.vx, pr.vy), want = Math.atan2(best.y - pr.y, best.x - pr.x), cur = Math.atan2(pr.vy, pr.vx);
+    var diff = ((want - cur + Math.PI * 3) % (Math.PI * 2)) - Math.PI, turn = Math.max(-pr.homeP * dt, Math.min(pr.homeP * dt, diff));
+    pr.vx = Math.cos(cur + turn) * sp; pr.vy = Math.sin(cur + turn) * sp;
   }
   // ---------- The Hollowed King ----------
   function kingBlades(S, m, n, a0) {
@@ -2495,7 +2655,7 @@ var Engine = (function () {
   }
   // Bosses of every kind (mini bosses, the Gravewarden, the Judge, the Abbot, the King) ignore crowd control:
   // no knockback, pull, stun, slow or loss of target. Champions (blue) are not bosses and are affected.
-  function ccImmune(m) { return !!m.boss || !!m.under; }
+  function ccImmune(m) { return !!m.boss || !!m.under || !!m.mirror; }
   // Mage: Nova. Lightbinder shields allies (and with Blink jumps first); Voidcaller pulls enemies in and rots them.
   function castNova(S, p, tx, ty) {
     var sk = D.skills.nova, cost = p.st.maxMana * Math.max(0.02, sk.manaPct - nodeVal(p, 'clear_mind') / 100 - (p.st.novaCost || 0));
@@ -2556,6 +2716,14 @@ var Engine = (function () {
     if (hasNode(p, 'sanctuary')) {
       var SN = nodeDef('sanctuary');
       S.zones.push({ id: S.nextId++, kind: 'holy', x: p.x, y: p.y, r: SN.radius, end: S.time + SN.dur, dur: SN.dur, owner: p.id, pct: SN.pct });
+    }
+    if (p.st.novaLances) {   // Crystal of the Blind: pale lances that seek out enemies
+      var nl = p.st.novaLances, ls = R.sparkSpeed * 0.8;
+      for (var li = 0; li < nl; li++) {
+        var la = li * 6.283 / nl + 0.3, lh = rollHit(S, p, 0.4);
+        S.projs.push({ id: S.nextId++, kind: 'spark', pale: true, from: 'p', owner: p.id, x: p.x + Math.cos(la) * 0.4, y: p.y + Math.sin(la) * 0.4, vx: Math.cos(la) * ls, vy: Math.sin(la) * ls,
+          life: 0.9, dmg: lh.dmg, light: lh.light, dark: lh.dark, pierce: 0, keep: 0, hitIds: [], home: true, prism: false, small: true });
+      }
     }
     if (p.st.novaBlades) { var nb = p.st.novaBlades, na = []; for (var bi = 0; bi < nb; bi++) na.push(bi * 6.283 / nb + 0.2); playerBlades(S, p, p.x, p.y, na, 0.35, 0); }
     p.cd = atkCd(p); p.anim = 0.3; p.animK = 'cast';
@@ -2644,6 +2812,7 @@ var Engine = (function () {
     S.projs.push(pr = { id: S.nextId++, kind: 'arrow', from: 'p', owner: p.id, x: p.x + Math.cos(a) * 0.35, y: p.y + Math.sin(a) * 0.35,
       vx: Math.cos(a) * R.arrowSpeed, vy: Math.sin(a) * R.arrowSpeed, life: st.range / R.arrowSpeed + 0.1, dmg: h.dmg, light: h.light, dark: h.dark,
       pierce: (coreOf(p).pierce || 0) + (extraPierce || 0) + (st.pierce || 0), keep: (coreOf(p).pierceKeep || 0.5) + nodeVal(p, 'piercing_light') / 100, hitIds: [] });
+    if (st.homing) pr.home = true;   // Seer's Gaze
     return pr;
   }
   // Mage: a bolt of force that bends a little toward the nearest enemy in its path.
@@ -2726,7 +2895,7 @@ var Engine = (function () {
   // Damage with no hit roll: auras and bleeding. No leech, no ambush, no number popping up.
   function dealRaw(S, m, amt, by, kind) {
     if (m.under) return;
-    m.hpFrac = (m.hpFrac || 0) + amt * (1 - (m.dr || 0));
+    m.hpFrac = (m.hpFrac || 0) + amt * (1 - (m.dr || 0)) * (m.tornT > S.time ? 1 + m.tornPct : 1);
     var whole = Math.floor(m.hpFrac); if (whole <= 0) return;
     m.hpFrac -= whole; m.hp -= whole; m.lastKind = kind; wake(S, m);
     if (kind === 'dark' || kind === 'rip') emit(S, { t: 'dot', id: m.id, v: whole, x: m.x, y: m.y, big: kind === 'rip' || undefined });
@@ -2909,6 +3078,7 @@ var Engine = (function () {
     if (def.ai === 'judge') { judgeAI(S, m, p, d, dt); return; }
     if (def.ai === 'warden') { wardenAI(S, m, p, d, dt); return; }
     if (def.ai === 'king') { kingAI(S, m, p, d, dt); return; }
+    if (def.ai === 'seer') { seerAI(S, m, p, d, dt); return; }
     if (def.ai === 'hound' && houndAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'wraith' && wraithAI(S, m, p, d, dt, def)) return;
     if (def.ai === 'burrower' && burrowAI(S, m, p, d, dt, def)) return;
@@ -3072,6 +3242,7 @@ var Engine = (function () {
       if (p.blN && p.blT > S.time) mult *= 1 + p.blN * nodeDef('bloodlust').pct;
       if (m.markT > S.time && m.markBy !== p.id) mult *= 1 + nodeDef('mark_for_death').pct;
     }
+    if (m.tornT > S.time) mult *= 1 + m.tornPct;   // Veilsplitter: torn enemies take more damage from everyone
     var total = Math.max(1, Math.round((dmg + light) * mult * (1 - (m.dr || 0))));
     m.hp -= total; m.hitT = 0.14; m.blindUntil = 0; m.lastKind = kind; wake(S, m);
     emit(S, { t: 'hit', id: m.id, v: total, light: light > 0, dark: dark > 0, x: m.x, y: m.y, mtype: m.type, ambush: ambush || undefined });
@@ -3082,6 +3253,7 @@ var Engine = (function () {
       if (kind === 'arrow' && coreOf(p).blackPct) dk += total * coreOf(p).blackPct * p.st.darkMul;
       if (dk > 0 && m.hp > 0) { m.darkPool = (m.darkPool || 0) + dk; m.darkEnd = S.time + (p.st.darkDur || R.darkDuration); m.darkBy = p.id; }
       if (p.st.hitHeal) p.hp = Math.min(p.st.maxHp, p.hp + p.st.maxHp * p.st.hitHeal);
+      if (p.st.tearVeil) { m.tornT = S.time + 3; m.tornPct = p.st.tearVeil; }
     }
     if (m.hp <= 0) killMonster(S, m, p);
     return total;
@@ -3120,6 +3292,7 @@ var Engine = (function () {
     emit(S, { t: 'death', x: m.x, y: m.y, mtype: m.type, champ: m.champ, face: m.face, boss: m.boss || null, scale: m.scale || undefined });
     if (m.decay) spreadDecay(S, m);
     onKill(S, m, by);
+    if (m.mirror) return;   // the Seer's copies give nothing
     if (m.boss) {
       emit(S, { t: 'bossDeath', name: m.name, isTrue: m.boss === 'true', x: m.x, y: m.y });
       if (S.seal === m.id) { S.seal = null; if (!S.map.final) emit(S, { t: 'sealBroken' }); }
@@ -3151,7 +3324,7 @@ var Engine = (function () {
       }
       return [m.x, m.y];
     }
-    if (m.boss === 'warden' || m.boss === 'king') {
+    if (m.boss === 'warden' || m.boss === 'king' || m.boss === 'seer') {
       if (S.ossuary) S.ossuary.done = true;
       emit(S, { t: 'wardenDown', kind: m.boss, name: m.name });
     }
@@ -3166,7 +3339,7 @@ var Engine = (function () {
       var n = rnd(r) < (m.champ ? 0.9 : 0.15) ? 1 : 0, minR = 0, ib = m.champ ? 2 : 0;
       if (m.champ && rnd(r) < 0.45) n++;
       if (m.boss === 'mini') { n = 2; minR = 1; ib = 3; }
-      if (m.boss === 'warden' || m.boss === 'king') {
+      if (m.boss === 'warden' || m.boss === 'king' || m.boss === 'seer') {
         var WR = D.bosses[m.boss].reward; n = WR.items; minR = WR.minRarity; ib = WR.ilvlBonus;
         var ilw = S.depth + D.difficulties[S.difficulty].ilvl + ib, got = false;
         // First kill per character and difficulty: that hero's own weapon is guaranteed (when this boss has one here).
@@ -3182,7 +3355,7 @@ var Engine = (function () {
       if (m.boss) for (var g2 = 0; g2 < (m.boss === 'true' ? 4 : 2); g2++) { s = spot(); put(s[0], s[1], { kind: 'gold', amount: rint(r, 10, 20) * S.depth }); }
       for (var i = 0; i < n; i++) {
         var il = S.depth + D.difficulties[S.difficulty].ilvl + ib, UR = D.uniqueRules;
-        putItem(maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR));
+        putItem(maybeUnique(S, il, m.boss === 'warden' || m.boss === 'king' || m.boss === 'seer' ? 0 : m.boss === 'true' ? UR.boss : m.boss ? UR.mini : UR.chance) || genItem(S, il, null, minR));
       }
     }
   }
@@ -3218,6 +3391,7 @@ var Engine = (function () {
       var pr = S.projs[i], sp = Math.hypot(pr.vx, pr.vy), n = Math.max(1, Math.ceil(sp * dt / 0.25)), dead = false;
       for (var k = 0; k < n && !dead; k++) {
         if (pr.home) steerSpark(S, pr, dt / n);
+        if (pr.homeP) steerLance(S, pr, dt / n);
         pr.x += pr.vx * dt / n; pr.y += pr.vy * dt / n;
         if (!sightable(S.map, pr.x, pr.y)) { dead = true; emit(S, { t: 'wall', kind: pr.kind, x: pr.x - pr.vx * dt / n, y: pr.y - pr.vy * dt / n }); break; }
         if (pr.from === 'p') {
@@ -3334,7 +3508,7 @@ var Engine = (function () {
     updateProjectiles(S, dt);
     updateHazards(S, dt);
     updateZones(S, dt);
-    updateDecay(S, dt); updateSparkFx(S, dt);
+    updateDecay(S, dt); updateSparkFx(S, dt); updateSeer(S, dt);
   }
   // Holy ground from Consecrate: heals everyone standing on it.
   function updateZones(S, dt) {
@@ -3343,6 +3517,15 @@ var Engine = (function () {
     for (var i = S.zones.length - 1; i >= 0; i--) {
       var z = S.zones[i];
       if (S.time >= z.end) { S.zones.splice(i, 1); continue; }
+      if (z.kind === 'ward') {   // Seer's Ward: drains mana and chills whoever stands in it
+        for (var wid in S.players) {
+          var wq = S.players[wid];
+          if (wq.dead || Math.hypot(wq.x - z.x, wq.y - z.y) > z.r) continue;
+          wq.mana = Math.max(0, wq.mana - wq.st.maxMana * D.bosses.seer.ward.manaDrain * dt);
+          chill(S, wq, D.bosses.seer.ward.chill);
+        }
+        continue;
+      }
       if (z.kind === 'rain') {
         z.tickT += dt; if (z.tickT < RN.tick) continue; z.tickT -= RN.tick;
         var owner = S.players[z.owner] || null;
@@ -3364,7 +3547,7 @@ var Engine = (function () {
     classOf: classOf, canWield: canWield, targetSlot: targetSlot,
     genUnique: genUnique, uniqueDef: uniqueDef, ascPoints: ascPoints, ascUnspent: ascUnspent, rank: rank, nodeVal: nodeVal, skillOf: skillOf, drawFrac: drawFrac, reviveChannel: reviveChannel, chooseAscendancy: chooseAscendancy, takeNode: takeNode, renounce: renounce, renounceCost: renounceCost, hasNode: hasNode,
     SAVE_VERSION: SAVE_VERSION, genTrial: genTrial, applyGates: applyGates, migrateCharacter: migrateCharacter, isUnlocked: isUnlocked, refresh: refresh, applyFinal: applyFinal, themeFor: themeFor,
-    createSim: createSim, kingDepthFor: kingDepthFor, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
+    createSim: createSim, kingDepthFor: kingDepthFor, seerDepthFor: seerDepthFor, applyPillars: applyPillars, addPlayer: addPlayer, removePlayer: removePlayer, command: command, step: step, genLevel: genLevel,
     newCharacter: newCharacter, characterOf: characterOf, derive: derive, xpToNext: xpToNext,
     itemName: itemName, baseOf: baseOf, genItem: genItem, findPath: findPath,
     walkable: walkable, sightable: sightable, tileAt: tileAt, damageReduction: damageReduction
@@ -3784,9 +3967,26 @@ if (typeof module !== 'undefined') module.exports = Engine;
     if (S) E.command(S, PID, c);
   }
   function me() { return S && S.players[PID]; }
+  // Blinding Veil: while the Pale Seer fights, your light shrinks the further you stand from her.
+  var veilLight = null;
+  function seerOf() { for (var i = 0; S && i < S.monsters.length; i++) { var m = S.monsters[i]; if (m.type === 'seer' && m.boss === 'seer' && m.veilOn) return m; } return null; }
+  function lightTarget(p) {
+    var base = p.st.light, sm = seerOf(); if (!sm) return base;
+    var DK = DATA.bosses.seer.dark, d = Math.hypot(sm.x - p.x, sm.y - p.y);
+    if (d <= DK.near) return base;
+    if (d <= DK.far) return base * (1 - 0.5 * (d - DK.near) / (DK.far - DK.near));
+    return Math.max(DK.minLight, base * 0.5 - (base * 0.5 - DK.minLight) * Math.min(1, (d - DK.far) / 2));
+  }
+  function updateVeilLight(dt) {
+    var p = me(); if (!p || !p.st) return;
+    var want = lightTarget(p);
+    if (veilLight == null) veilLight = want;
+    else veilLight += (want - veilLight) * Math.min(1, dt * 2.5);
+  }
+  function lightOf(p) { return p && p.id === PID && veilLight != null ? veilLight : p.st.light; }
   function nearestVisibleMonster() {
     var p = me(), best = null, bd = 1e9; if (!p) return null;
-    S.monsters.forEach(function (m) { var d = Math.hypot(m.x - p.x, m.y - p.y); if (d < p.st.light + 1 && d < bd) { bd = d; best = m; } });
+    S.monsters.forEach(function (m) { var d = Math.hypot(m.x - p.x, m.y - p.y); if (d < lightOf(p) + 1 && d < bd) { bd = d; best = m; } });
     return best;
   }
   function castSkillAuto() {
@@ -4063,12 +4263,13 @@ if (typeof module !== 'undefined') module.exports = Engine;
         case 'cast': sfx('cast'); break;
         case 'ossuary':
           if (e.kind === 'king') addLog('Rust and old iron hang in the air. A king still holds court on this level.', 'rare');
+          else if (e.kind === 'seer') addLog('The dark here watches back. Someone pale waits among the pillars.', 'rare');
           else addLog('A cold draft rises from the ossuary. Something old keeps watch.', 'rare');
           sfx('stairs'); break;
         case 'raise':
           spray(e.x, e.y, 16, { colors: ['#efe6d2', '#9a8f7a', '#3a3530'], speed: 1.2, up: 140, life: 0.7, size: 2.4, grav: 120 }); break;
         case 'wardenDown':
-          addLog(e.kind === 'king' ? e.name + ' falls. The throne stands empty.' : e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
+          addLog(e.kind === 'king' ? e.name + ' falls. The throne stands empty.' : e.kind === 'seer' ? e.name + ' is blind at last. The veil lifts.' : e.name + ' crumbles. The ossuary is quiet.', 'rare'); sfx('level'); break;
         case 'shards': spray(e.x, e.y, 10, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 2, up: 120, life: 0.4, grav: 300, size: 2 }); sfx('bone'); break;
         case 'tempest':
           swings.push({ x: e.x, y: e.y, face: 0, arc: 6.283, big: true, reach: e.r, t: 0 }); sfx('cleave');
@@ -4099,7 +4300,8 @@ if (typeof module !== 'undefined') module.exports = Engine;
           spray(e.x, e.y, 30, { colors: ['#ff7a5a', '#ffd0a0', '#b02a1a'], speed: 1.4, up: 220, life: 1.1, glow: true, grav: 60, size: 2.5 });
           addLog('A seal breaks. The ash gives back some of your strength.', 'gold'); sfx('stairs'); setDepthLabel(); break;
         case 'hazardBoom':
-          if (e.kind === 'bone') spray(e.x, e.y, 18, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 1.6, up: 220, life: 0.5, grav: 320, size: 2.6 });
+          if (e.kind === 'star') { spray(e.x, e.y, 20, { colors: ['#ffffff', '#cfe8ff', '#8ab8ff'], speed: 2, up: 180, life: 0.6, glow: true, grav: 200, size: 2.4 }); pillars.push({ x: e.x, y: e.y, t: 0, pale: true }); }
+          else if (e.kind === 'bone') spray(e.x, e.y, 18, { colors: ['#f4ecd8', '#cfc3a8', '#7a705e'], speed: 1.6, up: 220, life: 0.5, grav: 320, size: 2.6 });
           else { spray(e.x, e.y, 22, { colors: ['#ffffff', '#d8c8ff', '#9a7aff'], speed: 2.2, up: 160, life: 0.6, glow: true, grav: 200, size: 2.5 }); pillars.push({ x: e.x, y: e.y, t: 0 }); }
           sfx('boom'); break;
         case 'frenzy': floatText(e.x, e.y, 'Frenzied!', '#ff6a4a', true); spray(e.x, e.y, 20, { colors: ['#ff3a2a', '#ff9a6a'], speed: 1.4, up: 160, life: 0.7, glow: true, size: 2.5 }); break;
@@ -4108,6 +4310,11 @@ if (typeof module !== 'undefined') module.exports = Engine;
           spray(e.x, e.y, 16, { colors: bc, speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
           spray(e.x2, e.y2, 16, { colors: bc, speed: 1, up: 120, life: 0.6, glow: true, grav: -40, size: 2.5 });
           sfx('cast'); break;
+        case 'veilstep':
+          [[e.x0, e.y0], [e.x, e.y]].forEach(function (pt) { spray(pt[0], pt[1], 22, { colors: ['#ffffff', '#dfe8ff', '#8aa0d0', '#1a1830'], speed: 1.2, up: 160, life: 0.8, glow: true, grav: -40, size: 2.6, h: 20 }); });
+          sfx('cast'); break;
+        case 'mirror': spray(e.x, e.y, 18, { colors: ['#ffffff', '#dfe8ff', '#8aa0d0'], speed: 1, up: 140, life: 0.7, glow: true, grav: -30, size: 2.2, h: 20 }); break;
+        case 'lances': sfx('spark'); break;
         case 'leap': spray(e.x, e.y, 8, { colors: ['#5a5048', '#3a332c'], speed: 1, up: 50, life: 0.4, size: 2 }); sfx('swing'); break;
         case 'land': spray(e.x, e.y, 10, { colors: ['#5a5048', '#3a332c'], speed: 1.4, up: 40, life: 0.4, size: 2.2 }); break;
         case 'shieldBlock': spray(e.x, e.y, 7, { colors: ['#ffffff', '#ffe08a', '#c8b89a'], speed: 1.8, up: 120, life: 0.3, glow: true, size: 1.6 }); sfx('bone'); floatText(e.x, e.y, 'Blocked', '#c8b89a'); break;
@@ -4195,11 +4402,11 @@ if (typeof module !== 'undefined') module.exports = Engine;
     var i = Math.round((screenAngle(face) - Math.PI / 2) / (Math.PI / 4));
     return ((i % 8) + 8) % 8;
   }
-  var SPR_ALIAS = { gravewarden: 'bonewalker', grave_hound: 'gnawer', barrow_guard: 'bonewalker', frost_wraith: 'ashpriest', rime_burrower: 'gnawer' };
+  var SPR_ALIAS = { gravewarden: 'bonewalker', grave_hound: 'gnawer', barrow_guard: 'bonewalker', frost_wraith: 'ashpriest', rime_burrower: 'gnawer', seer: 'ashpriest' };
   // Stand-in looks until the painted sheets arrive: [css filter, size]
   var SPR_TINT = { gravewarden: ['brightness(1.35) saturate(0.55) sepia(0.15)', 1], grave_hound: ['grayscale(0.85) brightness(0.75) contrast(1.2)', 1.35],
     barrow_guard: ['sepia(0.7) brightness(0.7) contrast(1.25)', 1.15], frost_wraith: ['hue-rotate(185deg) saturate(0.7) brightness(1.5)', 1],
-    rime_burrower: ['hue-rotate(175deg) saturate(1.6) brightness(1.35)', 1.25] };
+    rime_burrower: ['hue-rotate(175deg) saturate(1.6) brightness(1.35)', 1.25], seer: ['grayscale(0.7) brightness(1.9) sepia(0.2) hue-rotate(170deg)', 1] };
   // Rows in the generated hero sheets that face the wrong way: draw the mirrored opposite row instead.
   // Archer SW is painted facing SE; warrior SE is painted facing SW. (rows: S SW W NW N NE E SE)
   // Mage SE (idle and walk) is painted facing SW, so walking diagonally flipped her back and forth.
@@ -4330,6 +4537,8 @@ if (typeof module !== 'undefined') module.exports = Engine;
     var own = hasSprite0(m.type), actor = own ? m.type : (SPR_ALIAS[m.type] || m.type), dir = dirIndex(m.face || 0), off = (m.id || 0) % 7, extra = 1;
     if (m.leapFly > 0) ctx.translate(0, -10);          // a hound in mid-leap
     var tint = !own && SPR_TINT[m.type];
+    if (m.type === 'seer') { ctx.translate(0, -5 - 2.5 * Math.sin(gameTime * 2.2 + (m.id || 0))); if (m.mirror) ctx.globalAlpha *= 0.55 + 0.15 * Math.sin(gameTime * 6 + m.id); }
+    if (own && m.type === 'seer') return drawSeer(m, dir, off);
     if (tint) { ctx.filter = tint[0]; try { return drawMonsterSprite0(m, actor, dir, off, tint[1]); } finally { ctx.filter = 'none'; } }
     return drawMonsterSprite0(m, actor, dir, off, extra);
   }
@@ -4358,6 +4567,20 @@ if (typeof module !== 'undefined') module.exports = Engine;
     if (m.hitT > 0) return drawSprite(actor, 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
     if (m.moving) return drawWalk(actor, dir, extra, actor === 'gnawer' ? 12 : 8, off);
     return drawIdle(actor, dir, extra, off);
+  }
+  // The Pale Seer (own sheets, when painted): each cast has its own animation.
+  function drawSeer(m, dir, off) {
+    var V = DATA.bosses.seer, A = SPR.meta.actors.seer.animations, extra = m.scale ? 1 / m.scale : 1, fs = SPR.meta.actors.seer.frameSize;
+    if (!fs || fs < 160) extra = 1;
+    var casts = { lance: ['cast', V.lance.cast], ward: ['ward', V.ward.cast], veil: ['veilstep', V.veil.cast], channel: ['channel', V.star.cast] };
+    if (m.atk > 0 && casts[m.cast]) {
+      var an = A[casts[m.cast][0]] ? casts[m.cast][0] : 'cast';
+      if (an === 'channel') return drawSprite('seer', an, dir, Math.floor(gameTime * 8) % (A.channel.frames || 6), extra);
+      return drawSprite('seer', an, dir, onceFrame('seer', an, 1 - m.atk / casts[m.cast][1]), extra);
+    }
+    if (m.hitT > 0 && A.hit) return drawSprite('seer', 'hit', dir, m.hitT > 0.07 ? 0 : 1, extra);
+    if (m.moving && A.move) return drawSprite('seer', 'move', dir, Math.floor(gameTime * 8 + off) % (A.move.frames || 8), extra);
+    return drawIdle('seer', dir, extra, off);
   }
   // The Hollowed King: Blade Tempest spins, Kingsfall Charge winds up and runs, Shed the Mantle bursts.
   function drawKing(m, dir, extra, off) {
@@ -4508,6 +4731,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
       var os = S.ossuary, fl = envFloor(hash(tx, ty));
       if (os && tx >= os.x && tx < os.x + os.w && ty >= os.y && ty < os.y + os.h) {
         if (os.kind === 'king') fl = hash(tx, ty) % 6 < 4 ? 'floor-stone-b' : 'floor-cracked';
+        else if (os.kind === 'seer') fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 7 < 5 ? 'floor-stone-b' : 'floor-cracked');
         else fl = Math.floor(os.cx) === tx && Math.floor(os.cy) === ty ? 'floor-rune' : (hash(tx, ty) % 5 < 3 ? 'floor-cracked' : 'floor-ash');
       }
       ctx.drawImage(sprImg[fl], fx, fy, 128 * se, 64 * se);
@@ -4953,12 +5177,13 @@ if (typeof module !== 'undefined') module.exports = Engine;
     var p = me(), pp = lerpE(p), map = S.map, W = map.W, H = map.H, t = gameTime;
     var camY = vh * 0.44;
     oxC = vw / 2 - (pp.x - pp.y) * HW; oyC = camY - (pp.x + pp.y) * HH;
-    var light = p.st.light * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));
+    updateVeilLight(1 / 60); var myLight = lightOf(p);
+    var light = myLight * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));
     // explored tiles
-    var L = Math.ceil(p.st.light) + 1;
+    var L = Math.ceil(myLight) + 1;
     for (var ey = Math.floor(pp.y) - L; ey <= Math.floor(pp.y) + L; ey++) for (var ex = Math.floor(pp.x) - L; ex <= Math.floor(pp.x) + L; ex++) {
       if (ex < 0 || ey < 0 || ex >= W || ey >= H) continue;
-      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= p.st.light + 0.5) explored[ey * W + ex] = 1;
+      if (Math.hypot(ex + 0.5 - pp.x, ey + 0.5 - pp.y) <= myLight + 0.5) explored[ey * W + ex] = 1;
     }
     var marg = 80 * Z;
     function onScreen(tx, ty) { var x = sx(tx + 0.5, ty + 0.5), y = sy(tx + 0.5, ty + 0.5); return x > -marg && x < vw + marg && y > -marg && y < vh + marg * 2; }
@@ -4979,6 +5204,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
     }
     corpses.forEach(drawCorpse);
     (S.hazards || []).forEach(function (h) {
+      if (h.kind === 'star') return;   // drawn in the glow pass, so it shows through the Seer's darkness
       var cx = sx(h.x, h.y), cy = sy(h.x, h.y), rx = h.r * HW * 1.414, ry = h.r * HH * 1.414, k = 1 - Math.max(0, h.t) / h.fuse;
       ctx.save();
       var bone = h.kind === 'bone';
@@ -5009,6 +5235,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
       var cx = sx(z.x, z.y), cy = sy(z.x, z.y), rx = z.r * HW * 1.414, ry = z.r * HH * 1.414;
       var left = Math.max(0, (z.end - (S.time || 0)) / (z.dur || 3)), a = Math.min(1, left * 3);
       if (z.kind === 'rain') { drawRain(z, cx, cy, rx, ry, a); return; }
+      if (z.kind === 'ward') return;   // glow pass
       ctx.save();
       var zg = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx);
       zg.addColorStop(0, 'rgba(255,230,150,' + (0.32 * a) + ')'); zg.addColorStop(0.7, 'rgba(240,200,100,' + (0.16 * a) + ')'); zg.addColorStop(1, 'rgba(240,200,100,0)');
@@ -5025,7 +5252,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
       drawFallen(q, t);
       if (id !== PID) deadHits.push({ id: id, sx: sx(q.x, q.y), sy: sy(q.x, q.y) - 6 * Z, r: 22 * Z });
     });
-    var vis = p.st.light + 0.6;
+    var vis = myLight + 0.6;
     S.ground.forEach(function (g) { if (mine(g) && Math.hypot(g.x - pp.x, g.y - pp.y) < vis) drawGroundGlyph(g); });
     // depth-sorted
     var list = [];
@@ -5075,6 +5302,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
           ctx.strokeStyle = 'rgba(230,70,40,' + (0.55 + 0.25 * Math.sin(t * 3)) + ')'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(0, 0, 18 * (e.scale || 1), 8 * (e.scale || 1), 0, 0, 6.283); ctx.stroke();
           ctx.scale(e.scale || 1, e.scale || 1);
         }
+        if (it.k === 'm' && e.mirror) ctx.scale(e.scale || 1, e.scale || 1);
         if (it.k === 'm' && e.champ) { ctx.strokeStyle = 'rgba(142,168,255,' + (0.5 + 0.25 * Math.sin(t * 4)) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, 0, 14, 6, 0, 0, 6.283); ctx.stroke(); }
         if (it.k === 'm' && e.id === hoverId) { ctx.strokeStyle = 'rgba(220,60,50,0.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(0, 0, 13, 5.5, 0, 0, 6.283); ctx.stroke(); }
         if (it.k === 'n') {
@@ -5164,13 +5392,49 @@ if (typeof module !== 'undefined') module.exports = Engine;
       });
       ctx.restore();
     }
+    // The Pale Seer's telegraphs glow through her darkness: wards, falling stars and soul lances.
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    (S.zones || []).forEach(function (z) {
+      if (z.kind !== 'ward') return;
+      var cx = sx(z.x, z.y), cy = sy(z.x, z.y), rx = z.r * HW * 1.414, ry = z.r * HH * 1.414;
+      var left = Math.max(0, (z.end - (S.time || 0)) / (z.dur || 3)), a = Math.min(1, left * 3), pu = 0.5 + 0.5 * Math.sin(gameTime * 5 + z.id);
+      var wg = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx);
+      wg.addColorStop(0, 'rgba(90,150,255,' + (0.10 * a) + ')'); wg.addColorStop(0.75, 'rgba(110,170,255,' + ((0.16 + 0.08 * pu) * a) + ')'); wg.addColorStop(1, 'rgba(110,170,255,0)');
+      ctx.save(); ctx.translate(cx, cy); ctx.scale(1, ry / rx); ctx.translate(-cx, -cy);
+      ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(cx, cy, rx, 0, 6.283); ctx.fill(); ctx.restore();
+      ctx.strokeStyle = 'rgba(170,210,255,' + ((0.45 + 0.35 * pu) * a) + ')'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
+      ctx.strokeStyle = 'rgba(220,235,255,' + (0.3 * a) + ')'; ctx.lineWidth = 1 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.6, ry * 0.6, gameTime * 0.8, 0, 6.283); ctx.stroke();
+      if (Math.random() < 0.3 * a) { var wa = Math.random() * 6.283; spray(z.x + Math.cos(wa) * z.r, z.y + Math.sin(wa) * z.r, 1, { colors: ['#cfe0ff', '#8ab0ff'], speed: 0.1, up: 40, life: 0.8, glow: true, grav: -20, size: 1.6 }); }
+    });
+    (S.hazards || []).forEach(function (h) {
+      if (h.kind !== 'star') return;
+      var cx = sx(h.x, h.y), cy = sy(h.x, h.y), rx = h.r * HW * 1.414, ry = h.r * HH * 1.414, k = 1 - Math.max(0, h.t) / h.fuse;
+      ctx.fillStyle = 'rgba(180,210,255,' + (0.10 + 0.25 * k) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy, rx * k, ry * k, 0, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = 'rgba(225,238,255,' + (0.55 + 0.4 * Math.sin(gameTime * 18) * k) + ')'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
+      // the star itself, falling toward its mark
+      var fy = cy - (1 - k) * 140 * Z, fg = ctx.createRadialGradient(cx, fy, 0, cx, fy, 9 * Z);
+      fg.addColorStop(0, 'rgba(255,255,255,0.95)'); fg.addColorStop(0.4, 'rgba(170,205,255,0.7)'); fg.addColorStop(1, 'rgba(120,160,255,0)');
+      ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, fy, 9 * Z, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = 'rgba(200,225,255,0.35)'; ctx.lineWidth = 2 * Z; ctx.beginPath(); ctx.moveTo(cx, fy - 30 * Z); ctx.lineTo(cx, fy); ctx.stroke();
+    });
+    S.projs.forEach(function (pr) {
+      if (pr.kind !== 'lance') return;
+      var ll = lerpE(pr), lx = sx(ll.x, ll.y), ly = sy(ll.x, ll.y) - 18 * Z, lsp = Math.hypot(pr.vx, pr.vy) || 1;
+      var tx2 = sx(ll.x - pr.vx / lsp * 0.7, ll.y - pr.vy / lsp * 0.7), ty2 = sy(ll.x - pr.vx / lsp * 0.7, ll.y - pr.vy / lsp * 0.7) - 18 * Z;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(140,180,255,0.35)'; ctx.lineWidth = 7 * Z; ctx.beginPath(); ctx.moveTo(tx2, ty2); ctx.lineTo(lx, ly); ctx.stroke();
+      ctx.strokeStyle = 'rgba(235,245,255,0.95)'; ctx.lineWidth = 2.2 * Z; ctx.beginPath(); ctx.moveTo(tx2, ty2); ctx.lineTo(lx, ly); ctx.stroke();
+      var lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, 8 * Z); lg.addColorStop(0, 'rgba(255,255,255,1)'); lg.addColorStop(1, 'rgba(140,180,255,0)');
+      ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(lx, ly, 8 * Z, 0, 6.283); ctx.fill();
+    });
+    ctx.restore();
     // fireballs and embers shine through the dark
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     S.projs.forEach(function (pr) {
       if (pr.kind === 'spark') {
         var sl = lerpE(pr), spx = sx(sl.x, sl.y), spy = sy(sl.x, sl.y) - 18 * Z, srr = (pr.small ? 7 : 10) * Z;
         var sg = ctx.createRadialGradient(spx, spy, 0, spx, spy, srr);
-        sg.addColorStop(0, 'rgba(255,255,255,1)'); sg.addColorStop(0.35, pr.dark ? 'rgba(170,120,255,0.9)' : pr.light ? 'rgba(255,230,150,0.9)' : 'rgba(140,190,255,0.9)'); sg.addColorStop(1, 'rgba(90,120,255,0)');
+        sg.addColorStop(0, 'rgba(255,255,255,1)'); sg.addColorStop(0.35, pr.pale ? 'rgba(200,225,255,0.9)' : pr.dark ? 'rgba(170,120,255,0.9)' : pr.light ? 'rgba(255,230,150,0.9)' : 'rgba(140,190,255,0.9)'); sg.addColorStop(1, 'rgba(90,120,255,0)');
         ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(spx, spy, srr, 0, 6.283); ctx.fill();
         if (Math.random() < 0.5) parts.push({ x: sl.x, y: sl.y, h: 18, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, vh: 10, life: 0.3, max: 0.3, c: '#aac8ff', s: 1.6, glow: true, grav: -10 });
         return;
@@ -5230,7 +5494,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
     items.forEach(function (g) {
       var txt, col;
       if (g.stairs) { txt = S.seal ? 'Stairs down · sealed' : 'Stairs down'; col = S.seal ? '#ff8a6a' : '#e8dfcf'; }
-      else if (g.ossuary) { txt = S.ossuary && S.ossuary.kind === 'king' ? 'Throne Room · The Hollowed King' : 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
+      else if (g.ossuary) { txt = S.ossuary && S.ossuary.kind === 'king' ? 'Throne Room · The Hollowed King' : S.ossuary && S.ossuary.kind === 'seer' ? "Seer's Chamber · The Pale Seer" : 'Ossuary · The Gravewarden'; col = '#ff8a6a'; }
       else if (g.npc) { txt = g.npc.name; col = g.npc.kind === 'keeper' ? '#d8c2ff' : '#ffd98a'; }
       else if (g.fallen) {
         var left = Math.ceil(R.reviveDelay - ((S.time || 0) - (g.fallen.deadAt || 0)));
@@ -5358,7 +5622,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
     cv.classList.toggle('hover-enemy', !!hoverId || (!mouse.touch && !!npcAt(mouse.x, mouse.y)));
     var tm = hm && !mouse.touch ? hm : (p.order && p.order.t === 'attack' ? S.monsters.filter(function (m) { return m.id === p.order.id; })[0] : null);
     var bossNear = null;
-    S.monsters.forEach(function (m) { if (m.boss && Math.hypot(m.x - p.x, m.y - p.y) < p.st.light + 4) bossNear = m; });
+    S.monsters.forEach(function (m) { if (m.boss && Math.hypot(m.x - p.x, m.y - p.y) < Math.max(lightOf(p), m.boss === 'seer' ? 12 : 0) + 4) bossNear = m; });
     musicBossNear = !!bossNear;
     if (bossNear) {
       $('bossBar').hidden = false; $('bossBar').classList.toggle('true', bossNear.boss === 'true' || bossNear.boss === 'trial');
@@ -5735,7 +5999,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
       else { var lite = { id: id }; LITE.forEach(function (k) { lite[k] = p[k]; }); lite.x = r2(p.x); lite.y = r2(p.y); players[id] = lite; }
     });
     var cx = me2 ? me2.x : S.map.start.x, cy = me2 ? me2.y : S.map.start.y;
-    var mons = S.monsters.filter(function (m) { return Math.abs(m.x - cx) < 18 && Math.abs(m.y - cy) < 18; }).map(function (m) {
+    var mons = S.monsters.filter(function (m) { return (Math.abs(m.x - cx) < 18 && Math.abs(m.y - cy) < 18) || m.boss === 'seer'; }).map(function (m) {
       var o = { id: m.id, type: m.type, x: r2(m.x), y: r2(m.y), r: m.r, hp: m.hp, max: m.max, champ: m.champ, face: r2(m.face), moving: m.moving, atk: r2(m.atk), hitT: r2(m.hitT) };
       if (m.boss) { o.boss = m.boss; o.name = m.name; o.traits = m.traits; o.scale = m.scale; o.cast = m.cast; o.aura = m.aura; }
       if (m.markT > S.time) o.mark = 1;
@@ -5746,10 +6010,14 @@ if (typeof module !== 'undefined') module.exports = Engine;
       if (m.under) o.under = 1;
       if (m.leapFly > 0) o.leapFly = 1;
       if (m.shed) o.shed = 1;
+      if (m.veilOn) o.veilOn = 1;
+      if (m.mirror) { o.scale = m.scale; o.cast = m.cast; }
+      if (m.mirror) o.mirror = 1;
+      if (m.tornT > S.time) o.torn = 1;
       if (m.cast === 'chargeWind') { o.cdx = r2(m.cdx); o.cdy = r2(m.cdy); o.cleft = r2(m.cleft); }
       return o;
     });
-    var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner, mantle: pr.mantle }; });
+    var projs = S.projs.map(function (pr) { return { id: pr.id, kind: pr.kind, big: pr.big, x: r2(pr.x), y: r2(pr.y), vx: pr.vx, vy: pr.vy, fire: pr.fire, light: pr.light, dark: pr.dark, owner: pr.owner, mantle: pr.mantle, pale: pr.pale, small: pr.small }; });
     var msg = { t: 'snap', hazards: S.hazards || [], ossuary: S.ossuary || null, seed: S.seed, depth: S.depth, difficulty: S.difficulty, final: !!S.map.final, time: S.time, seal: S.seal, players: players, monsters: mons, projs: projs, npcs: S.npcs, zones: S.zones || [], ev: pendingEv };
     var gk = S.depth + ':' + S.ground.map(function (g) { return g.id; }).join(',');
     if (gk !== conn.groundKey) { conn.groundKey = gk; msg.ground = S.ground; }
@@ -5836,6 +6104,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
     S.time = m.time || 0; S.seal = m.seal || null; S.players = np; S.monsters = m.monsters; S.projs = m.projs; S.npcs = m.npcs || []; S.zones = m.zones || [];
     if (m.ground) S.ground = m.ground;
     S.hazards = m.hazards || []; S.ossuary = m.ossuary || null;
+    if (S.ossuary && S.ossuary.pillars && !S.ossuary.pillarsSet) { E.applyPillars(S.map, S.ossuary); S.ossuary.pillarsSet = true; }
     snapAt = performance.now(); alpha = 0;
     if (!running && S.players[PID] && S.players[PID].st) running = true;
     handleEvents(m.ev || []);
@@ -6114,6 +6383,7 @@ if (typeof module !== 'undefined') module.exports = Engine;
       if (d === fd) notes.push('final boss');
       if (DATA.bosses.warden && DATA.bosses.warden.depth === d && d < fd) notes.push('Gravewarden');
       var KB = DATA.bosses.king; if (KB && KB.difficulties.indexOf(diff) >= 0 && d >= KB.depths[0] && d <= KB.depths[1] && d < fd) notes.push('Hollowed King');
+      var SB = DATA.bosses.seer; if (SB && SB.difficulties.indexOf(diff) >= 0 && d >= SB.depths[0] && d <= SB.depths[1] && d < fd) notes.push('Pale Seer');
       var th = E.themeFor(d, fd); notes.push(THEMES[th] ? THEMES[th].name : th);
       h += '<option value="' + d + '">' + d + (notes.filter(Boolean).length ? ' · ' + notes.filter(Boolean).join(', ') : '') + '</option>';
     }
@@ -6153,6 +6423,9 @@ if (typeof module !== 'undefined') module.exports = Engine;
     var seed = (Math.random() * 2147483647) | 0, KB = DATA.bosses.king;
     if (KB && KB.difficulties.indexOf(diff) >= 0 && depth >= KB.depths[0] && depth <= KB.depths[1])
       for (var ks = 0; ks < 200 && E.kingDepthFor(seed, diff) !== depth; ks++) seed = (Math.random() * 2147483647) | 0;
+    var SB = DATA.bosses.seer;
+    if (SB && SB.difficulties.indexOf(diff) >= 0 && depth >= SB.depths[0] && depth <= SB.depths[1])
+      for (var ss = 0; ss < 200 && E.seerDepthFor(seed, diff) !== depth; ss++) seed = (Math.random() * 2147483647) | 0;
     S = E.createSim(seed, depth, diff);
     S.testGod = TEST.god;
     E.addPlayer(S, PID, hero);
