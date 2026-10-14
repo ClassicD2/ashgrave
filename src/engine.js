@@ -2278,15 +2278,17 @@ var Engine = (function () {
     emit(S, { t: 'shards', x: m.x, y: m.y });
   }
   function steerSpark(S, pr, dt) {
-    var sp = Math.hypot(pr.vx, pr.vy), ux = pr.vx / sp, uy = pr.vy / sp, best = null, bd = 2.6;
+    // Seer's Gaze arrows bend gently: shorter reach, a narrower cone and a slower turn than a Spark
+    var arrow = pr.kind === 'arrow', reach = arrow ? 1.6 : 2.6, cone = arrow ? 0.85 : 0.5, rate = arrow ? 2 : 5;
+    var sp = Math.hypot(pr.vx, pr.vy), ux = pr.vx / sp, uy = pr.vy / sp, best = null, bd = reach;
     for (var j = 0; j < S.monsters.length; j++) {
       var m = S.monsters[j]; if (pr.hitIds.indexOf(m.id) >= 0) continue;
       var dx = m.x - pr.x, dy = m.y - pr.y, d = Math.hypot(dx, dy);
-      if (d < bd && (dx * ux + dy * uy) > d * 0.5) { bd = d; best = m; }
+      if (d < bd && (dx * ux + dy * uy) > d * cone) { bd = d; best = m; }
     }
     if (!best) return;
     var want = Math.atan2(best.y - pr.y, best.x - pr.x), cur = Math.atan2(pr.vy, pr.vx);
-    var diff = ((want - cur + Math.PI * 3) % (Math.PI * 2)) - Math.PI, turn = Math.max(-5 * dt, Math.min(5 * dt, diff));
+    var diff = ((want - cur + Math.PI * 3) % (Math.PI * 2)) - Math.PI, turn = Math.max(-rate * dt, Math.min(rate * dt, diff));
     pr.vx = Math.cos(cur + turn) * sp; pr.vy = Math.sin(cur + turn) * sp;
   }
   function sparkHit(S, pr, m) {
