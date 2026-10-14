@@ -32,8 +32,5 @@ def frost(src, dst, cap=4, top=False):
     rgb = rgb * (1 - k) + white * k
     a[..., :3] = rgb.clip(0, 255)
     Image.fromarray(a.astype(np.uint8)).save(os.path.join(SP, dst + '.webp'), 'WEBP', quality=88, method=6)
-for w in ['wall-straight', 'wall-cracked-l', 'wall-cracked-r', 'wall-moss-l', 'wall-moss-r']:
-    frost(w, 'sn-' + w, cap=3, top=True)
-for p in ['dead-tree', 'rubble-pile', 'broken-pillar', 'gravestone', 'gravestone-b', 'skeleton-remains', 'stone-circle']:
-    if os.path.exists(os.path.join(SP, 'prop-' + p + '.webp')): frost('prop-' + p, 'prop-sn-' + p, cap=3)
+# walls and props now come from the Codex snow kit (tools/install_snow_kit.py)
 print('ok')

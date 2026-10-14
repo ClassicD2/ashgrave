@@ -1078,7 +1078,8 @@
     // Test only (the test menu's snow preview): frozen fields, laid out like the Barrow Fields.
     snow:      { name: 'The Frozen Fields', snow: true, floors: ['sn-a', 'sn-b', 'sn-drift', 'sn-rocks', 'sn-grass', 'sn-steps', 'sn-ice', 'sn-blood', 'sn-rune'],
                  floor: [400, 300, 180, 30, 35, 25, 18, 6, 3],
-                 props: [['sn-dead-tree', 34], ['sn-rubble-pile', 20], ['sn-broken-pillar', 14], ['sn-gravestone', 16], ['sn-gravestone-b', 10], ['sn-skeleton-remains', 10], ['sn-stone-circle', 5]], propChance: 140, openProps: 22 },
+                 stairs: 'stairs-down-snow',
+                 props: [['sn-tree', 30], ['sn-tree-b', 22], ['sn-rocks', 22], ['sn-crystals', 12], ['sn-corpse', 10], ['sn-cairn', 10], ['sn-sled', 6], ['sn-campfire', 6], ['sn-standard', 8], ['sn-wolf', 10], ['sn-shrine', 3]], propChance: 140, openProps: 22 },
     // The last level of every difficulty: the Burning Deep, with lava pools (tile 3) around the halls.
     monastery: { name: 'The Burning Deep', hell: true, stairs: 'stairs-down-hell', portal: 'portal-hell',
                  floors: ['hl-hell-basalt-a', 'hl-hell-basalt-b', 'hl-hell-ash', 'hl-hell-cracks', 'hl-hell-scorched', 'hl-hell-tiles', 'hl-hell-bones', 'hl-hell-blood', 'hl-hell-rune'],
@@ -1111,11 +1112,14 @@
     var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
     return k < 220 ? 'hl-hell-wall-veins' + side : k < 340 ? 'hl-hell-wall-spikes' + side : k < 430 ? 'hl-hell-wall-brazier' + side : 'hl-hell-wall-straight';
   }
+  // Snowbanks and ice-covered rock come in runs (a coarse hash picks which), like hedges and field walls.
   function snowWall(tx, ty, h) {
     var L = isFloor(tx, ty + 1), Rr = isFloor(tx + 1, ty);
-    if (!L && !Rr) return 'sn-wall-straight';
-    var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r', k = (h >>> 3) % 1000;
-    return k < 260 ? 'sn-wall-cracked' + side : k < 380 ? 'sn-wall-moss' + side : 'sn-wall-straight';
+    var bank = hash((tx / 5) | 0, (ty / 5) | 0) % 100 < 55, k = (h >>> 3) % 1000;
+    if (!L && !Rr) return bank ? 'snw-bank-straight' : 'snw-rock-straight';
+    var side = L && Rr ? ((h >>> 9) & 1 ? '-l' : '-r') : L ? '-l' : '-r';
+    if (bank) return k < 200 ? 'snw-bank-drift' + side : k < 270 ? 'snw-bank-bones' + side : 'snw-bank-straight';
+    return k < 220 ? 'snw-rock-icicles' + side : k < 380 ? 'snw-rock-cracked' + side : 'snw-rock-straight';
   }
   function envWall(tx, ty, h) {
     if (theme().snow) return snowWall(tx, ty, h);
@@ -1132,7 +1136,7 @@
   // Props are decoration only: they never block movement, so they sit along the walls, out of the way.
   var PROP_SCALE = { brazier: 0.62, urn: 0.5, 'skeleton-remains': 0.6, 'rubble-pile': 0.6, 'broken-pillar': 0.72, 'floor-grate': 0.62,
     'hell-brazier': 0.62, 'hell-bones': 0.6, 'hell-rocks': 0.65, 'hell-skulls': 0.6, 'hell-spikes': 0.62, 'hell-chains': 0.7, 'hell-vent': 0.6, 'hell-cage': 0.7, 'hell-obelisk': 0.72, 'hell-altar': 0.7,
-    'sn-dead-tree': 0.95, 'sn-rubble-pile': 0.6, 'sn-broken-pillar': 0.72, 'sn-gravestone': 0.55, 'sn-gravestone-b': 0.55, 'sn-skeleton-remains': 0.6, 'sn-stone-circle': 0.85,
+    'sn-tree': 0.95, 'sn-tree-b': 0.9, 'sn-rocks': 0.65, 'sn-crystals': 0.6, 'sn-corpse': 0.6, 'sn-cairn': 0.65, 'sn-sled': 0.7, 'sn-campfire': 0.6, 'sn-standard': 0.7, 'sn-wolf': 0.6, 'sn-shrine': 0.75,
     'dead-tree': 0.95, bush: 0.6, gravestone: 0.55, 'gravestone-b': 0.55, mushrooms: 0.5, 'stone-circle': 0.85, crows: 0.55, 'barrow-mound': 0.8, cart: 0.7, well: 0.7 };
   var propMap = null, propKey = '';
   function buildProps() {
