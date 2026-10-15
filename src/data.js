@@ -601,12 +601,12 @@ var DATA = {
     seer: {
       depths: [14, 16], difficulties: ['hell'], scale: 1.8,
       keep: [3.5, 6.5],                                                      // the distance she likes to keep
-      lance: { every: 2.4, cast: 0.6, count: 5, late: 2, spread: 0.26, speed: 7.5, life: 2.4, turn: 0.9, dmg: [2, 3] },   // late: extra lances below half health
+      lance: { every: 2.4, cast: 0.6, count: 5, late: 2, spread: 0.26, speed: 7.5, life: 2.4, turn: 0.9, dmg: [3, 5] },   // late: extra lances below half health
       ward: { every: 8, cast: 0.7, radius: 1.5, dur: 6, manaDrain: 0.04, chill: 0.6 },
       veil: { every: 9, cast: 0.8, minJump: 5 },
       mirror: { at: [0.66, 0.33], copies: 2, hp: 0.06, dmg: 0.4, life: 15 },
-      star: { at: 0.25, every: 12, cast: 3, interval: 0.22, fuse: 1.0, radius: 1.1, dmg: [7, 11] },
-      dark: { near: 3, far: 6, minLight: 2, chillMin: 0.005, chillMax: 0.02, ramp: 3 },
+      star: { at: 0.25, every: 12, cast: 3, interval: 0.22, fuse: 1.0, radius: 1.1, dmg: [12, 18] },
+      dark: { near: 3, far: 6, minLight: 2, chillMin: 0.008, chillMax: 0.03, ramp: 3 },
       reward: { items: 6, minRarity: 2, ilvlBonus: 6, unique: 0.4, gold: [40, 80] }
     },
     abbot: {
