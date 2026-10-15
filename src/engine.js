@@ -2100,7 +2100,9 @@ var Engine = (function () {
   function onKill(S, m, p) {
     if (!p || p.dead) return;
     if (p.st.darkKillMana && m.lastKind === 'dark') p.mana = Math.min(p.st.maxMana, p.mana + p.st.darkKillMana);
-    if (p.st.decayKillMana && m.byDecay) p.mana = Math.min(p.st.maxMana, p.mana + p.st.maxMana * p.st.decayKillMana);
+    // Voidcaller (and the Rotted Censer): an enemy that dies in your Decay gives mana back
+    var dkm = (p.st.decayKillMana || 0) + (coreOf(p).decayKillMana || 0);
+    if (dkm && (m.byDecay || (m.decay && m.decay.by === p.id && m.decay.end > S.time))) p.mana = Math.min(p.st.maxMana, p.mana + p.st.maxMana * dkm);
     if (p.st.killMana) p.mana = Math.min(p.st.maxMana, p.mana + p.st.maxMana * p.st.killMana);
     if (p.st.boneWard) { p.bwN = Math.min(5, (p.bwT > S.time ? p.bwN : 0) + 1); p.bwT = S.time + 6; p.ver++; }
     if (hasNode(p, 'bloodlust')) {

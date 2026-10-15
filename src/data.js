@@ -185,8 +185,8 @@ var DATA = {
       name: 'Voidcaller', cls: 'mage', side: 'dark', skill: 'nova',
       lore: 'Casts the world away and lets it rot at a distance. What dies in the Decay passes it on.',
       core: { name: 'Decay',
-        desc: 'Nova throws enemies back and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 25% less damage. When an enemy dies in Decay, it passes to an enemy nearby. Nova costs 5% less of your mana. Void Spark: each Spark leaves a stack of rot dealing 45% of the hit as dark damage over 3 seconds, up to 5 stacks on one enemy.',
-        decay: { pct: 0.6, dur: 4, spread: 4.5, weaken: 0.25 }, novaCost: 0.05, voidSpark: { pct: 0.45, dur: 3, max: 5 } },
+        desc: 'Nova throws enemies back and afflicts them with Decay: 60% of your hit as dark damage over 4 seconds. Enemies in Decay deal 25% less damage. When an enemy dies in Decay, it passes to an enemy nearby. Nova costs 5% less of your mana, and every enemy that dies in your Decay gives back 2.5% of your mana. Void Spark: each Spark leaves a stack of rot dealing 45% of the hit as dark damage over 3 seconds, up to 5 stacks on one enemy.',
+        decay: { pct: 0.6, dur: 4, spread: 4.5, weaken: 0.25 }, novaCost: 0.05, decayKillMana: 0.025, voidSpark: { pct: 0.45, dur: 3, max: 5 } },
       nodes: [
         { id: 'virulence', name: 'Virulence', max: 7, per: 8, desc: 'Decay deals +{v}% damage.' },
         { id: 'lingering', name: 'Lingering Rot', max: 6, per: 0.5, desc: 'Decay lasts {v}s longer.' },
