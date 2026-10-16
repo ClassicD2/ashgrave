@@ -624,6 +624,7 @@ var DATA = {
   slotNames: { weapon: 'Weapon', helm: 'Helm', chest: 'Armor', gloves: 'Gloves', boots: 'Boots', ring: 'Left ring', ring2: 'Right ring', amulet: 'Amulet' },
 
   rules: {
+    xpPenalty: { free: 3, full: 10, floor: 0.1 },   // experience from monsters below your level: 100% up to 3 below, 10% at 10 below
     tick: 1 / 30,
     invSize: 32,
     maxPotions: 10,

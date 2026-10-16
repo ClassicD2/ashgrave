@@ -2136,7 +2136,7 @@ var Engine = (function () {
       if (m.boss === 'trial') completeTrial(S, m.x, m.y);
     }
     if (S.trial) {
-      for (var tid in S.players) gainXp(S, S.players[tid], m.xp);
+      for (var tid in S.players) gainXp(S, S.players[tid], m.xp, m.lvl);
       if (m.boss === 'trial') {
         var RW = D.trial.reward, rr = S.rng;
         Object.keys(S.players).forEach(function (oid) {   // each hero gets their own reward
@@ -2150,7 +2150,7 @@ var Engine = (function () {
       }
       return;
     }
-    for (var id in S.players) gainXp(S, S.players[id], m.xp);
+    for (var id in S.players) gainXp(S, S.players[id], m.xp, m.lvl);
     var r = S.rng;
     function spot() {
       for (var k = 0; k < 8; k++) {
@@ -2210,8 +2210,16 @@ var Engine = (function () {
     S.npcs.push({ id: S.nextId++, kind: 'keeper', name: D.keeper.name, x: kx, y: ky, face: Math.atan2(y - ky, x - kx) });
     emit(S, { t: 'difficultyDone', difficulty: S.difficulty, name: D.difficulties[S.difficulty].name, x: kx, y: ky });
   }
-  function gainXp(S, p, xp) {
+  // Monsters far below your level give little: full experience up to 3 levels below you,
+  // then 13% less per level, down to 10% at 10 levels below and further.
+  function xpFactor(plvl, mlvl) {
+    var X = D.rules.xpPenalty, gap = plvl - mlvl;
+    if (mlvl == null || gap <= X.free) return 1;
+    return Math.max(X.floor, 1 - (gap - X.free) * (1 - X.floor) / (X.full - X.free));
+  }
+  function gainXp(S, p, xp, mlvl) {
     if (p.dead) return;
+    xp = Math.round(xp * xpFactor(p.level, mlvl));
     p.xp += xp;
     while (p.xp >= xpToNext(p.level)) {
       p.xp -= xpToNext(p.level); p.level++; p.pts += 5;
